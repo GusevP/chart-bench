@@ -153,15 +153,16 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - Create: `apps/bench/src/playground/lab.ts`
 - Modify: `apps/bench/src/playground/main.tsx`, `apps/bench/src/playground/parse.ts` (add `nudge`), `apps/bench/src/playground/style.css`, `apps/bench/tests/playground.spec.ts`
 
-- [ ] `measureLibrary(frame, library, data, { runs, warmup, query })`: per run reload `frame.src` (`?embed=lab` + passthrough params), await ready, mount, update; drop results with a stale `runId`; cancel and repeat on hidden; 60 s timeout counted while visible
-- [ ] `measureAll(libraries, data)`: shell floor once, then each library in turn; progress callback; Cancel stops after the current message
-- [ ] lab overlay (fixed, native size, `data-lab`), controls disabled while measuring, removed when done
-- [ ] `?libs=` preselects libraries and accepts `calibrate` (hidden from the list); other query params pass through to the lab src
-- [ ] write spec: playground `?libs=calibrate&cost=0` vs `cost=100` → mount `base`/`loaded` within known-cost bounds; `cost=150` → blocking median ≥ 80 ms where LoAF is supported
-- [ ] write spec: polling during a run, at most one of `[data-lab] iframe, .card iframe` exists
-- [ ] write spec: a result posted with the previous `runId` after a new run started is ignored (inject via `page.evaluate` on the lab frame)
-- [ ] write spec: override `document.visibilityState` to `hidden` via `Object.defineProperty` in the parent and dispatch `visibilitychange` mid-run, restore, → run repeated, final sample count still 5
+- [x] `measureLibrary(frame, library, data, { runs, warmup, query })`: per run reload `frame.src` (`?embed=lab` + passthrough params), await ready, mount, update; drop results with a stale `runId`; cancel and repeat on hidden; 60 s timeout counted while visible
+- [x] `measureAll(libraries, data)`: shell floor once, then each library in turn; progress callback; Cancel stops after the current message
+- [x] lab overlay (fixed, native size, `data-lab`), controls disabled while measuring, removed when done
+- [x] `?libs=` preselects libraries and accepts `calibrate` (hidden from the list); other query params pass through to the lab src
+- [x] write spec: playground `?libs=calibrate&cost=0` vs `cost=100` → mount `base`/`loaded` within known-cost bounds; `cost=150` → blocking median ≥ 80 ms where LoAF is supported
+- [x] write spec: polling during a run, at most one of `[data-lab] iframe, .card iframe` exists
+- [x] write spec: a result posted with the previous `runId` after a new run started is ignored (inject via `page.evaluate` on the lab frame)
+- [x] write spec: override `document.visibilityState` to `hidden` via `Object.defineProperty` in the parent and dispatch `visibilitychange` mid-run, restore, → run repeated, final sample count still 5
 - [ ] run tests — must pass before Task 4
+- ⚠️ Deviation: Chrome exposes `long-animation-frame` only to the top-level window, so the embedded observer saw nothing (`blockingMs` was always 0). The mount result now carries `startAt`/`endAt` (timeOrigin-based) instead of `blockingMs`, and the playground (`lab.ts`) observes LoAF itself.
 
 ### Task 4: Results table, bundle size and display cards
 

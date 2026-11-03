@@ -188,3 +188,118 @@ test('a render error is reported with the run id of the mount that threw', async
   expect(error.runId).toBe(7);
   expect(error.message).toContain('calibrate');
 });
+
+async function measureInPlayground(page: Page, query: string, libs: string[]) {
+  await page.goto(`/index.html?${query}`);
+  await page.getByRole('button', { name: 'Render' }).click();
+  return summaries(page, libs);
+}
+
+async function summaries(page: Page, libs: string[]) {
+  const out: Record<string, { n: number; mount: number; update: number; blocking: number | null }> = {};
+  for (const lib of libs) {
+    const li = page.locator(`[data-summaries] li[data-lib="${lib}"]`);
+    await li.waitFor({ timeout: 120_000 });
+    const num = async (name: string) => Number(await li.getAttribute(`data-${name}`));
+    const blocking = await li.getAttribute('data-blocking');
+    out[lib] = {
+      n: await num('samples'),
+      mount: await num('mount'),
+      update: await num('update'),
+      blocking: blocking ? Number(blocking) : null,
+    };
+  }
+  return out;
+}
+
+test('playground lab recovers a known mount cost', async ({ page }) => {
+  const median = async (cost: number) =>
+    (await measureInPlayground(page, `libs=calibrate&cost=${cost}`, ['calibrate'])).calibrate!.mount;
+  const base = await median(0);
+  const loaded = await median(COST);
+  expectKnownCost(base, loaded, await framePeriod(page));
+});
+
+test('playground lab reports main-thread blocking for a long task', async ({ page }) => {
+  const { calibrate } = await measureInPlayground(page, 'libs=calibrate&cost=150', ['calibrate']);
+  const loaf = await page.evaluate(() =>
+    PerformanceObserver.supportedEntryTypes.includes('long-animation-frame'),
+  );
+  test.skip(!loaf, 'LoAF unsupported');
+  expect(calibrate!.n).toBe(5);
+  expect(calibrate!.blocking).toBeGreaterThanOrEqual(80);
+});
+
+test('only the lab frame exists while measuring', async ({ page }) => {
+  await page.goto('/index.html?libs=none,recharts');
+  const counts = page.evaluate(
+    () =>
+      new Promise<number[]>(resolve => {
+        const seen: number[] = [];
+        const id = setInterval(() => {
+          if (document.querySelector('[data-summaries]')) {
+            clearInterval(id);
+            resolve(seen);
+          } else if (document.querySelector('[data-lab]'))
+            seen.push(document.querySelectorAll('[data-lab] iframe, .card iframe').length);
+        }, 5);
+      }),
+  );
+  await page.getByRole('button', { name: 'Render' }).click();
+  const seen = await counts;
+  expect(seen.length).toBeGreaterThan(10);
+  expect(Math.max(...seen)).toBe(1);
+  await expect(page.locator('[data-lab]')).toHaveCount(0);
+});
+
+test('results carrying a stale run id are ignored', async ({ page }) => {
+  await page.goto('/index.html?libs=none');
+  await page.evaluate(() => {
+    const stale = (runId: number) =>
+      [
+        { type: 'bench:result', runId, mode: 'mount', mountMs: 1e6, blockingMs: 0, domNodes: 1 },
+        { type: 'bench:result', runId, mode: 'update', updateMs: 1e6 },
+      ].map(m => `parent.postMessage(${JSON.stringify(m)}, location.origin)`);
+    setInterval(() => {
+      const frame = document.querySelector<HTMLIFrameElement>('[data-lab] iframe');
+      const current = Number(frame?.dataset.runId);
+      if (!frame || !current) return;
+      try {
+        for (const code of stale(current - 1)) (frame.contentWindow as any).eval(code);
+      } catch {}
+    }, 2);
+  });
+  await page.getByRole('button', { name: 'Render' }).click();
+  const { none } = await summaries(page, ['none']);
+  expect(none!.n).toBe(5);
+  expect(none!.mount).toBeLessThan(1000);
+  expect(none!.update).toBeLessThan(1000);
+});
+
+test('a tab hidden mid-run repeats the run and still yields every sample', async ({ page }) => {
+  await page.goto('/index.html?libs=none');
+  await page.evaluate(() => {
+    let state = 'visible';
+    const set = (next: string) => {
+      state = next;
+      document.dispatchEvent(new Event('visibilitychange'));
+    };
+    Object.defineProperty(document, 'visibilityState', { get: () => state, configurable: true });
+    const w = window as unknown as { maxRun: number };
+    w.maxRun = 0;
+    let fired = false;
+    setInterval(() => {
+      const run = Number(document.querySelector<HTMLIFrameElement>('[data-lab] iframe')?.dataset.runId);
+      if (run > w.maxRun) w.maxRun = run;
+      if (run !== 3 || fired) return;
+      fired = true;
+      set('hidden');
+      setTimeout(() => set('visible'), 300);
+    }, 2);
+  });
+  await page.getByRole('button', { name: 'Render' }).click();
+  const { none } = await summaries(page, ['none']);
+  expect(none!.n).toBe(5);
+  // shell + none = 2 libraries x (1 warm-up + 5) runs x 2 ids; an aborted run consumes more
+  expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(24);
+});

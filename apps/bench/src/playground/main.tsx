@@ -5,6 +5,8 @@ import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
 import { ARMS } from '../data/arms';
 import { DATASETS, generateScatter, generateSurvival } from '../data/generate';
 import type { ChartKind, DatasetSize } from '../data/generate';
+import { measureAll } from './lab';
+import type { LibraryResult, Measurements, Summary } from './lab';
 import { formatSeries, parseSeries } from './parse';
 import type { Parsed } from './parse';
 
@@ -17,7 +19,8 @@ const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
   tanstack: 'TanStack Charts',
   chartjs: 'Chart.js (Canvas)',
 };
-type Library = keyof typeof LIBRARIES;
+type Library = keyof typeof LIBRARIES | 'calibrate';
+const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
 
 const sample = (chart: ChartKind, size: DatasetSize) =>
   formatSeries(
@@ -65,7 +68,7 @@ function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
   return (
     <section className="card">
       <header>
-        <h2>{LIBRARIES[library]}</h2>
+        <h2>{LABELS[library]}</h2>
         <small className={status.state === 'error' ? 'error' : undefined}>
           {status.state === 'loading' && 'rendering…'}
           {status.state === 'done' && `${status.ms.toFixed(0)} ms to paint`}
@@ -73,26 +76,112 @@ function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
         </small>
       </header>
       <div className="frame">
-        <iframe ref={ref} src={`${library}.html`} title={LIBRARIES[library]} />
+        <iframe ref={ref} src={`${library}.html`} title={LABELS[library]} />
       </div>
     </section>
   );
 }
 
+const fmt = ({ median, iqr }: Summary) => `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)} ms`;
+
+function Summaries({ rows }: { rows: [string, LibraryResult][] }) {
+  return (
+    <ul className="summaries" data-summaries>
+      {rows.map(([lib, r]) => (
+        <li
+          key={lib}
+          data-lib={lib}
+          data-samples={r.mount.n}
+          data-mount={r.mount.median}
+          data-update={r.update.median}
+          data-blocking={r.blocking?.median ?? ''}
+        >
+          {lib}: mount {fmt(r.mount)}, update {fmt(r.update)}, blocking {r.blocking ? fmt(r.blocking) : 'n/a'}
+          , {r.domNodes} nodes
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type Job = { libraries: Library[]; data: Parsed };
+
+function Lab({
+  job,
+  query,
+  onDone,
+  onFail,
+  onCancel,
+}: {
+  job: Job;
+  query: URLSearchParams;
+  onDone: (m: Measurements) => void;
+  onFail: (message: string) => void;
+  onCancel: () => void;
+}) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [progress, setProgress] = useState('starting…');
+
+  useEffect(() => {
+    const abort = new AbortController();
+    measureAll(frame.current!, job.libraries, job.data, {
+      query,
+      signal: abort.signal,
+      onProgress: (done, total, library) => setProgress(`measuring ${library} (${done + 1} of ${total})`),
+    }).then(onDone, e => {
+      if (!abort.signal.aborted) onFail(e instanceof Error ? e.message : String(e));
+    });
+    return () => abort.abort();
+  }, []);
+
+  return (
+    <div className="lab" data-lab>
+      <div className="lab-bar">
+        <span>{progress}</span>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+      <iframe ref={frame} title="measurement" />
+    </div>
+  );
+}
+
+const params = new URLSearchParams(location.search);
+const requested = (params.get('libs') ?? '').split(',').filter((l): l is Library => l in LABELS);
+params.delete('libs');
+
 function Playground() {
+  const [job, setJob] = useState<Job | null>(null);
+  const [measured, setMeasured] = useState<Measurements | null>(null);
+  const [shown, setShown] = useState<Library[]>([]);
+  const [runError, setRunError] = useState('');
   const [chart, setChart] = useState<ChartKind>('survival');
-  const [libraries, setLibraries] = useState<Library[]>(['recharts', 'echarts']);
+  const [libraries, setLibraries] = useState<Library[]>(
+    requested.length ? requested : ['recharts', 'echarts'],
+  );
   const [text, setText] = useState(() => sample('survival', 'typical'));
   const [data, setData] = useState<Parsed>(() => parseSeries('survival', text));
   const [error, setError] = useState('');
 
   const apply = (nextChart: ChartKind, nextText: string) => {
     try {
-      setData(parseSeries(nextChart, nextText));
+      const parsed = parseSeries(nextChart, nextText);
+      setData(parsed);
       setError('');
+      return parsed;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
+  };
+  const measure = () => {
+    const parsed = apply(chart, text);
+    if (!parsed || libraries.length === 0) return;
+    setRunError('');
+    setMeasured(null);
+    setShown([]);
+    setJob({
+      libraries: (Object.keys(LABELS) as Library[]).filter(l => libraries.includes(l)),
+      data: parsed,
+    });
   };
   const load = (nextChart: ChartKind, size: DatasetSize) => {
     const next = sample(nextChart, size);
@@ -111,7 +200,7 @@ function Playground() {
           Pick libraries, paste your data, compare. Every library renders the same chart from the same JSON.
         </p>
 
-        <fieldset>
+        <fieldset disabled={!!job}>
           <legend>Libraries</legend>
           {(Object.keys(LIBRARIES) as Library[]).map(lib => (
             <label key={lib}>
@@ -121,7 +210,7 @@ function Playground() {
           ))}
         </fieldset>
 
-        <fieldset>
+        <fieldset disabled={!!job}>
           <legend>Chart</legend>
           {(['survival', 'scatter'] as const).map(kind => (
             <label key={kind}>
@@ -136,7 +225,7 @@ function Playground() {
           ))}
         </fieldset>
 
-        <fieldset>
+        <fieldset disabled={!!job}>
           <legend>Data (JSON)</legend>
           <small>
             {chart === 'survival'
@@ -159,7 +248,7 @@ function Playground() {
             </p>
           )}
           <div className="row">
-            <button className="primary" onClick={() => apply(chart, text)}>
+            <button className="primary" onClick={measure} disabled={!!job}>
               Render
             </button>
           </div>
@@ -172,12 +261,34 @@ function Playground() {
 
       <div className="charts">
         {libraries.length === 0 && <p>Select at least one library.</p>}
-        {(Object.keys(LIBRARIES) as Library[])
-          .filter(lib => libraries.includes(lib))
-          .map(lib => (
-            <ArmFrame key={lib} library={lib} data={data} />
-          ))}
+        {runError && (
+          <p className="error" role="alert">
+            {runError}
+          </p>
+        )}
+        {measured && (
+          <Summaries rows={[['shell (floor)', measured.floor], ...Object.entries(measured.results)]} />
+        )}
+        {shown.map(lib => (
+          <ArmFrame key={lib} library={lib} data={data} />
+        ))}
       </div>
+      {job && (
+        <Lab
+          job={job}
+          query={params}
+          onDone={m => {
+            setMeasured(m);
+            setShown(job.libraries);
+            setJob(null);
+          }}
+          onFail={message => {
+            setRunError(message);
+            setJob(null);
+          }}
+          onCancel={() => setJob(null)}
+        />
+      )}
     </main>
   );
 }

@@ -19,7 +19,8 @@ export type ResultMessage =
       runId: number;
       mode: 'mount';
       mountMs: number;
-      blockingMs: number | null;
+      startAt: number;
+      endAt: number;
       domNodes: number;
     }
   | { type: 'bench:result'; runId: number; mode: 'update'; updateMs: number }
@@ -30,25 +31,9 @@ const UPDATE_START = 'play:update-start';
 const UPDATE_END = 'play:update-end';
 const UPDATE = 'play:update';
 
-type LoafEntry = PerformanceEntry & { blockingDuration: number };
-
 const toParent = (message: ResultMessage) => window.parent.postMessage(message, location.origin);
 
 const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnimationFrame(() => done()));
-
-const supportsLoaf = PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame') ?? false;
-const frames: LoafEntry[] = [];
-const loafObserver = new PerformanceObserver(list => frames.push(...(list.getEntries() as LoafEntry[])));
-if (supportsLoaf) loafObserver.observe({ type: 'long-animation-frame', buffered: true });
-
-async function blockingBetween(start: number, end: number): Promise<number | null> {
-  if (!supportsLoaf) return null;
-  await new Promise<void>(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
-  frames.push(...(loafObserver.takeRecords() as LoafEntry[]));
-  return frames
-    .filter(f => f.startTime < end && f.startTime + f.duration > start)
-    .reduce((sum, f) => sum + f.blockingDuration, 0);
-}
 
 function EmbeddedArmPage({ arm }: { arm: Arm }) {
   const [payload, setPayload] = useState<Payload>(fromUrl);
@@ -93,16 +78,15 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
       const runId = runIdRef.current!;
       const start = performance.getEntriesByName('bench:start').at(-1)!.startTime;
       const end = performance.getEntriesByName('bench:settled').at(-1)!.startTime;
-      void blockingBetween(start, end).then(blockingMs =>
-        toParent({
-          type: 'bench:result',
-          runId,
-          mode: 'mount',
-          mountMs: end - start,
-          blockingMs,
-          domNodes: document.querySelectorAll('[data-bench-stage] *').length,
-        }),
-      );
+      toParent({
+        type: 'bench:result',
+        runId,
+        mode: 'mount',
+        mountMs: end - start,
+        startAt: performance.timeOrigin + start,
+        endAt: performance.timeOrigin + end,
+        domNodes: document.querySelectorAll('[data-bench-stage] *').length,
+      });
     });
     observer.observe({ type: 'measure' });
     window.addEventListener('message', onMessage);

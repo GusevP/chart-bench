@@ -49,3 +49,19 @@ export function formatSeries(series: { id: string; color: string; points: object
     '\n  ]}';
   return `[\n${series.map(block).join(',\n')}\n]`;
 }
+
+/** Same shape and ids, shifted values, so SVG libraries reconcile instead of remounting. */
+export function nudge(parsed: Parsed): Parsed {
+  return parsed.chart === 'survival'
+    ? {
+        chart: 'survival',
+        series: parsed.series.map(s => ({
+          ...s,
+          points: s.points.map(p => ({ ...p, y: p.y * 0.97, lower: p.lower * 0.97, upper: p.upper * 0.97 })),
+        })),
+      }
+    : {
+        chart: 'scatter',
+        series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
+      };
+}
