@@ -1,4 +1,4 @@
-# Your chart benchmark is probably lying: 7 React chart libraries, measured fairly
+# Your chart benchmark is probably lying: 6 React chart libraries vs hand-written SVG, measured fairly
 
 *Draft. Every number below comes from [chart-bench](https://github.com/GusevP/chart-bench), run on 2026-11-03. Clone it and you can reproduce all of them.*
 
@@ -83,7 +83,7 @@ To show why this matters, the harness also records the timestamp a simpler instr
 | ECharts | 67.8 ms | 70.3 ms |
 | Chart.js | 66.8 ms | 75.2 ms |
 
-**The naive clock ranks Recharts as the fastest library on the stand. It is actually the second slowest.** Recharts 3 commits an empty chart first, then fills it in a second render pass within the same task, before any frame is painted. A timer at commit, which is exactly what React's Profiler or a `useLayoutEffect` timestamp gives you, sees almost none of the work.
+**The naive clock ranks Recharts as the fastest library on the stand. It is actually the second slowest.** Recharts 3 commits an empty chart first, then fills it in a second render pass within the same task, before any frame is painted. A timestamp taken in a `useLayoutEffect` at commit sees almost none of the work.
 
 nivo shows the same thing at a different scale: the naive clock catches about 8% of the cost.
 
@@ -125,7 +125,7 @@ Most cells are a clean 16.8 ms (one frame). The exceptions, all on the 10,000-po
 
 *Library cost* is the gzipped JS each page loads minus an identical page with no chart library. *Code lines* exclude comments and blank lines, after Prettier, for both charts including tooltips.
 
-None of the seven ports needed a single `as` cast or anything hand-drawn outside the library's own extension points. The differences are in what had to be *composed*.
+None of the seven ports needed a narrowing `as` cast (the only `as` is one `as const` in ECharts), and nothing was hand-drawn outside the library's own extension points. The differences are in what had to be *composed*.
 
 ## What each library made me do
 
@@ -137,7 +137,7 @@ None of the seven ports needed a single `as` cast or anything hand-drawn outside
 - **ECharts:**
   - A **misspelled top-level option key type-checks cleanly**, because the option type has an index signature. At runtime it throws inside `setOption`. Misspelled nested keys are ignored silently.
   - For large series the defaults switch on progressive rendering. On a 50,000-point test series, a dev-mode check measured 2.4 s instead of 0.4 s.
-- **visx:** everything is composed from primitives, and hit-testing is your own code. You get exactly what you write, which is why it ties the no-library baseline.
+- **visx:** everything is composed from primitives, and hit-testing is your own code. You get exactly what you write: it ties the no-library baseline at native speed and trails it by about a frame when throttled.
 - **TanStack Charts 1.2:**
   - A mark grammar in the Observable Plot lineage. Censoring ticks are a stock `tickX`, and the band is `areaY` with `y1`/`y2`.
   - It needed 80 lines against nivo's 125 and Recharts' 142.
@@ -159,7 +159,7 @@ marks: [
 ## Conclusion
 
 - **Don't use nivo for large point counts.** 10,000 points took 3.1 s at native speed and 12.9 s throttled, with animation off. It's fine for small charts, but it has had no npm release since May 2025.
-- **Recharts is the risky default.** It is widely used, but it was the slowest at heavy sizes after nivo, the worst on hover (7 frames throttled), and it needs data reshaping that fails silently when skipped.
+- **Recharts is the risky default.** It is widely used, but it was the slowest library on the heavy survival chart (412 ms throttled, nivo 139 ms) and second slowest on the heavy scatter, the worst on hover (7 frames throttled), and it needs data reshaping that fails silently when skipped.
 - **Canvas isn't a shortcut.** At these sizes ECharts and Chart.js were slower to mount than plain SVG. ECharts' hover stayed smooth, at 164 KB.
 - **For the least code, TanStack Charts 1.2:** 80 lines, 42 KB, in the fast group behind visx and plain SVG, nearly every requirement native. The risk is age: its first release was in July 2026.
 - **For control and size, visx, or no library at all.** They are the fastest and smallest (11–25 KB), and you own every mark, tooltip and hit-test.
