@@ -127,6 +127,9 @@ iframe {
   background: #fff;
   overflow: auto;
 }
+.lab iframe {
+  pointer-events: none;
+}
 .lab-bar {
   display: flex;
   gap: 12px;

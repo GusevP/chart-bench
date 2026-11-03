@@ -467,8 +467,7 @@ test('lab frames never post bench:hover', async ({ page }) => {
 
 test('playground lab agrees with the harness on mount and dom nodes', async ({ page }) => {
   await page.goto('/index.html?libs=none,recharts');
-  // a click would leave the pointer over the lab frame and open recharts' tooltip
-  await page.getByRole('button', { name: 'Render' }).press('Enter');
+  await page.getByRole('button', { name: 'Render' }).click();
   const lab = await summaries(page, ['none', 'recharts']);
   const F = await page.evaluate(framePeriod);
   for (const lib of ['none', 'recharts']) {
