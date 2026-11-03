@@ -195,7 +195,10 @@ async function measureInPlayground(page: Page, query: string, libs: string[]) {
 }
 
 async function summaries(page: Page, libs: string[]) {
-  const out: Record<string, { n: number; mount: number; update: number; blocking: number | null }> = {};
+  const out: Record<
+    string,
+    { n: number; mount: number; update: number; blocking: number | null; domNodes: number }
+  > = {};
   for (const lib of libs) {
     const li = page.locator(`[data-summaries] li[data-lib="${lib}"]`);
     await li.waitFor({ timeout: 120_000 });
@@ -206,6 +209,7 @@ async function summaries(page: Page, libs: string[]) {
       mount: await num('mount'),
       update: await num('update'),
       blocking: blocking ? Number(blocking) : null,
+      domNodes: await num('dom-nodes'),
     };
   }
   return out;
@@ -228,6 +232,16 @@ test('playground lab reports main-thread blocking for a long task', async ({ pag
   expect(calibrate!.n).toBe(5);
   expect(calibrate!.blocking).toBeGreaterThanOrEqual(80);
   expect(calibrate!.blocking).toBeLessThanOrEqual(150 + 2 * (await framePeriod(page)));
+});
+
+test('playground lab measures chartjs on its own page after another library', async ({ page }) => {
+  const { none, chartjs } = await measureInPlayground(page, 'libs=none,chartjs', ['none', 'chartjs']);
+  console.log(`none nodes=${none!.domNodes} chartjs nodes=${chartjs!.domNodes}`);
+  expect(chartjs!.n).toBe(5);
+  expect(Number.isFinite(chartjs!.mount)).toBe(true);
+  expect(Number.isFinite(chartjs!.update)).toBe(true);
+  expect(chartjs!.domNodes).toBeGreaterThan(0);
+  expect(chartjs!.domNodes).not.toBe(none!.domNodes);
 });
 
 test('only the lab frame exists while measuring', async ({ page }) => {

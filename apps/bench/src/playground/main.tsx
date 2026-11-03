@@ -95,6 +95,7 @@ function Summaries({ rows }: { rows: [string, LibraryResult][] }) {
           data-mount={r.mount.median}
           data-update={r.update.median}
           data-blocking={r.blocking?.median ?? ''}
+          data-dom-nodes={r.domNodes}
         >
           {lib}: mount {fmt(r.mount)}, update {fmt(r.update)}, blocking {r.blocking ? fmt(r.blocking) : 'n/a'}
           , {r.domNodes} nodes

@@ -107,9 +107,13 @@ async function runOnce(
   signal: AbortSignal,
 ): Promise<Sample> {
   await untilVisible(signal);
-  const ready = waitFor(frame, signal, null, m => (m.type === 'bench:ready' ? m.settleMode : undefined));
+  const previous = frame.contentDocument;
+  const ready = waitFor(frame, signal, null, m =>
+    m.type === 'bench:ready' && frame.contentDocument !== previous ? m.settleMode : undefined,
+  );
   frame.contentWindow!.location.replace(src);
-  const updateSettle = RAF_UPDATE.has(library) ? 'raf' : await ready;
+  const reported = await ready;
+  const updateSettle = RAF_UPDATE.has(library) ? 'raf' : reported;
 
   const send = <M extends 'mount' | 'update'>(mode: M, payload: Parsed) => {
     const runId = ++lastRunId;
