@@ -118,7 +118,7 @@ Most cells are a clean 16.8 ms (one frame). The exceptions, all on the 10,000-po
 | no library | 11.5 KB | 197 | 10,073 |
 | visx | 25.1 KB | 217 | 10,117 |
 | TanStack Charts | 42.1 KB | **80** | 10,055 |
-| Chart.js | 55.5 KB | 209 | 2 (canvas) |
+| Chart.js | 55.4 KB | 209 | 2 (canvas) |
 | nivo | 103.2 KB | 125 | 10,094 |
 | Recharts | 106.1 KB | 142 | 30,109 |
 | ECharts | 164.0 KB | 156 | 5 (canvas) |

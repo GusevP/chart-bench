@@ -38,16 +38,13 @@ const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnima
 
 const supportsLoaf = PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame') ?? false;
 const frames: LoafEntry[] = [];
-if (supportsLoaf) {
-  new PerformanceObserver(list => frames.push(...(list.getEntries() as LoafEntry[]))).observe({
-    type: 'long-animation-frame',
-    buffered: true,
-  });
-}
+const loafObserver = new PerformanceObserver(list => frames.push(...(list.getEntries() as LoafEntry[])));
+if (supportsLoaf) loafObserver.observe({ type: 'long-animation-frame', buffered: true });
 
 async function blockingBetween(start: number, end: number): Promise<number | null> {
   if (!supportsLoaf) return null;
   await new Promise<void>(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+  frames.push(...(loafObserver.takeRecords() as LoafEntry[]));
   return frames
     .filter(f => f.startTime < end && f.startTime + f.duration > start)
     .reduce((sum, f) => sum + f.blockingDuration, 0);

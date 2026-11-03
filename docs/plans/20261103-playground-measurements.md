@@ -4,7 +4,7 @@
 - The playground (`apps/bench/index.html`, what `pnpm preview` serves and GitHub Pages hosts) mounts every selected library at once in its own iframe, one run each, and shows a single "ms to paint". All same-origin iframes share one main thread and most cards are offscreen, so each number is distorted by its neighbours.
 - This change measures one library at a time in a single visible "lab" frame, reloaded per run, and reports median ± IQR/2 for mount time, update time, main-thread blocking during mount, DOM nodes, bundle size, and worst frame while the visitor hovers.
 - Playwright specs prove the numbers are right: the playground recovers known injected costs on every settle path, agrees with the existing harness on the same machine, and would detect interference if it were present.
-- **Scope: playground only.** The Playwright benchmark (`tests/bench.spec.ts`, `bench-stage/playwright.ts`), the chart wrappers (`src/arms/*/charts.tsx`), the `Arm` contract and the committed results keep their behaviour. The new arm-page code runs only when the page is embedded and is loaded with a dynamic `import()`, so top-level arm pages (the harness) never execute it and `results/bundle.json` does not move.
+- **Scope: playground only.** The Playwright benchmark (`tests/bench.spec.ts`, `bench-stage/playwright.ts`), the chart wrappers (`src/arms/*/charts.tsx`), the `Arm` contract and the committed results keep their behaviour. The new arm-page code runs only when the page is embedded and is loaded with a dynamic `import()`, so top-level arm pages (the harness) never execute it at runtime. Bundle totals grew once by ~0.9 KB (vite's preload helper in the shared arm-page chunk), accepted by the user; from then on `results/bundle.json` stays unchanged versus the committed file.
 
 ## Context (from discovery)
 Brief: `docs/plans/briefs/20261103-playground-measurements.md` (local only). Plan reviewed by plan-review; findings applied.
@@ -22,12 +22,13 @@ Brief: `docs/plans/briefs/20261103-playground-measurements.md` (local only). Pla
 - **CRITICAL: every task MUST include new/updated tests** for the code it changes.
 - **CRITICAL: all tests must pass before starting the next task.**
 - **CRITICAL: update this plan file when scope changes during implementation.**
-- Backward compatibility: harness pages run exactly today's code path; `git diff results/bundle.json` stays empty after `pnpm build`.
+- Backward compatibility: harness pages never execute the embedded code at runtime. Bundle totals grew once by ~0.9 KB (vite's preload helper in the shared arm-page chunk), accepted by the user; after Task 1, `git diff --exit-code results/bundle.json` must stay clean against the committed file after `pnpm build`.
+- ⚠️ Deviation (Task 1): the `import()` adds vite's modulepreload helper to the shared `_ArmPage` chunk, so every arm's `totalKb` grew ~0.9 KB and chartjs `libraryKb` moved 55.5 → 55.4. The user accepted the drift; the regenerated `results/bundle.json`, `ARTICLE.md` and `results/report.md` bundle rows were updated to match.
 
 ## Testing Strategy
 - **Playwright specs**: `pnpm build && pnpm -F bench exec playwright test playground`.
 - **Tolerances**: the mount/update timer ends on a frame boundary but starts mid-frame, so each median carries up to one frame of phase error and a difference of two medians up to two. Specs measure the frame period `F` in-page (median rAF gap) instead of hard-coding 16.7 ms. Known-cost: `cost − F ≤ Δ ≤ cost + 2F` (adding cost only ever pushes the end later). Agreement: `|Δ| ≤ 2F`.
-- **Benchmark regression gate** (every task touching arm pages): `BENCH_REPEATS=1 BENCH_ARMS=none,echarts,chartjs BENCH_OUT=<scratch>/gate.jsonl pnpm -F bench exec playwright test bench` passes with the same JSON keys, and `git diff --exit-code apps/bench/results/bundle.json` after `pnpm build`.
+- **Benchmark regression gate** (every task touching arm pages): `BENCH_REPEATS=1 BENCH_ARMS=none,echarts,chartjs BENCH_OUT=<scratch>/gate.jsonl pnpm -F bench exec playwright test bench` passes with the same JSON keys, and `git diff --exit-code apps/bench/results/bundle.json` after `pnpm build` (clean against the file committed in Task 1).
 - `pnpm typecheck` after every task.
 - Not in CI: timing specs on shared runners are flaky; CI keeps typecheck + build.
 
@@ -110,7 +111,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - Modify: `apps/bench/vite.config.ts`, `apps/bench/scripts/bundle-size.mjs`, `apps/bench/tests/playground.spec.ts`
 
 - [ ] calibrate arm with `cost`, `hoverCost`, `drawIn=effect`, `settle=signal`, `throw=1` (see Solution Overview); empty stage otherwise
-- [ ] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json`
+- [ ] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json` (unchanged versus the committed file after Task 1)
 - [ ] write spec: harness `measureMount` on `calibrate.html?cost=0` vs `?cost=100`, 5 runs each → `100 − F ≤ Δ ≤ 100 + 2F`
 - [ ] write spec: embedded update Δ (cost 0 vs 100) within the same bounds for each of: default (`raf`, render), `drawIn=effect`, `settle=signal`
 - [ ] write spec: embedded `throw=1` → `bench:error` carrying the run id of the mount that threw
@@ -161,7 +162,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 ### Task 7: Verify acceptance criteria
 - [ ] every metric from the Overview shows for all seven libraries on both charts and both sample sizes
-- [ ] `pnpm typecheck` and `pnpm build` pass; `git diff --exit-code apps/bench/results/` clean
+- [ ] `pnpm typecheck` and `pnpm build` pass; `git diff --exit-code apps/bench/results/` clean (against the files committed after Task 1)
 - [ ] `pnpm -F bench exec playwright test playground` passes
 - [ ] benchmark regression gate passes
 - [ ] check the playground in a real browser (agent-browser): measure → table → cards → hover → paste own data → re-measure
