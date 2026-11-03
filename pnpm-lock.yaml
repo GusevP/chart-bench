@@ -26,8 +26,8 @@ importers:
       '@nivo/scatterplot':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@tanstack/react-charts':
-        specifier: ^1.2.0
+      '@tanstack/charts':
+        specifier: 1.2.0
         version: 1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@visx/axis':
         specifier: ^4.0.0
@@ -384,12 +384,6 @@ packages:
         optional: true
       vue:
         optional: true
-
-  '@tanstack/react-charts@1.2.0':
-    resolution: {integrity: sha512-3oxhfTNO5j2iKH8uZvfKY0y+ftAQ00IZpOfvIE20+gR1WFKj7MZ6ai2k1xnQjgq3+0+6iVwYtPx3Wcw8bCqKkg==}
-    peerDependencies:
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
 
   '@types/d3-array@3.0.3':
     resolution: {integrity: sha512-Reoy+pKnvsksN0lQUlcH6dOGjRZ/3WRwXR//m+/8lt1BXeI4xyaUZoqULNjyXXRuh0Mj4LNpkCvhUpQlY3X5xQ==}
@@ -1380,24 +1374,6 @@ snapshots:
     optionalDependencies:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
-
-  '@tanstack/react-charts@1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
-    dependencies:
-      '@tanstack/charts': 1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-    transitivePeerDependencies:
-      - '@angular/core'
-      - '@angular/platform-browser'
-      - alpinejs
-      - lit
-      - octane
-      - preact
-      - react-native
-      - react-native-svg
-      - solid-js
-      - svelte
-      - vue
 
   '@types/d3-array@3.0.3': {}
 

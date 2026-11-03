@@ -18,6 +18,9 @@ mkdirSync('results', { recursive: true });
 for (const arm of ARMS) {
   for (const { chart, size } of CASES) {
     test(`${arm} ${chart}-${size}`, async ({ page }) => {
+      // A chart that throws can still reach "settled" and would be recorded as fast.
+      const errors: Error[] = [];
+      page.on('pageerror', error => errors.push(error));
       const url = `/${arm}.html?chart=${chart}&size=${size}`;
       // One unrecorded run so the JIT and the HTTP cache are warm for every arm alike.
       await page.goto(url);
@@ -27,6 +30,7 @@ for (const arm of ARMS) {
         await page.goto(url);
         const mount = await measureMount(page);
         const hover = await measureHover(page);
+        if (errors.length) throw errors[0];
         appendFileSync(OUT, JSON.stringify({ arm, chart, size, run, ...mount, ...hover }) + '\n');
       }
     });
