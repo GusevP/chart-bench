@@ -304,6 +304,28 @@ test('a tab hidden mid-run repeats the run and still yields every sample', async
   expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(24);
 });
 
+test('a lab scrolled out of view mid-run repeats the run and still yields every sample', async ({ page }) => {
+  await page.goto('/index.html?libs=none');
+  await page.evaluate(() => {
+    document.body.append(Object.assign(document.createElement('div'), { style: 'height: 4000px' }));
+    const w = window as unknown as { maxRun: number };
+    w.maxRun = 0;
+    let fired = false;
+    setInterval(() => {
+      const run = Number(document.querySelector<HTMLIFrameElement>('[data-lab] iframe')?.dataset.runId);
+      if (run > w.maxRun) w.maxRun = run;
+      if (run !== 3 || fired) return;
+      fired = true;
+      scrollTo(0, 3000);
+      setTimeout(() => scrollTo(0, 0), 300);
+    }, 2);
+  });
+  await page.getByRole('button', { name: 'Render' }).click();
+  const { none } = await summaries(page, ['none']);
+  expect(none!.n).toBe(5);
+  expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(24);
+});
+
 // shell + none = 2 libraries x (1 warm-up + 5) runs; the last update result is followed only by the LoAF drain
 const FINAL_UPDATE = 12;
 
@@ -383,6 +405,9 @@ test('render shows a results table, then display cards', async ({ page }) => {
   await expect(page.locator('tr[data-lib="shell (floor)"] td').nth(4)).toHaveText('0.0');
   await expect(page.locator('[data-summaries] td.noise').first()).toBeVisible();
   await expect(page.locator('.card iframe')).toHaveCount(2);
+  await expect(page.locator('.card [data-card-stats]').first()).toContainText(
+    `mount ${none!.mount.toFixed(1)}`,
+  );
   expect(await page.locator('.card iframe').first().getAttribute('src')).toContain('embed=display');
 });
 

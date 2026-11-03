@@ -31,13 +31,20 @@ const sample = (chart: ChartKind, size: DatasetSize) =>
       : generateScatter(DATASETS.scatter[size]),
   );
 
+const fmt = ({ median, iqr }: Summary) => `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}`;
+const bundleKb: Record<string, { libraryKb: number } | undefined> = bundle;
+
 function ArmFrame({
   library,
   data,
+  result,
+  hover,
   onHover,
 }: {
   library: Library;
   data: Parsed;
+  result?: LibraryResult;
+  hover?: number;
   onHover: (library: Library, maxFrameMs: number) => void;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -78,6 +85,14 @@ function ArmFrame({
     <section className="card">
       <header>
         <h2>{LABELS[library]}</h2>
+        {result && (
+          <small data-card-stats>
+            mount {fmt(result.mount)} ms · update {fmt(result.update)} ms · blocking{' '}
+            {result.blocking ? `${fmt(result.blocking)} ms` : 'n/a'} · {result.domNodes} nodes ·{' '}
+            {bundleKb[library]?.libraryKb.toFixed(1) ?? 'n/a'} KB
+            {hover !== undefined && ` · hover ${hover.toFixed(1)} ms`}
+          </small>
+        )}
         {error && <small className="error">{error}</small>}
       </header>
       <div className="frame">
@@ -86,9 +101,6 @@ function ArmFrame({
     </section>
   );
 }
-
-const fmt = ({ median, iqr }: Summary) => `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}`;
-const bundleKb: Record<string, { libraryKb: number } | undefined> = bundle;
 
 function Cell({ s, floor, frame }: { s: Summary | null; floor?: Summary; frame: number }) {
   if (!s) return <td>n/a</td>;
@@ -180,12 +192,14 @@ function Lab({
   onFail: (message: string) => void;
   onCancel: () => void;
 }) {
+  const card = useRef<HTMLElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [library, setLibrary] = useState<{ name: string; index: number; total: number } | null>(null);
   const [run, setRun] = useState<{ n: number; total: number } | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
+    card.current!.scrollIntoView({ block: 'nearest' });
     measureAll(frame.current!, job.libraries, job.data, {
       query,
       signal: abort.signal,
@@ -201,20 +215,26 @@ function Lab({
   }, []);
 
   return (
-    <div className="lab" data-lab>
-      <div className="lab-panel">
-        <h2>Measuring…</h2>
-        {library && (
-          <p>
-            {library.name === 'shell' ? 'Empty page (baseline)' : LABELS[library.name as Library]}
-            {' · '}library {library.index} of {library.total}
-            {run && ` · ${run.n === 1 ? 'warm-up' : `run ${run.n - WARMUP}`} (${run.n} of ${run.total})`}
-          </p>
-        )}
-        <button onClick={onCancel}>Cancel</button>
+    <section className="card lab" data-lab ref={card}>
+      <div className="frame">
+        <div className="lab-stage">
+          <iframe ref={frame} title="measurement" />
+          <div className="lab-panel">
+            <div className="spinner" aria-hidden="true" />
+            <h2>Measuring…</h2>
+            {library && (
+              <p>
+                {library.name === 'shell' ? 'Empty page (baseline)' : LABELS[library.name as Library]}
+                {' · '}library {library.index} of {library.total}
+                {run &&
+                  ` · ${run.n <= WARMUP ? 'warm-up' : `run ${run.n - WARMUP} of ${run.total - WARMUP}`}`}
+              </p>
+            )}
+            <button onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
       </div>
-      <iframe ref={frame} title="measurement" />
-    </div>
+    </section>
   );
 }
 
@@ -334,6 +354,23 @@ function Playground() {
       </div>
 
       <div className="charts">
+        {job && (
+          <Lab
+            job={job}
+            query={params}
+            onDone={m => {
+              setMeasured(m);
+              setShown(job);
+              setJob(null);
+              void framePeriod().then(setFrame);
+            }}
+            onFail={message => {
+              setRunError(message);
+              setJob(null);
+            }}
+            onCancel={() => setJob(null)}
+          />
+        )}
         {libraries.length === 0 && <p>Select at least one library.</p>}
         {runError && (
           <p className="error" role="alert">
@@ -346,27 +383,12 @@ function Playground() {
             key={lib}
             library={lib}
             data={shown.data}
+            result={measured?.results[lib]}
+            hover={hover[lib]}
             onHover={(l, ms) => setHover(cur => ({ ...cur, [l]: ms }))}
           />
         ))}
       </div>
-      {job && (
-        <Lab
-          job={job}
-          query={params}
-          onDone={m => {
-            setMeasured(m);
-            setShown(job);
-            setJob(null);
-            void framePeriod().then(setFrame);
-          }}
-          onFail={message => {
-            setRunError(message);
-            setJob(null);
-          }}
-          onCancel={() => setJob(null)}
-        />
-      )}
     </main>
   );
 }

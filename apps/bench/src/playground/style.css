@@ -103,6 +103,8 @@ button.primary {
 }
 .card header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 8px;
@@ -120,26 +122,44 @@ iframe {
   width: 900px;
   height: 600px;
 }
-.lab {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  background: #fff;
-  overflow: auto;
+.lab-stage {
+  position: relative;
+  width: max-content;
 }
 .lab iframe {
   pointer-events: none;
 }
 .lab-panel {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 1;
   background: #fff;
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: center;
   justify-content: center;
+}
+.lab-panel h2,
+.lab-panel p {
+  margin: 0;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
 }
 .table-scroll {
   overflow-x: auto;

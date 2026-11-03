@@ -54,6 +54,11 @@ async function blockingBetween(startAt: number, endAt: number, signal: AbortSign
 
 class HiddenError extends Error {}
 
+const visibility = new EventTarget();
+document.addEventListener('visibilitychange', () => visibility.dispatchEvent(new Event('change')));
+let inView = true;
+const isVisible = () => document.visibilityState === 'visible' && inView;
+
 type Sample = { mountMs: number; updateMs: number; blockingMs: number | null; domNodes: number };
 type Result<M extends 'mount' | 'update'> = Extract<ResultMessage, { type: 'bench:result'; mode: M }>;
 
@@ -95,15 +100,15 @@ function waitFor<T>(
 function untilVisible(signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal.aborted) return reject(aborted());
-    if (document.visibilityState === 'visible') return resolve();
+    if (isVisible()) return resolve();
     const done = (fn: () => void) => {
-      document.removeEventListener('visibilitychange', onVisibility);
+      visibility.removeEventListener('change', onVisibility);
       signal.removeEventListener('abort', onAbort);
       fn();
     };
-    const onVisibility = () => document.visibilityState === 'visible' && done(resolve);
+    const onVisibility = () => isVisible() && done(resolve);
     const onAbort = () => done(() => reject(aborted()));
-    document.addEventListener('visibilitychange', onVisibility);
+    visibility.addEventListener('change', onVisibility);
     signal.addEventListener('abort', onAbort);
   });
 }
@@ -118,14 +123,14 @@ async function runOnce(
 ): Promise<Sample> {
   await untilVisible(signal);
   const run = new AbortController();
-  const onVisibility = () => document.visibilityState === 'hidden' && run.abort(new HiddenError());
+  const onVisibility = () => !isVisible() && run.abort(new HiddenError());
   const onAbort = () => run.abort(aborted());
-  document.addEventListener('visibilitychange', onVisibility);
+  visibility.addEventListener('change', onVisibility);
   signal.addEventListener('abort', onAbort);
   try {
     return await sample(frame, src, data, updated, library, run.signal);
   } finally {
-    document.removeEventListener('visibilitychange', onVisibility);
+    visibility.removeEventListener('change', onVisibility);
     signal.removeEventListener('abort', onAbort);
   }
 }
@@ -217,14 +222,25 @@ export async function measureAll(
   const { onProgress, ...rest } = options;
   const total = libraries.length + (floor ? 0 : 1);
   let done = 0;
-  if (!floor) {
-    onProgress(done++, total, 'shell');
-    floor = await measureLibrary(frame, 'shell', data, rest);
+  // An offscreen frame gets throttled rendering, so scrolling the lab away counts as a hidden tab.
+  const observer = new IntersectionObserver(entries => {
+    inView = entries[entries.length - 1]!.isIntersecting;
+    visibility.dispatchEvent(new Event('change'));
+  });
+  observer.observe(frame.closest('[data-lab]') ?? frame);
+  try {
+    if (!floor) {
+      onProgress(done++, total, 'shell');
+      floor = await measureLibrary(frame, 'shell', data, rest);
+    }
+    const results: Record<string, LibraryResult> = {};
+    for (const library of libraries) {
+      onProgress(done++, total, library);
+      results[library] = await measureLibrary(frame, library, data, rest);
+    }
+    return { floor, results };
+  } finally {
+    observer.disconnect();
+    inView = true;
   }
-  const results: Record<string, LibraryResult> = {};
-  for (const library of libraries) {
-    onProgress(done++, total, library);
-    results[library] = await measureLibrary(frame, library, data, rest);
-  }
-  return { floor, results };
 }
