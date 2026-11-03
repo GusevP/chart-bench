@@ -27,9 +27,22 @@ const loafFrames: LoafEntry[] = [];
 const loafObserver = new PerformanceObserver(list => loafFrames.push(...(list.getEntries() as LoafEntry[])));
 if (supportsLoaf) loafObserver.observe({ type: 'long-animation-frame', buffered: true });
 
-async function blockingBetween(startAt: number, endAt: number): Promise<number | null> {
+async function blockingBetween(startAt: number, endAt: number, signal: AbortSignal): Promise<number | null> {
   if (!supportsLoaf) return null;
-  await new Promise<void>(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+  await new Promise<void>((resolve, reject) => {
+    let timer: ReturnType<typeof setTimeout>;
+    const frame = requestAnimationFrame(() => (timer = setTimeout(done, 0)));
+    const onAbort = () => done(signal.reason);
+    const done = (error?: unknown) => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+      signal.removeEventListener('abort', onAbort);
+      if (error) reject(error);
+      else resolve();
+    };
+    signal.addEventListener('abort', onAbort);
+    if (signal.aborted) onAbort();
+  });
   loafFrames.push(...(loafObserver.takeRecords() as LoafEntry[]));
   return loafFrames
     .filter(f => {
@@ -65,18 +78,15 @@ function waitFor<T>(
       const hit = pick(message);
       if (hit !== undefined) finish(undefined, hit);
     };
-    const onVisibility = () => document.visibilityState === 'hidden' && finish(new HiddenError());
-    const onAbort = () => finish(aborted());
-    const finish = (error?: Error, value?: T) => {
+    const onAbort = () => finish(signal.reason);
+    const finish = (error?: unknown, value?: T) => {
       clearTimeout(timer);
       window.removeEventListener('message', onMessage);
-      document.removeEventListener('visibilitychange', onVisibility);
       signal.removeEventListener('abort', onAbort);
       if (error) reject(error);
       else resolve(value as T);
     };
     window.addEventListener('message', onMessage);
-    document.addEventListener('visibilitychange', onVisibility);
     signal.addEventListener('abort', onAbort);
     if (signal.aborted) onAbort();
   });
@@ -107,6 +117,27 @@ async function runOnce(
   signal: AbortSignal,
 ): Promise<Sample> {
   await untilVisible(signal);
+  const run = new AbortController();
+  const onVisibility = () => document.visibilityState === 'hidden' && run.abort(new HiddenError());
+  const onAbort = () => run.abort(aborted());
+  document.addEventListener('visibilitychange', onVisibility);
+  signal.addEventListener('abort', onAbort);
+  try {
+    return await sample(frame, src, data, updated, library, run.signal);
+  } finally {
+    document.removeEventListener('visibilitychange', onVisibility);
+    signal.removeEventListener('abort', onAbort);
+  }
+}
+
+async function sample(
+  frame: HTMLIFrameElement,
+  src: string,
+  data: Parsed,
+  updated: Parsed,
+  library: string,
+  signal: AbortSignal,
+): Promise<Sample> {
   const previous = frame.contentDocument;
   const ready = waitFor(frame, signal, null, m =>
     m.type === 'bench:ready' && frame.contentDocument !== previous ? m.settleMode : undefined,
@@ -132,7 +163,7 @@ async function runOnce(
   return {
     mountMs: mount.mountMs,
     updateMs: update.updateMs,
-    blockingMs: await blockingBetween(mount.startAt, mount.endAt),
+    blockingMs: await blockingBetween(mount.startAt, mount.endAt, signal),
     domNodes: mount.domNodes,
   };
 }

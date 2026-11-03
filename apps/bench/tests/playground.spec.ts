@@ -317,3 +317,62 @@ test('a tab hidden mid-run repeats the run and still yields every sample', async
   // shell + none = 2 libraries x (1 warm-up + 5) runs x 2 ids; an aborted run consumes more
   expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(24);
 });
+
+// shell + none = 2 libraries x (1 warm-up + 5) runs; the last update result is followed only by the LoAF drain
+const FINAL_UPDATE = 12;
+
+async function holdFinalDrain(page: Page) {
+  await page.goto('/index.html?libs=none');
+  const loaf = await page.evaluate(() =>
+    PerformanceObserver.supportedEntryTypes.includes('long-animation-frame'),
+  );
+  test.skip(!loaf, 'LoAF unsupported');
+  await page.evaluate(final => {
+    const w = window as unknown as { held: boolean; release: () => void; maxRun: number };
+    const raf = window.requestAnimationFrame;
+    const queued: FrameRequestCallback[] = [];
+    w.maxRun = 0;
+    let updates = 0;
+    window.addEventListener('message', e => {
+      if (e.data?.type !== 'bench:result') return;
+      w.maxRun = Math.max(w.maxRun, e.data.runId);
+      if (e.data.mode !== 'update' || ++updates !== final) return;
+      window.requestAnimationFrame = cb => queued.push(cb);
+      w.held = true;
+    });
+    w.release = () => {
+      window.requestAnimationFrame = raf;
+      queued.splice(0).forEach(cb => raf(cb));
+    };
+  }, FINAL_UPDATE);
+  await page.getByRole('button', { name: 'Render' }).click();
+  await page.waitForFunction(() => (window as unknown as { held: boolean }).held);
+}
+
+test('cancel during the final LoAF drain discards the run', async ({ page }) => {
+  await holdFinalDrain(page);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.evaluate(() => (window as unknown as { release: () => void }).release());
+  await page.waitForTimeout(300);
+  await expect(page.locator('[data-lab]')).toHaveCount(0);
+  await expect(page.locator('[data-summaries]')).toHaveCount(0);
+});
+
+test('a tab hidden during the final LoAF drain repeats that run', async ({ page }) => {
+  await holdFinalDrain(page);
+  await page.evaluate(() => {
+    let state = 'hidden';
+    Object.defineProperty(document, 'visibilityState', { get: () => state, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    setTimeout(() => {
+      state = 'visible';
+      document.dispatchEvent(new Event('visibilitychange'));
+      (window as unknown as { release: () => void }).release();
+    }, 300);
+  });
+  const { none } = await summaries(page, ['none']);
+  expect(none!.n).toBe(5);
+  expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(
+    2 * FINAL_UPDATE,
+  );
+});

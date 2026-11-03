@@ -129,9 +129,12 @@ function Lab({
       query,
       signal: abort.signal,
       onProgress: (done, total, library) => setProgress(`measuring ${library} (${done + 1} of ${total})`),
-    }).then(onDone, e => {
-      if (!abort.signal.aborted) onFail(e instanceof Error ? e.message : String(e));
-    });
+    }).then(
+      m => !abort.signal.aborted && onDone(m),
+      e => {
+        if (!abort.signal.aborted) onFail(e instanceof Error ? e.message : String(e));
+      },
+    );
     return () => abort.abort();
   }, []);
 
