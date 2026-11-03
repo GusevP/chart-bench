@@ -175,4 +175,4 @@ The bigger lesson is about the stopwatch, not the libraries. **Measure to the pa
 
 ## Try it
 
-The repository has the harness, all seven ports, raw JSONL for every run and the scripts that build these tables. [`bench-stage`](packages/bench-stage) is a standalone package: wrap any React component in `<BenchStage>` and drive it from Playwright. An interactive playground, where you load your own data and compare the libraries in isolated iframes, is next.
+The repository has the harness, all seven ports, raw JSONL for every run and the scripts that build these tables. [`bench-stage`](packages/bench-stage) is a standalone package: wrap any React component in `<BenchStage>` and drive it from Playwright. The [playground](README.md#playground) lets you load your own data and measures each library alone in a visible frame, with a fresh page load per run.

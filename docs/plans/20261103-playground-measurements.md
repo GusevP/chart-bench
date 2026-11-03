@@ -214,8 +214,8 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 - Modify: `README.md`, `ARTICLE.md`
 
-- [ ] README "Playground": method (sequential lab, 1 + 5 runs, median), metrics, how to run the specs
-- [ ] `ARTICLE.md:178` — the playground now exists; link it
+- [x] README "Playground": method (sequential lab, 1 + 5 runs, median), metrics, how to run the specs
+- [x] `ARTICLE.md:178` — the playground now exists; link it
 - [ ] move this plan to `docs/plans/completed/`
 
 ## Post-Completion

@@ -16,7 +16,9 @@ Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is th
 
 ## Playground
 
-`pnpm build && pnpm -F bench preview`, then open `http://localhost:4173/`. Pick libraries, paste your own series as JSON, and every selected library draws it side by side. `.github/workflows/pages.yml` deploys the same build to GitHub Pages on every push to `main`.
+Pick libraries, paste your own series as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB (from `results/bundle.json`) and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only.
+
+Run it with `pnpm build && pnpm -F bench preview`, then open `http://localhost:4173/`. Its specs: `cd apps/bench && pnpm exec playwright test playground`. `.github/workflows/pages.yml` deploys the same build to GitHub Pages on every push to `main`.
 
 ## Method
 
