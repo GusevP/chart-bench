@@ -396,7 +396,7 @@ test('invalid JSON shows the parse error and starts no measurement', async ({ pa
 });
 
 async function sweepCard(page: Page, lib: string) {
-  const card = page.locator('.card iframe').first();
+  const card = page.locator(`.card iframe[src^="${lib}.html"]`);
   await card.scrollIntoViewIfNeeded();
   const box = (await card.boundingBox())!;
   const y = box.y + box.height / 2;
@@ -420,6 +420,27 @@ test('hovering a cheap display card stays within two frames', async ({ page }) =
   await measureInPlayground(page, 'libs=calibrate&hoverCost=0', ['calibrate']);
   const hover = await sweepCard(page, 'calibrate');
   expect(hover).toBeLessThanOrEqual(2 * (await page.evaluate(framePeriod)) + SLACK);
+});
+
+test('a display card stops recording once the pointer leaves it', async ({ page }) => {
+  await measureInPlayground(page, 'libs=calibrate,none&hoverCost=0', ['calibrate', 'none']);
+  const before = await sweepCard(page, 'calibrate');
+  await page.mouse.move(2, 2);
+  const other = page.frames().find(f => f.url().includes('/none.html') && f.url().includes('embed=display'));
+  await other!.evaluate(
+    () =>
+      new Promise<void>(done =>
+        requestAnimationFrame(() => {
+          for (const end = performance.now() + 250; performance.now() < end;);
+          done();
+        }),
+      ),
+  );
+  await page.waitForTimeout(300);
+  await expect(page.locator('tr[data-lib="calibrate"] td[data-hover]')).toHaveAttribute(
+    'data-hover',
+    String(before),
+  );
 });
 
 test('lab frames never post bench:hover', async ({ page }) => {

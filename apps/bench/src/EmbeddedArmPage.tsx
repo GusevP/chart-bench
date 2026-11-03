@@ -38,12 +38,19 @@ const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnima
 const inStage = (target: EventTarget | null) =>
   target instanceof Element && target.closest('[data-bench-stage]') !== null;
 
+const HOVER_IDLE_MS = 500;
+
 function trackHover() {
   let raf = 0;
   let last = 0;
+  let lastMove = 0;
   let skipFirst = true;
   let max = 0;
   const tick = (now: number) => {
+    if (now - lastMove > HOVER_IDLE_MS) {
+      raf = 0;
+      return;
+    }
     if (skipFirst) skipFirst = false;
     else if (now - last > max) {
       max = now - last;
@@ -58,8 +65,10 @@ function trackHover() {
     max = 0;
   };
   const onMove = (event: PointerEvent) => {
-    if (raf || !inStage(event.target)) return;
-    last = performance.now();
+    if (!inStage(event.target)) return;
+    lastMove = performance.now();
+    if (raf) return;
+    last = lastMove;
     skipFirst = true;
     raf = requestAnimationFrame(tick);
   };
