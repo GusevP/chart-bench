@@ -7,6 +7,7 @@ import { summarize } from 'bench-stage/stats';
 
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
+import { framePeriod } from '../src/playground/frame';
 import { nudge } from '../src/playground/parse';
 import type { Parsed } from '../src/playground/parse';
 
@@ -82,23 +83,6 @@ async function openLab(page: Page, src: string) {
   };
 }
 
-async function framePeriod(page: Page) {
-  return page.evaluate(
-    () =>
-      new Promise<number>(resolve => {
-        const gaps: number[] = [];
-        let last = 0;
-        const tick = (now: number) => {
-          if (last) gaps.push(now - last);
-          last = now;
-          if (gaps.length < 30) requestAnimationFrame(tick);
-          else resolve(gaps.sort((a, b) => a - b)[gaps.length >> 1]!);
-        };
-        requestAnimationFrame(tick);
-      }),
-  );
-}
-
 const RUNS = 5;
 const COST = 100;
 
@@ -157,7 +141,7 @@ test('harness mount recovers a known render cost', async ({ page }) => {
     });
   const base = await median(0);
   const loaded = await median(COST);
-  expectKnownCost(base, loaded, await framePeriod(page));
+  expectKnownCost(base, loaded, await page.evaluate(framePeriod));
 });
 
 const updatePaths: { name: string; query: string; settle: Settle }[] = [
@@ -178,7 +162,7 @@ for (const { name, query, settle } of updatePaths) {
       });
     const base = await median(0);
     const loaded = await median(COST);
-    expectKnownCost(base, loaded, await framePeriod(page), settle === 'signal' ? SIGNAL_WAIT : 0);
+    expectKnownCost(base, loaded, await page.evaluate(framePeriod), settle === 'signal' ? SIGNAL_WAIT : 0);
   });
 }
 
@@ -222,7 +206,7 @@ test('playground lab recovers a known mount cost', async ({ page }) => {
     (await measureInPlayground(page, `libs=calibrate&cost=${cost}`, ['calibrate'])).calibrate!.mount;
   const base = await median(0);
   const loaded = await median(COST);
-  expectKnownCost(base, loaded, await framePeriod(page));
+  expectKnownCost(base, loaded, await page.evaluate(framePeriod));
 });
 
 test('playground lab reports main-thread blocking for a long task', async ({ page }) => {
@@ -233,7 +217,7 @@ test('playground lab reports main-thread blocking for a long task', async ({ pag
   test.skip(!loaf, 'LoAF unsupported');
   expect(calibrate!.n).toBe(5);
   expect(calibrate!.blocking).toBeGreaterThanOrEqual(80);
-  expect(calibrate!.blocking).toBeLessThanOrEqual(150 + 2 * (await framePeriod(page)));
+  expect(calibrate!.blocking).toBeLessThanOrEqual(150 + 2 * (await page.evaluate(framePeriod)));
 });
 
 test('playground lab measures chartjs on its own page after another library', async ({ page }) => {
@@ -380,10 +364,9 @@ test('a tab hidden during the final LoAF drain repeats that run', async ({ page 
 });
 
 test('render shows a results table, then display cards', async ({ page }) => {
-  const bundle = JSON.parse(readFileSync('results/bundle.json', 'utf8')) as Record<
-    string,
-    { libraryKb: number }
-  >;
+  const bundle = JSON.parse(
+    readFileSync(new URL('../results/bundle.json', import.meta.url), 'utf8'),
+  ) as Record<string, { libraryKb: number }>;
   await page.goto('/index.html?libs=none,recharts');
   await page.getByRole('button', { name: 'Render' }).click();
   const rows = page.locator('[data-summaries] tbody tr');
@@ -393,10 +376,12 @@ test('render shows a results table, then display cards', async ({ page }) => {
     expect(Number.isFinite(r.mount)).toBe(true);
     expect(Number.isFinite(r.update)).toBe(true);
   }
-  await expect(page.locator('tr[data-lib="none"] td').nth(4)).toHaveText(String(bundle.none!.libraryKb));
+  await expect(page.locator('tr[data-lib="none"] td').nth(4)).toHaveText(bundle.none!.libraryKb.toFixed(1));
   await expect(page.locator('tr[data-lib="recharts"] td').nth(4)).toHaveText(
-    String(bundle.recharts!.libraryKb),
+    bundle.recharts!.libraryKb.toFixed(1),
   );
+  await expect(page.locator('tr[data-lib="shell (floor)"] td').nth(4)).toHaveText('0.0');
+  await expect(page.locator('[data-summaries] td.noise').first()).toBeVisible();
   await expect(page.locator('.card iframe')).toHaveCount(2);
   expect(await page.locator('.card iframe').first().getAttribute('src')).toContain('embed=display');
 });

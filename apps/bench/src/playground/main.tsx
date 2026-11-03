@@ -6,7 +6,8 @@ import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
 import { ARMS } from '../data/arms';
 import { DATASETS, generateScatter, generateSurvival } from '../data/generate';
 import type { ChartKind, DatasetSize } from '../data/generate';
-import { measureAll } from './lab';
+import { framePeriod } from './frame';
+import { RUNS, WARMUP, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
 import { formatSeries, parseSeries } from './parse';
 import type { Parsed } from './parse';
@@ -101,7 +102,9 @@ function Summaries({ measured, frame }: { measured: Measurements; frame: number 
   return (
     <div className="table-scroll">
       <table className="summaries" data-summaries>
-        <caption>Median ± half the IQR, 5 runs after 1 warm-up.</caption>
+        <caption>
+          Median ± half the IQR, {RUNS} runs after {WARMUP} warm-up.
+        </caption>
         <thead>
           <tr>
             <th scope="col">Library</th>
@@ -114,44 +117,34 @@ function Summaries({ measured, frame }: { measured: Measurements; frame: number 
           </tr>
         </thead>
         <tbody>
-          {rows.map(([lib, r, isFloor]) => (
-            <tr
-              key={lib}
-              data-lib={lib}
-              data-samples={r.mount.n}
-              data-mount={r.mount.median}
-              data-update={r.update.median}
-              data-blocking={r.blocking?.median ?? ''}
-              data-dom-nodes={r.domNodes}
-              data-bundle-kb={bundleKb[lib]?.libraryKb ?? ''}
-            >
-              <th scope="row">{lib}</th>
-              <Cell s={r.mount} floor={isFloor ? undefined : measured.floor.mount} frame={frame} />
-              <Cell s={r.update} floor={isFloor ? undefined : measured.floor.update} frame={frame} />
-              <Cell s={r.blocking} frame={frame} />
-              <td>{r.domNodes}</td>
-              <td>{bundleKb[lib]?.libraryKb ?? 'n/a'}</td>
-              <td data-hover>{isFloor ? '' : 'hover a chart'}</td>
-            </tr>
-          ))}
+          {rows.map(([lib, r, isFloor]) => {
+            const kb = bundleKb[isFloor ? 'shell' : lib]?.libraryKb;
+            return (
+              <tr
+                key={lib}
+                data-lib={lib}
+                data-samples={r.mount.n}
+                data-mount={r.mount.median}
+                data-update={r.update.median}
+                data-blocking={r.blocking?.median ?? ''}
+                data-dom-nodes={r.domNodes}
+                data-bundle-kb={kb ?? ''}
+              >
+                <th scope="row">{lib}</th>
+                <Cell s={r.mount} floor={isFloor ? undefined : measured.floor.mount} frame={frame} />
+                <Cell s={r.update} floor={isFloor ? undefined : measured.floor.update} frame={frame} />
+                <Cell s={r.blocking} frame={frame} />
+                <td>{r.domNodes}</td>
+                <td>{kb?.toFixed(1) ?? 'n/a'}</td>
+                <td data-hover>{isFloor ? '' : 'hover a chart'}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
 }
-
-const framePeriod = () =>
-  new Promise<number>(resolve => {
-    const gaps: number[] = [];
-    let last = 0;
-    const tick = (now: number) => {
-      if (last) gaps.push(now - last);
-      last = now;
-      if (gaps.length < 20) requestAnimationFrame(tick);
-      else resolve(gaps.sort((a, b) => a - b)[gaps.length >> 1]!);
-    };
-    requestAnimationFrame(tick);
-  });
 
 type Job = { libraries: Library[]; data: Parsed };
 
