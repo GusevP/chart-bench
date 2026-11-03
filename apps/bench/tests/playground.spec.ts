@@ -396,12 +396,15 @@ test('invalid JSON shows the parse error and starts no measurement', async ({ pa
 });
 
 async function sweepCard(page: Page, lib: string) {
-  const card = page.locator(`.card iframe[src^="${lib}.html"]`);
+  const frame = page.locator('.frame', { has: page.locator(`iframe[src^="${lib}.html"]`) });
+  const card = frame.locator('iframe');
   await card.scrollIntoViewIfNeeded();
   const box = (await card.boundingBox())!;
+  const visible = (await frame.boundingBox())!;
+  const width = Math.min(box.width, visible.x + visible.width - box.x);
   const y = box.y + box.height / 2;
   for (let i = 0; i <= 60; i++) {
-    await page.mouse.move(box.x + 20 + ((box.width - 40) * i) / 60, y + Math.sin(i / 4) * box.height * 0.3);
+    await page.mouse.move(box.x + 20 + ((width - 40) * i) / 60, y + Math.sin(i / 4) * box.height * 0.3);
   }
   const cell = page.locator(`tr[data-lib="${lib}"] td[data-hover]`);
   await expect(cell).not.toHaveAttribute('data-hover', '');
@@ -422,12 +425,15 @@ test('hovering a cheap display card stays within two frames', async ({ page }) =
   expect(hover).toBeLessThanOrEqual(2 * (await page.evaluate(framePeriod)) + SLACK);
 });
 
-test('a display card stops recording once the pointer leaves it', async ({ page }) => {
-  await measureInPlayground(page, 'libs=calibrate,none&hoverCost=0', ['calibrate', 'none']);
-  const before = await sweepCard(page, 'calibrate');
-  await page.mouse.move(2, 2);
-  const other = page.frames().find(f => f.url().includes('/none.html') && f.url().includes('embed=display'));
-  await other!.evaluate(
+test('a display card stops recording once the pointer rests', async ({ page }) => {
+  await measureInPlayground(page, 'libs=calibrate&hoverCost=0', ['calibrate']);
+  await sweepCard(page, 'calibrate');
+  await page.waitForTimeout(600);
+  const before = await page.locator('tr[data-lib="calibrate"] td[data-hover]').getAttribute('data-hover');
+  const display = page
+    .frames()
+    .find(f => f.url().includes('/calibrate.html') && f.url().includes('embed=display'));
+  await display!.evaluate(
     () =>
       new Promise<void>(done =>
         requestAnimationFrame(() => {
@@ -439,7 +445,7 @@ test('a display card stops recording once the pointer leaves it', async ({ page 
   await page.waitForTimeout(300);
   await expect(page.locator('tr[data-lib="calibrate"] td[data-hover]')).toHaveAttribute(
     'data-hover',
-    String(before),
+    before!,
   );
 });
 

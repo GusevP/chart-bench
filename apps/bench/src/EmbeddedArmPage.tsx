@@ -47,17 +47,13 @@ function trackHover() {
   let skipFirst = true;
   let max = 0;
   const tick = (now: number) => {
-    if (now - lastMove > HOVER_IDLE_MS) {
-      raf = 0;
-      return;
-    }
     if (skipFirst) skipFirst = false;
     else if (now - last > max) {
       max = now - last;
       toParent({ type: 'bench:hover', maxFrameMs: max });
     }
     last = now;
-    raf = requestAnimationFrame(tick);
+    raf = now - lastMove > HOVER_IDLE_MS ? 0 : requestAnimationFrame(tick);
   };
   const stop = () => {
     cancelAnimationFrame(raf);
