@@ -35,6 +35,48 @@ const toParent = (message: ResultMessage) => window.parent.postMessage(message, 
 
 const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnimationFrame(() => done()));
 
+const inStage = (target: EventTarget | null) =>
+  target instanceof Element && target.closest('[data-bench-stage]') !== null;
+
+function trackHover() {
+  let raf = 0;
+  let last = 0;
+  let skipFirst = true;
+  let max = 0;
+  const tick = (now: number) => {
+    if (skipFirst) skipFirst = false;
+    else if (now - last > max) {
+      max = now - last;
+      toParent({ type: 'bench:hover', maxFrameMs: max });
+    }
+    last = now;
+    raf = requestAnimationFrame(tick);
+  };
+  const stop = () => {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    max = 0;
+  };
+  const onMove = (event: PointerEvent) => {
+    if (raf || !inStage(event.target)) return;
+    last = performance.now();
+    skipFirst = true;
+    raf = requestAnimationFrame(tick);
+  };
+  const onOut = (event: PointerEvent) => {
+    if (!inStage(event.relatedTarget)) stop();
+  };
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerout', onOut);
+  document.addEventListener('visibilitychange', stop);
+  return () => {
+    stop();
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerout', onOut);
+    document.removeEventListener('visibilitychange', stop);
+  };
+}
+
 function EmbeddedArmPage({ arm }: { arm: Arm }) {
   const [payload, setPayload] = useState<Payload>(fromUrl);
   const [version, setVersion] = useState(0);
@@ -91,8 +133,10 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
     observer.observe({ type: 'measure' });
     window.addEventListener('message', onMessage);
     window.addEventListener('error', onError);
+    const stopHover = new URLSearchParams(location.search).get('embed') === 'display' ? trackHover() : null;
     toParent({ type: 'bench:ready', settleMode: arm.settleMode });
     return () => {
+      stopHover?.();
       observer.disconnect();
       window.removeEventListener('message', onMessage);
       window.removeEventListener('error', onError);

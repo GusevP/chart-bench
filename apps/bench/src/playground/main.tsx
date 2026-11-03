@@ -31,7 +31,15 @@ const sample = (chart: ChartKind, size: DatasetSize) =>
       : generateScatter(DATASETS.scatter[size]),
   );
 
-function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
+function ArmFrame({
+  library,
+  data,
+  onHover,
+}: {
+  library: Library;
+  data: Parsed;
+  onHover: (library: Library, maxFrameMs: number) => void;
+}) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
   const runId = useRef(0);
@@ -42,6 +50,7 @@ function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
       if (event.origin !== location.origin || event.source !== ref.current?.contentWindow) return;
       const msg = event.data;
       if (msg.type === 'bench:ready') setReady(true);
+      else if (msg.type === 'bench:hover') onHover(library, msg.maxFrameMs);
       else if (msg.type === 'bench:error') setError(msg.message);
     };
     window.addEventListener('message', onMessage);
@@ -94,7 +103,15 @@ function Cell({ s, floor, frame }: { s: Summary | null; floor?: Summary; frame: 
   );
 }
 
-function Summaries({ measured, frame }: { measured: Measurements; frame: number }) {
+function Summaries({
+  measured,
+  frame,
+  hover,
+}: {
+  measured: Measurements;
+  frame: number;
+  hover: Record<string, number>;
+}) {
   const rows: [string, LibraryResult, boolean][] = [
     ['shell (floor)', measured.floor, true],
     ...Object.entries(measured.results).map(([lib, r]): [string, LibraryResult, boolean] => [lib, r, false]),
@@ -136,7 +153,9 @@ function Summaries({ measured, frame }: { measured: Measurements; frame: number 
                 <Cell s={r.blocking} frame={frame} />
                 <td>{r.domNodes}</td>
                 <td>{kb?.toFixed(1) ?? 'n/a'}</td>
-                <td data-hover>{isFloor ? '' : 'hover a chart'}</td>
+                <td data-hover={hover[lib] ?? ''}>
+                  {isFloor ? '' : hover[lib] === undefined ? 'hover a chart' : hover[lib].toFixed(1)}
+                </td>
               </tr>
             );
           })}
@@ -198,6 +217,7 @@ function Playground() {
   const [job, setJob] = useState<Job | null>(null);
   const [measured, setMeasured] = useState<Measurements | null>(null);
   const [shown, setShown] = useState<Library[]>([]);
+  const [hover, setHover] = useState<Record<string, number>>({});
   const [frame, setFrame] = useState(16.7);
   const [runError, setRunError] = useState('');
   const [chart, setChart] = useState<ChartKind>('survival');
@@ -224,6 +244,7 @@ function Playground() {
     setRunError('');
     setMeasured(null);
     setShown([]);
+    setHover({});
     setJob({
       libraries: (Object.keys(LABELS) as Library[]).filter(l => libraries.includes(l)),
       data: parsed,
@@ -312,9 +333,14 @@ function Playground() {
             {runError}
           </p>
         )}
-        {measured && <Summaries measured={measured} frame={frame} />}
+        {measured && <Summaries measured={measured} frame={frame} hover={hover} />}
         {shown.map(lib => (
-          <ArmFrame key={lib} library={lib} data={data} />
+          <ArmFrame
+            key={lib}
+            library={lib}
+            data={data}
+            onHover={(l, ms) => setHover(cur => ({ ...cur, [l]: ms }))}
+          />
         ))}
       </div>
       {job && (

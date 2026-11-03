@@ -394,3 +394,46 @@ test('invalid JSON shows the parse error and starts no measurement', async ({ pa
   await expect(page.locator('[data-lab]')).toHaveCount(0);
   await expect(page.locator('[data-summaries]')).toHaveCount(0);
 });
+
+async function sweepCard(page: Page, lib: string) {
+  const card = page.locator('.card iframe').first();
+  await card.scrollIntoViewIfNeeded();
+  const box = (await card.boundingBox())!;
+  const y = box.y + box.height / 2;
+  for (let i = 0; i <= 60; i++) {
+    await page.mouse.move(box.x + 20 + ((box.width - 40) * i) / 60, y + Math.sin(i / 4) * box.height * 0.3);
+  }
+  const cell = page.locator(`tr[data-lib="${lib}"] td[data-hover]`);
+  await expect(cell).not.toHaveAttribute('data-hover', '');
+  const ms = Number(await cell.getAttribute('data-hover'));
+  console.log(`hover ${lib} ${ms.toFixed(1)}`);
+  return ms;
+}
+
+test('hovering a display card fills the hover column with the worst frame', async ({ page }) => {
+  await measureInPlayground(page, 'libs=calibrate&hoverCost=100', ['calibrate']);
+  await expect(page.locator('tr[data-lib="calibrate"] td[data-hover]')).toHaveText('hover a chart');
+  expect(await sweepCard(page, 'calibrate')).toBeGreaterThanOrEqual(100);
+});
+
+test('hovering a cheap display card stays within two frames', async ({ page }) => {
+  await measureInPlayground(page, 'libs=calibrate&hoverCost=0', ['calibrate']);
+  const hover = await sweepCard(page, 'calibrate');
+  expect(hover).toBeLessThanOrEqual(2 * (await page.evaluate(framePeriod)) + SLACK);
+});
+
+test('lab frames never post bench:hover', async ({ page }) => {
+  await page.goto('/index.html?libs=calibrate&hoverCost=100');
+  await page.evaluate(() => {
+    const w = window as unknown as { hovers: unknown[] };
+    w.hovers = [];
+    window.addEventListener('message', e => {
+      if (e.data?.type === 'bench:hover') w.hovers.push(e.data);
+    });
+  });
+  await page.getByRole('button', { name: 'Render' }).click();
+  await page.locator('[data-lab]').waitFor();
+  for (let i = 0; i < 40; i++) await page.mouse.move(100 + i * 15, 200 + (i % 7) * 40);
+  await page.locator('[data-summaries]').waitFor({ timeout: 120_000 });
+  expect(await page.evaluate(() => (window as unknown as { hovers: unknown[] }).hovers)).toEqual([]);
+});

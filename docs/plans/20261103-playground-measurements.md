@@ -183,10 +183,10 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 - Modify: `apps/bench/src/EmbeddedArmPage.tsx`, `apps/bench/src/playground/main.tsx`, `apps/bench/tests/playground.spec.ts`
 
-- [ ] in `?embed=display` pages only: rAF loop while the pointer is in the stage, worst gap (first discarded) posted as `bench:hover`; reset on `pointerleave` and `visibilitychange`
-- [ ] hover column fills in once the visitor has hovered that library's card
-- [ ] write spec: `calibrate?hoverCost=100`, `page.mouse` sweep over the display card → hover ≥ 100 ms; `hoverCost=0` → ≤ 2F
-- [ ] write spec: lab frames (`embed=lab`) never post `bench:hover`
+- [x] in `?embed=display` pages only: rAF loop while the pointer is in the stage, worst gap (first discarded) posted as `bench:hover`; reset on `pointerleave` and `visibilitychange`
+- [x] hover column fills in once the visitor has hovered that library's card
+- [x] write spec: `calibrate?hoverCost=100`, `page.mouse` sweep over the display card → hover ≥ 100 ms; `hoverCost=0` → ≤ 2F
+- [x] write spec: lab frames (`embed=lab`) never post `bench:hover`
 - [ ] run tests — must pass before Task 6
 
 ### Task 6: Validation — harness agreement and interference sensitivity
