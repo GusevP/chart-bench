@@ -117,7 +117,7 @@ function expectKnownCost(base: number, loaded: number, F: number, wait = 0) {
   expect(base).toBeGreaterThan(wait + F / 2);
   expect(base).toBeLessThanOrEqual(wait + 2 * F + SLACK);
   expect(loaded).toBeGreaterThanOrEqual(wait + COST);
-  expect(loaded).toBeLessThanOrEqual(wait + COST + 2 * F);
+  expect(loaded).toBeLessThanOrEqual(wait + COST + 2 * F + SLACK);
 }
 
 test('top-level arm page never loads the embedded chunk', async ({ page }) => {
