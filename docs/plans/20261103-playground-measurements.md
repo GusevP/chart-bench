@@ -33,7 +33,7 @@ Brief: `docs/plans/briefs/20261103-playground-measurements.md` (local only). Pla
 
 - **Playwright specs**: `pnpm build && pnpm -F bench exec playwright test playground`.
 - **Tolerances**: the mount/update timer ends on a frame boundary but starts mid-frame, so each median carries up to one frame of phase error and a difference of two medians up to two. Specs measure the frame period `F` in-page (median rAF gap) instead of hard-coding 16.7 ms. Known-cost: assert absolute medians, not only Δ — the cost swallows the baseline's frame wait, so `loaded ≥ cost`, `loaded ≤ cost + 2F + 5 ms`, `F/2 < base ≤ 2F + 5 ms` (update baselines observed 13–19 ms at F=16.7; a missing rAF would sit near F/2; the signal arm adds its fixed 50 ms wait to every bound) (Δ lies in `[cost − 2F, cost + F]`). Agreement: `|Δ| ≤ 2F`.
-- **Benchmark regression gate** (every task touching arm pages): `BENCH_REPEATS=1 BENCH_ARMS=none,echarts,chartjs BENCH_OUT=<scratch>/gate.jsonl pnpm -F bench exec playwright test bench` passes with the same JSON keys, and `git diff --exit-code apps/bench/results/bundle.json` after `pnpm build` (clean against the file committed in Task 1).
+- **Benchmark regression gate** (every task touching arm pages): `BENCH_REPEATS=1 BENCH_ARMS=none,echarts,chartjs BENCH_OUT=<scratch>/gate.jsonl pnpm -F bench exec playwright test bench` passes with the same JSON keys, and `git diff --exit-code apps/bench/results/bundle.json` after `pnpm build` (clean against the committed file).
 - `pnpm typecheck` after every task.
 - Not in CI: timing specs on shared runners are flaky; CI keeps typecheck + build.
 
@@ -68,8 +68,8 @@ Key decisions:
 - **Update**: the embedded page sets new data of the same shape without re-keying, marks `play:update-start`, and owns its own settle — it never calls BenchStage's once-guarded `requestSettle`. Both modes end in the same double rAF as mount, then `performance.measure('play:update', …)`:
   - `raf`: double rAF requested from a passive `useEffect([payload])` in the embedded page. Child passive effects run first, so this lands after effect-time drawing such as react-chartjs-2's `chart.update()`.
   - `signal`: the next `settled` call from the arm (echarts re-inits on the new option and fires `finished`).
-  - Per library: `arm.settleMode`, except chartjs uses `raf` on update because its `done` flag never resets. That one exception is named in the playground's library table and sent in the message.
-- **Main-thread blocking**: `PerformanceObserver({type:'long-animation-frame', buffered:true})` installed at embedded-page load if `PerformanceObserver.supportedEntryTypes` has it, else `n/a`. After settle, wait one rAF + `setTimeout(0)` so late entries arrive, `takeRecords()`, and sum `blockingDuration` of frames overlapping [`bench:start`, `bench:settled`] (a frame that began before start but contains the render counts). No `longtask` fallback: browsers without LoAF lack it too.
+  - Per library: `arm.settleMode` (reported in `bench:ready`), except chartjs uses `raf` on update because its `done` flag never resets. That one exception is named in the playground's library table and sent in the message.
+- **Main-thread blocking**: Chrome exposes `long-animation-frame` only to the top-level window, so the playground (`lab.ts`) observes it (`buffered:true`) if `PerformanceObserver.supportedEntryTypes` has it, else `n/a`; the embedded page reports `startAt`/`endAt`. After settle, wait one rAF + `setTimeout(0)` so late entries arrive, `takeRecords()`, and sum `blockingDuration` of frames overlapping [`bench:start`, `bench:settled`] (a frame that began before start but contains the render counts). No `longtask` fallback: browsers without LoAF lack it too.
 - **Hover**: Event Timing skips `pointermove`/`mousemove`, so it would miss canvas tooltips. Use the harness's metric instead: worst rAF frame gap while the visitor's pointer is in the stage, only in `?embed=display` frames, reset on `pointerleave` and `visibilitychange`, first gap after entering discarded (same rule as `measureHover`). Display cards render at the arm's native 900×600 inside a scroll box, never scaled.
 - **Bundle size**: `import bundle from '../../results/bundle.json'` in the playground — the committed, published numbers, inlined at build. No fetch, no `dist` copy.
 - **Known-cost page**: test-only `calibrate.html` (a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries). URL params: `cost` (busy-wait in render), `hoverCost` (per `pointermove`), `drawIn=effect` (busy-wait `cost` in a passive effect on every data change instead of render), `settle=signal` (`settleMode: 'signal'`, calls `onSettled` from a `setTimeout` after busy-waiting `cost`), `throw=1` (throws in render). `?libs=calibrate` in the playground selects it (never shown in the checkbox list) and extra params pass through to the lab frame src.
@@ -139,7 +139,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - Modify: `apps/bench/vite.config.ts`, `apps/bench/scripts/bundle-size.mjs`, `apps/bench/tests/playground.spec.ts`
 
 - [x] calibrate arm with `cost`, `hoverCost`, `drawIn=effect`, `settle=signal`, `throw=1` (see Solution Overview); empty stage otherwise
-- [x] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json` (unchanged versus the committed file after Task 1)
+- [x] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json` (unchanged versus the committed file)
 - [x] write spec: harness `measureMount` on `calibrate.html?cost=0` vs `?cost=100`, 5 runs each → `base`/`loaded` absolute bounds (see Testing Strategy)
 - [x] write spec: embedded update Δ (cost 0 vs 100) within the same absolute bounds for each of: default (`raf`, render), `drawIn=effect`, `settle=signal`
 - [x] write spec: embedded `throw=1` → `bench:error` carrying the run id of the mount that threw
@@ -163,6 +163,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] write spec: override `document.visibilityState` to `hidden` via `Object.defineProperty` in the parent and dispatch `visibilitychange` mid-run, restore, → run repeated, final sample count still 5
 - [ ] run tests — must pass before Task 4
 - ⚠️ Deviation: Chrome exposes `long-animation-frame` only to the top-level window, so the embedded observer saw nothing (`blockingMs` was always 0). The mount result now carries `startAt`/`endAt` (timeOrigin-based) instead of `blockingMs`, and the playground (`lab.ts`) observes LoAF itself.
+- ⚠️ Deviation (Task 3): `bundle.json` `totalKb` may drift ±0.1 KB when `EmbeddedArmPage` changes (the statically loaded `ArmPage` chunk contains its hashed filename, shifting gzip by a few bytes); `libraryKb` and ARTICLE.md are unaffected. The reference is the committed file as of d76e15b.
 
 ### Task 4: Results table, bundle size and display cards
 

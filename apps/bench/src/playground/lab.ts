@@ -18,7 +18,7 @@ export const WARMUP = 1;
 const TIMEOUT_MS = 60_000;
 
 // chartjs fires its settle signal once per page, so updates are timed on rAF instead.
-const UPDATE_SETTLE: Record<string, 'raf' | 'signal'> = { echarts: 'signal' };
+const RAF_UPDATE = new Set(['chartjs']);
 
 type LoafEntry = PerformanceEntry & { blockingDuration: number };
 // Chrome exposes long-animation-frame only to the top-level window, so the playground observes it, not the lab frame.
@@ -103,13 +103,13 @@ async function runOnce(
   src: string,
   data: Parsed,
   updated: Parsed,
-  updateSettle: 'raf' | 'signal',
+  library: string,
   signal: AbortSignal,
 ): Promise<Sample> {
   await untilVisible(signal);
-  const ready = waitFor(frame, signal, null, m => (m.type === 'bench:ready' ? true : undefined));
+  const ready = waitFor(frame, signal, null, m => (m.type === 'bench:ready' ? m.settleMode : undefined));
   frame.contentWindow!.location.replace(src);
-  await ready;
+  const updateSettle = RAF_UPDATE.has(library) ? 'raf' : await ready;
 
   const send = <M extends 'mount' | 'update'>(mode: M, payload: Parsed) => {
     const runId = ++lastRunId;
@@ -144,14 +144,12 @@ export async function measureLibrary(
   const params = new URLSearchParams(query);
   params.set('embed', 'lab');
   const src = `${library}.html?${params}`;
-  const updateSettle =
-    library === 'calibrate' ? (params.get('settle') ?? 'raf') : (UPDATE_SETTLE[library] ?? 'raf');
   const updated = nudge(data);
 
   const samples: Sample[] = [];
   while (samples.length < warmup + runs) {
     try {
-      samples.push(await runOnce(frame, src, data, updated, updateSettle as 'raf' | 'signal', signal));
+      samples.push(await runOnce(frame, src, data, updated, library, signal));
     } catch (e) {
       if (!(e instanceof HiddenError)) throw e;
     }

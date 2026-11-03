@@ -13,7 +13,7 @@ export type DataMessage = {
   updateSettle: 'raf' | 'signal';
 } & Payload;
 export type ResultMessage =
-  | { type: 'bench:ready' }
+  | { type: 'bench:ready'; settleMode: 'raf' | 'signal' }
   | {
       type: 'bench:result';
       runId: number;
@@ -91,7 +91,7 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
     observer.observe({ type: 'measure' });
     window.addEventListener('message', onMessage);
     window.addEventListener('error', onError);
-    toParent({ type: 'bench:ready' });
+    toParent({ type: 'bench:ready', settleMode: arm.settleMode });
     return () => {
       observer.disconnect();
       window.removeEventListener('message', onMessage);

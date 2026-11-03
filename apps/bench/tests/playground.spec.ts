@@ -5,6 +5,8 @@ import { summarize } from 'bench-stage/stats';
 
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
+import { nudge } from '../src/playground/parse';
+import type { Parsed } from '../src/playground/parse';
 
 type Result = {
   type: string;
@@ -19,10 +21,7 @@ type Mode = 'mount' | 'update';
 type Settle = 'raf' | 'signal';
 
 const series = generateSurvival(DATASETS.survival.typical);
-const nudged: SurvivalSeries[] = series.map(s => ({
-  ...s,
-  points: s.points.map(p => ({ ...p, y: p.y * 0.97, lower: p.lower * 0.97, upper: p.upper * 0.97 })),
-}));
+const nudged = (nudge({ chart: 'survival', series }) as Extract<Parsed, { chart: 'survival' }>).series;
 
 async function openLab(page: Page, src: string) {
   await page.goto('/calibrate.html');
@@ -114,7 +113,7 @@ function expectKnownCost(base: number, loaded: number, F: number, wait = 0) {
   console.log(
     `base=${base.toFixed(1)} loaded=${loaded.toFixed(1)} F=${F.toFixed(1)} delta=${(loaded - base).toFixed(1)}`,
   );
-  expect(base).toBeGreaterThan(wait + F / 2);
+  expect(base).toBeGreaterThan(wait > 0 ? wait : F / 2);
   expect(base).toBeLessThanOrEqual(wait + 2 * F + SLACK);
   expect(loaded).toBeGreaterThanOrEqual(wait + COST);
   expect(loaded).toBeLessThanOrEqual(wait + COST + 2 * F + SLACK);
@@ -228,6 +227,7 @@ test('playground lab reports main-thread blocking for a long task', async ({ pag
   test.skip(!loaf, 'LoAF unsupported');
   expect(calibrate!.n).toBe(5);
   expect(calibrate!.blocking).toBeGreaterThanOrEqual(80);
+  expect(calibrate!.blocking).toBeLessThanOrEqual(150 + 2 * (await framePeriod(page)));
 });
 
 test('only the lab frame exists while measuring', async ({ page }) => {

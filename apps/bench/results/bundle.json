@@ -4,7 +4,7 @@
     "libraryKb": 55.4
   },
   "echarts": {
-    "totalKb": 232.8,
+    "totalKb": 232.9,
     "libraryKb": 164
   },
   "nivo": {
@@ -20,7 +20,7 @@
     "libraryKb": 106.1
   },
   "shell": {
-    "totalKb": 68.8,
+    "totalKb": 68.9,
     "libraryKb": 0
   },
   "tanstack": {
