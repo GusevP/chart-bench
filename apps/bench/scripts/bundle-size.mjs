@@ -18,7 +18,7 @@ function entryBytes(key, seen = new Set()) {
 
 const totals = Object.fromEntries(
   Object.entries(manifest)
-    .filter(([key, chunk]) => chunk.isEntry && key.endsWith('.html'))
+    .filter(([key, chunk]) => chunk.isEntry && key.endsWith('.html') && key !== 'index.html')
     .map(([key]) => [key.replace('.html', ''), entryBytes(key)]),
 );
 const result = Object.fromEntries(

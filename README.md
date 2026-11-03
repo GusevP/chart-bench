@@ -14,6 +14,10 @@ The same two charts — a survival curve with confidence bands and censoring tic
 
 Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
 
+## Playground
+
+`pnpm build && pnpm -F bench preview`, then open `http://localhost:4173/`. Pick libraries, paste your own series as JSON, and every selected library draws it side by side. `.github/workflows/pages.yml` deploys the same build to GitHub Pages on every push to `main`.
+
 ## Method
 
 **Data.** Seeded generators (`apps/bench/src/data/generate.ts`, splitmix32), so every library gets byte-identical input. All data is synthetic.

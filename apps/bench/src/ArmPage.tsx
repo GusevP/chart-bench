@@ -1,4 +1,4 @@
-import { BenchStage } from 'bench-stage';
+import { BenchStage, MEASURE, benchWindow } from 'bench-stage';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -13,6 +13,10 @@ type Payload =
   { chart: 'survival'; series: SurvivalSeries[] } | { chart: 'scatter'; series: ScatterSeries[] };
 
 export type DataMessage = { type: 'bench:data' } & Payload;
+export type ResultMessage =
+  { type: 'bench:ready' } | { type: 'bench:settled'; ms: number } | { type: 'bench:error'; message: string };
+
+const toParent = (message: ResultMessage) => window.parent.postMessage(message, location.origin);
 
 function fromUrl(): Payload {
   const params = new URLSearchParams(location.search);
@@ -46,10 +50,26 @@ function ArmPage({ arm }: { arm: Arm }) {
       setPayload(event.data);
       setVersion(v => v + 1);
     };
+    const onError = (event: ErrorEvent) => toParent({ type: 'bench:error', message: String(event.message) });
+    const observer = new PerformanceObserver(list => {
+      for (const entry of list.getEntriesByName(MEASURE))
+        toParent({ type: 'bench:settled', ms: entry.duration });
+    });
+    observer.observe({ type: 'measure' });
     window.addEventListener('message', onMessage);
-    window.parent.postMessage({ type: 'bench:ready' }, location.origin);
-    return () => window.removeEventListener('message', onMessage);
+    window.addEventListener('error', onError);
+    toParent({ type: 'bench:ready' });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('message', onMessage);
+      window.removeEventListener('error', onError);
+    };
   }, []);
+
+  // Runs after the re-keyed BenchStage has installed its API (child effects run first).
+  useEffect(() => {
+    if (version) benchWindow().benchStage?.mount();
+  }, [version]);
 
   return (
     <BenchStage key={version} width={WIDTH} height={HEIGHT} settleMode={arm.settleMode}>

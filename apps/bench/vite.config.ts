@@ -3,14 +3,18 @@ import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-export const ARMS = ['shell', 'none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'] as const;
+import { ARMS } from './src/data/arms.ts';
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   build: {
     manifest: true,
     rollupOptions: {
-      input: Object.fromEntries(ARMS.map(arm => [arm, resolve(import.meta.dirname, `${arm}.html`)])),
+      input: {
+        index: resolve(import.meta.dirname, 'index.html'),
+        ...Object.fromEntries(ARMS.map(arm => [arm, resolve(import.meta.dirname, `${arm}.html`)])),
+      },
     },
   },
 });
