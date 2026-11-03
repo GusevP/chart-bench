@@ -1,0 +1,34 @@
+{
+  "chartjs": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "echarts": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "nivo": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "none": {
+    "totalKb": 77.9,
+    "libraryKb": 10.4
+  },
+  "recharts": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "shell": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "tanstack": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  },
+  "visx": {
+    "totalKb": 67.6,
+    "libraryKb": 0
+  }
+}

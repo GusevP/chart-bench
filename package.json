@@ -1,0 +1,16 @@
+{
+  "name": "chart-bench-root",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "build": "pnpm -F bench run build",
+    "bench": "pnpm -F bench run bench",
+    "report": "pnpm -F bench run report",
+    "typecheck": "pnpm -r exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3"
+  }
+}

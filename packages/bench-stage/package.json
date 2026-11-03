@@ -1,0 +1,25 @@
+{
+  "name": "bench-stage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Paint-confirmed mount timing for React components, fair across SVG and Canvas.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./playwright": "./src/playwright.ts",
+    "./stats": "./src/stats.ts"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.40",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": { "optional": true }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/react": "^19.2.0",
+    "react": "^19.2.0",
+    "typescript": "^5.9.0"
+  }
+}
