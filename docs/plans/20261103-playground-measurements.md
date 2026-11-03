@@ -202,11 +202,11 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 ### Task 7: Verify acceptance criteria
 
-- [ ] every metric from the Overview shows for all seven libraries on both charts and both sample sizes
+- [x] every metric from the Overview shows for all seven libraries on both charts and both sample sizes
 - [ ] `pnpm typecheck` and `pnpm build` pass; `git diff --exit-code apps/bench/results/` clean (against the files committed after Task 1)
 - [ ] `pnpm -F bench exec playwright test playground` passes
 - [ ] benchmark regression gate passes
-- [ ] check the playground in a real browser (agent-browser): measure → table → cards → hover → paste own data → re-measure
+- [x] check the playground in a real browser (agent-browser): measure → table → cards → hover → paste own data → re-measure
 
 ### Task 8: [Final] Update documentation
 
