@@ -18,7 +18,7 @@ const fmt = ({ median, iqr }) =>
   Number.isNaN(median) ? '—' : `${median.toFixed(1)} ±${(iqr / 2).toFixed(1)}`;
 
 let md = '';
-for (const metric of ['mountMs', 'maxFrameMs', 'domNodes']) {
+for (const metric of ['mountMs', 'naiveMs', 'maxFrameMs', 'domNodes']) {
   md += `\n### ${metric} (median ±IQR/2, n per cell shown in raw data)\n\n| library | ${cases.join(' | ')} |\n|---|${cases.map(() => '---:').join('|')}|\n`;
   for (const arm of arms) {
     const cells = cases.map(c => {
@@ -31,5 +31,5 @@ for (const metric of ['mountMs', 'maxFrameMs', 'domNodes']) {
 md += '\n### Bundle (gzip, KB)\n\n| library | total | library cost |\n|---|---:|---:|\n';
 for (const [arm, b] of Object.entries(bundle)) md += `| ${arm} | ${b.totalKb} | ${b.libraryKb} |\n`;
 
-writeFileSync('results/report.md', md);
+writeFileSync(input.replace(/\.jsonl$/, '.md'), md);
 console.log(md);

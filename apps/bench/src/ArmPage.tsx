@@ -1,5 +1,5 @@
 import { BenchStage } from 'bench-stage';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import type { Arm, ScatterSeries, SurvivalSeries } from './data/contract';
@@ -23,6 +23,18 @@ function fromUrl(): Payload {
     : { chart, series: generateScatter(DATASETS.scatter[size]) };
 }
 
+// The timestamp a naive instrument would take: at commit for SVG, on the library's own
+// "done" signal for Canvas. Recorded beside the paint-confirmed one to show the gap.
+const NAIVE = 'bench:naive';
+const markNaive = () => {
+  performance.mark(NAIVE);
+};
+
+function CommitMark() {
+  useLayoutEffect(markNaive, []);
+  return null;
+}
+
 function ArmPage({ arm }: { arm: Arm }) {
   const [payload, setPayload] = useState<Payload>(fromUrl);
   const [version, setVersion] = useState(0);
@@ -41,13 +53,22 @@ function ArmPage({ arm }: { arm: Arm }) {
 
   return (
     <BenchStage key={version} width={WIDTH} height={HEIGHT} settleMode={arm.settleMode}>
-      {({ onSettled }) =>
-        payload.chart === 'survival' ? (
-          <arm.Survival width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
-        ) : (
-          <arm.Scatter width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
-        )
-      }
+      {({ onSettled }) => {
+        const settled = () => {
+          markNaive();
+          onSettled();
+        };
+        return (
+          <>
+            {payload.chart === 'survival' ? (
+              <arm.Survival width={WIDTH} height={HEIGHT} series={payload.series} onSettled={settled} />
+            ) : (
+              <arm.Scatter width={WIDTH} height={HEIGHT} series={payload.series} onSettled={settled} />
+            )}
+            {arm.settleMode === 'raf' && <CommitMark />}
+          </>
+        );
+      }}
     </BenchStage>
   );
 }
