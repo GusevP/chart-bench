@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import type { DataMessage, ResultMessage } from '../ArmPage';
+import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
 import { ARMS } from '../data/arms';
 import { DATASETS, generateScatter, generateSurvival } from '../data/generate';
 import type { ChartKind, DatasetSize } from '../data/generate';
@@ -31,6 +31,7 @@ type Status = { state: 'loading' } | { state: 'done'; ms: number } | { state: 'e
 function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  const runId = useRef(0);
   const [status, setStatus] = useState<Status>({ state: 'loading' });
 
   useEffect(() => {
@@ -38,7 +39,8 @@ function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
       if (event.origin !== location.origin || event.source !== ref.current?.contentWindow) return;
       const msg = event.data;
       if (msg.type === 'bench:ready') setReady(true);
-      else if (msg.type === 'bench:settled') setStatus({ state: 'done', ms: msg.ms });
+      else if (msg.type === 'bench:result' && msg.mode === 'mount' && msg.runId === runId.current)
+        setStatus({ state: 'done', ms: msg.mountMs });
       else if (msg.type === 'bench:error') setStatus({ state: 'error', message: msg.message });
     };
     window.addEventListener('message', onMessage);
@@ -49,7 +51,13 @@ function ArmFrame({ library, data }: { library: Library; data: Parsed }) {
     if (!ready) return;
     setStatus({ state: 'loading' });
     ref.current?.contentWindow?.postMessage(
-      { type: 'bench:data', ...data } satisfies DataMessage,
+      {
+        type: 'bench:data',
+        runId: ++runId.current,
+        mode: 'mount',
+        updateSettle: 'raf',
+        ...data,
+      } satisfies DataMessage,
       location.origin,
     );
   }, [ready, data]);

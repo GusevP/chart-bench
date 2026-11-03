@@ -97,11 +97,11 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - Modify: `apps/bench/src/ArmPage.tsx`, `apps/bench/src/playground/main.tsx`
 - Create: `apps/bench/tests/playground.spec.ts`
 
-- [ ] `mountArm`: top-level → `ArmPage` with the postMessage/observer code removed (back to the pre-playground shape); embedded → `import('./EmbeddedArmPage')`
-- [ ] `EmbeddedArmPage`: `bench:ready`, mount mode (re-key + `mount()`, report `mountMs`, `domNodes` via `[data-bench-stage] *`, `blockingMs` per Solution Overview), update mode with its own settle (passive-effect double rAF or next `settled`, then double rAF), `settled` passed to arms held in a ref so re-renders do not re-init echarts, `runId` in a ref, `bench:error`
-- [ ] switch `ArmFrame` in `main.tsx` to `bench:result` (mount mode, `runId` from a counter) so the current playground keeps working until Task 3 replaces it
-- [ ] write spec: a top-level `none.html` never requests the embedded chunk (no resource entry matching `EmbeddedArmPage`) and `measureMount` still works
-- [ ] write spec: open `index.html`, inject an iframe to `none.html`, post mount then update for survival-typical; both results carry the sent `runId`; `domNodes` equals the harness `measureMount` value for the same case; `updateMs` finite and > 0
+- [x] `mountArm`: top-level → `ArmPage` with the postMessage/observer code removed (back to the pre-playground shape); embedded → `import('./EmbeddedArmPage')`
+- [x] `EmbeddedArmPage`: `bench:ready`, mount mode (re-key + `mount()`, report `mountMs`, `domNodes` via `[data-bench-stage] *`, `blockingMs` per Solution Overview), update mode with its own settle (passive-effect double rAF or next `settled`, then double rAF), `settled` passed to arms held in a ref so re-renders do not re-init echarts, `runId` in a ref, `bench:error`
+- [x] switch `ArmFrame` in `main.tsx` to `bench:result` (mount mode, `runId` from a counter) so the current playground keeps working until Task 3 replaces it
+- [x] write spec: a top-level `none.html` never requests the embedded chunk (no resource entry matching `EmbeddedArmPage`) and `measureMount` still works
+- [x] write spec: open `index.html`, inject an iframe to `none.html`, post mount then update for survival-typical; both results carry the sent `runId`; `domNodes` equals the harness `measureMount` value for the same case; `updateMs` finite and > 0
 - [ ] run regression gate (incl. `git diff --exit-code results/bundle.json`) + `pnpm typecheck` + specs — must pass before Task 2
 
 ### Task 2: Test-only known-cost page
