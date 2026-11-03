@@ -34,7 +34,12 @@ function Survival({ width, height, series }: SurvivalChartProps) {
           areaY(rows, { x: 'x', y1: 'lower', y2: 'upper', z: 'series', fillOpacity: 0.15, curve: stepAfter }),
         ),
         lineY(rows, { x: 'x', y: 'y', z: 'series', curve: stepAfter }),
-        decorative(tickX(rows.filter(r => r.censored), { x: 'x', y: 'y', z: 'series', length: 8 })),
+        decorative(
+          tickX(
+            rows.filter(r => r.censored),
+            { x: 'x', y: 'y', z: 'series', length: 8 },
+          ),
+        ),
       ],
       scales: {
         x: { scale: scaleLinear().domain([0, lastX]), axis: { label: 'Days' } },
