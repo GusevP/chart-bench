@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
@@ -200,7 +202,7 @@ async function summaries(page: Page, libs: string[]) {
     { n: number; mount: number; update: number; blocking: number | null; domNodes: number }
   > = {};
   for (const lib of libs) {
-    const li = page.locator(`[data-summaries] li[data-lib="${lib}"]`);
+    const li = page.locator(`[data-summaries] tr[data-lib="${lib}"]`);
     await li.waitFor({ timeout: 120_000 });
     const num = async (name: string) => Number(await li.getAttribute(`data-${name}`));
     const blocking = await li.getAttribute('data-blocking');
@@ -375,4 +377,35 @@ test('a tab hidden during the final LoAF drain repeats that run', async ({ page 
   expect(await page.evaluate(() => (window as unknown as { maxRun: number }).maxRun)).toBeGreaterThan(
     2 * FINAL_UPDATE,
   );
+});
+
+test('render shows a results table, then display cards', async ({ page }) => {
+  const bundle = JSON.parse(readFileSync('results/bundle.json', 'utf8')) as Record<
+    string,
+    { libraryKb: number }
+  >;
+  await page.goto('/index.html?libs=none,recharts');
+  await page.getByRole('button', { name: 'Render' }).click();
+  const rows = page.locator('[data-summaries] tbody tr');
+  await expect(rows).toHaveCount(3, { timeout: 120_000 });
+  const { none, recharts } = await summaries(page, ['none', 'recharts']);
+  for (const r of [none!, recharts!]) {
+    expect(Number.isFinite(r.mount)).toBe(true);
+    expect(Number.isFinite(r.update)).toBe(true);
+  }
+  await expect(page.locator('tr[data-lib="none"] td').nth(4)).toHaveText(String(bundle.none!.libraryKb));
+  await expect(page.locator('tr[data-lib="recharts"] td').nth(4)).toHaveText(
+    String(bundle.recharts!.libraryKb),
+  );
+  await expect(page.locator('.card iframe')).toHaveCount(2);
+  expect(await page.locator('.card iframe').first().getAttribute('src')).toContain('embed=display');
+});
+
+test('invalid JSON shows the parse error and starts no measurement', async ({ page }) => {
+  await page.goto('/index.html?libs=none');
+  await page.getByLabel('Chart data as JSON').fill('{not json');
+  await page.getByRole('button', { name: 'Render' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('[data-lab]')).toHaveCount(0);
+  await expect(page.locator('[data-summaries]')).toHaveCount(0);
 });

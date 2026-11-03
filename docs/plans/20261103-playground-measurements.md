@@ -171,10 +171,10 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 - Modify: `apps/bench/src/playground/main.tsx`, `apps/bench/src/playground/style.css`, `apps/bench/tests/playground.spec.ts`
 
-- [ ] results table: library, mount, update, blocking, DOM nodes, bundle (library KB from `results/bundle.json` import), hover; median ± IQR/2; shell floor row; `n/a` where an API is missing
-- [ ] display cards (`?embed=display`, native 900×600 in a scroll box) created after the lab is removed; replace the "single run, side by side" disclaimer with one line on the method and "comparable within this session only"
-- [ ] write spec (happy path): `?libs=none,recharts`, Render → two rows with finite mount/update, bundle KB matching `results/bundle.json`, then two display cards
-- [ ] write spec: invalid JSON shows the parse error and starts no measurement (no `[data-lab]`)
+- [x] results table: library, mount, update, blocking, DOM nodes, bundle (library KB from `results/bundle.json` import), hover; median ± IQR/2; shell floor row; `n/a` where an API is missing
+- [x] display cards (`?embed=display`, native 900×600 in a scroll box) created after the lab is removed; replace the "single run, side by side" disclaimer with one line on the method and "comparable within this session only"
+- [x] write spec (happy path): `?libs=none,recharts`, Render → two rows with finite mount/update, bundle KB matching `results/bundle.json`, then two display cards
+- [x] write spec: invalid JSON shows the parse error and starts no measurement (no `[data-lab]`)
 - [ ] run tests — must pass before Task 5
 
 ### Task 5: Hover max frame on display cards
