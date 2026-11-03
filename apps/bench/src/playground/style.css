@@ -130,11 +130,16 @@ iframe {
 .lab iframe {
   pointer-events: none;
 }
-.lab-bar {
+.lab-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #fff;
   display: flex;
+  flex-direction: column;
   gap: 12px;
   align-items: center;
-  padding: 8px 12px;
+  justify-content: center;
 }
 .table-scroll {
   overflow-x: auto;

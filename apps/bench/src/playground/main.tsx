@@ -181,14 +181,16 @@ function Lab({
   onCancel: () => void;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
-  const [progress, setProgress] = useState('starting…');
+  const [library, setLibrary] = useState<{ name: string; index: number; total: number } | null>(null);
+  const [run, setRun] = useState<{ n: number; total: number } | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
     measureAll(frame.current!, job.libraries, job.data, {
       query,
       signal: abort.signal,
-      onProgress: (done, total, library) => setProgress(`measuring ${library} (${done + 1} of ${total})`),
+      onProgress: (done, total, name) => setLibrary({ name, index: done + 1, total }),
+      onRun: (n, total) => setRun({ n, total }),
     }).then(
       m => !abort.signal.aborted && onDone(m),
       e => {
@@ -200,8 +202,15 @@ function Lab({
 
   return (
     <div className="lab" data-lab>
-      <div className="lab-bar">
-        <span>{progress}</span>
+      <div className="lab-panel">
+        <h2>Measuring…</h2>
+        {library && (
+          <p>
+            {library.name === 'shell' ? 'Empty page (baseline)' : LABELS[library.name as Library]}
+            {' · '}library {library.index} of {library.total}
+            {run && ` · ${run.n === 1 ? 'warm-up' : `run ${run.n - WARMUP}`} (${run.n} of ${run.total})`}
+          </p>
+        )}
         <button onClick={onCancel}>Cancel</button>
       </div>
       <iframe ref={frame} title="measurement" />

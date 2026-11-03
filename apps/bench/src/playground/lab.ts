@@ -168,13 +168,19 @@ async function sample(
   };
 }
 
-export type Options = { runs?: number; warmup?: number; query?: URLSearchParams; signal: AbortSignal };
+export type Options = {
+  runs?: number;
+  warmup?: number;
+  query?: URLSearchParams;
+  signal: AbortSignal;
+  onRun?: (run: number, total: number) => void;
+};
 
 export async function measureLibrary(
   frame: HTMLIFrameElement,
   library: string,
   data: Parsed,
-  { runs = RUNS, warmup = WARMUP, query = new URLSearchParams(), signal }: Options,
+  { runs = RUNS, warmup = WARMUP, query = new URLSearchParams(), signal, onRun }: Options,
 ): Promise<LibraryResult> {
   const params = new URLSearchParams(query);
   params.set('embed', 'lab');
@@ -183,6 +189,7 @@ export async function measureLibrary(
 
   const samples: Sample[] = [];
   while (samples.length < warmup + runs) {
+    onRun?.(samples.length + 1, warmup + runs);
     try {
       samples.push(await runOnce(frame, src, data, updated, library, signal));
     } catch (e) {
