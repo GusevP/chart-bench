@@ -216,7 +216,7 @@ params.delete('libs');
 function Playground() {
   const [job, setJob] = useState<Job | null>(null);
   const [measured, setMeasured] = useState<Measurements | null>(null);
-  const [shown, setShown] = useState<Library[]>([]);
+  const [shown, setShown] = useState<Job | null>(null);
   const [hover, setHover] = useState<Record<string, number>>({});
   const [frame, setFrame] = useState(16.7);
   const [runError, setRunError] = useState('');
@@ -225,13 +225,11 @@ function Playground() {
     requested.length ? requested : ['recharts', 'echarts'],
   );
   const [text, setText] = useState(() => sample('survival', 'typical'));
-  const [data, setData] = useState<Parsed>(() => parseSeries('survival', text));
   const [error, setError] = useState('');
 
   const apply = (nextChart: ChartKind, nextText: string) => {
     try {
       const parsed = parseSeries(nextChart, nextText);
-      setData(parsed);
       setError('');
       return parsed;
     } catch (e) {
@@ -243,7 +241,7 @@ function Playground() {
     if (!parsed || libraries.length === 0) return;
     setRunError('');
     setMeasured(null);
-    setShown([]);
+    setShown(null);
     setHover({});
     setJob({
       libraries: (Object.keys(LABELS) as Library[]).filter(l => libraries.includes(l)),
@@ -334,11 +332,11 @@ function Playground() {
           </p>
         )}
         {measured && <Summaries measured={measured} frame={frame} hover={hover} />}
-        {shown.map(lib => (
+        {shown?.libraries.map(lib => (
           <ArmFrame
             key={lib}
             library={lib}
-            data={data}
+            data={shown.data}
             onHover={(l, ms) => setHover(cur => ({ ...cur, [l]: ms }))}
           />
         ))}
@@ -349,7 +347,7 @@ function Playground() {
           query={params}
           onDone={m => {
             setMeasured(m);
-            setShown(job.libraries);
+            setShown(job);
             setJob(null);
             void framePeriod().then(setFrame);
           }}

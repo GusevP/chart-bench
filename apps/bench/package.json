@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/bundle-size.mjs",
     "preview": "vite preview --port 4173 --strictPort",
-    "bench": "playwright test",
+    "bench": "playwright test tests/bench.spec.ts",
+    "test:playground": "playwright test tests/playground.spec.ts",
     "report": "node scripts/report.mjs"
   },
   "devDependencies": {

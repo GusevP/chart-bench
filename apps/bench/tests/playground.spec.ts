@@ -386,6 +386,20 @@ test('render shows a results table, then display cards', async ({ page }) => {
   expect(await page.locator('.card iframe').first().getAttribute('src')).toContain('embed=display');
 });
 
+test('loading a sample after a measurement leaves the measured cards alone', async ({ page }) => {
+  await measureInPlayground(page, 'libs=none', ['none']);
+  const card = page.frames().find(f => f.url().includes('/none.html') && f.url().includes('embed=display'));
+  await card!.evaluate(() => {
+    const w = window as unknown as { posts: number };
+    w.posts = 0;
+    window.addEventListener('message', e => e.data?.type === 'bench:data' && w.posts++);
+  });
+  await page.getByRole('button', { name: 'Sample: heavy' }).click();
+  await page.getByLabel('Scatter').check();
+  await page.waitForTimeout(300);
+  expect(await card!.evaluate(() => (window as unknown as { posts: number }).posts)).toBe(0);
+});
+
 test('invalid JSON shows the parse error and starts no measurement', async ({ page }) => {
   await page.goto('/index.html?libs=none');
   await page.getByLabel('Chart data as JSON').fill('{not json');
