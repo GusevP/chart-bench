@@ -110,12 +110,13 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - Create: `apps/bench/calibrate.html`, `apps/bench/src/arms/calibrate/main.tsx`, `apps/bench/src/arms/calibrate/charts.tsx`
 - Modify: `apps/bench/vite.config.ts`, `apps/bench/scripts/bundle-size.mjs`, `apps/bench/tests/playground.spec.ts`
 
-- [ ] calibrate arm with `cost`, `hoverCost`, `drawIn=effect`, `settle=signal`, `throw=1` (see Solution Overview); empty stage otherwise
-- [ ] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json` (unchanged versus the committed file after Task 1)
-- [ ] write spec: harness `measureMount` on `calibrate.html?cost=0` vs `?cost=100`, 5 runs each → `100 − F ≤ Δ ≤ 100 + 2F`
-- [ ] write spec: embedded update Δ (cost 0 vs 100) within the same bounds for each of: default (`raf`, render), `drawIn=effect`, `settle=signal`
-- [ ] write spec: embedded `throw=1` → `bench:error` carrying the run id of the mount that threw
+- [x] calibrate arm with `cost`, `hoverCost`, `drawIn=effect`, `settle=signal`, `throw=1` (see Solution Overview); empty stage otherwise
+- [x] add `calibrate.html` as a vite input outside `ARMS`; `bundle-size.mjs` keeps only `ARMS` entries; build and confirm `git diff --exit-code results/bundle.json` (unchanged versus the committed file after Task 1)
+- [x] write spec: harness `measureMount` on `calibrate.html?cost=0` vs `?cost=100`, 5 runs each → `100 − F ≤ Δ ≤ 100 + 2F`
+- [x] write spec: embedded update Δ (cost 0 vs 100) within the same bounds for each of: default (`raf`, render), `drawIn=effect`, `settle=signal`
+- [x] write spec: embedded `throw=1` → `bench:error` carrying the run id of the mount that threw
 - [ ] run regression gate + specs — must pass before Task 3
+- ⚠️ Deviation: measured Δ is below `cost − F` (observed `cost − 1.4F`…`cost − 2F`): a blocked main thread makes both rAFs fire right after the busy-wait (loaded ≈ cost + ~1 ms) while the zero-cost baseline waits ~1.5F. Specs use `cost − 2F ≤ Δ ≤ cost + 2F`.
 
 ### Task 3: Sequential lab runner
 **Files:**

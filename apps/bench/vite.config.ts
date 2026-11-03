@@ -14,6 +14,7 @@ export default defineConfig({
       input: {
         index: resolve(import.meta.dirname, 'index.html'),
         ...Object.fromEntries(ARMS.map(arm => [arm, resolve(import.meta.dirname, `${arm}.html`)])),
+        calibrate: resolve(import.meta.dirname, 'calibrate.html'),
       },
     },
   },
