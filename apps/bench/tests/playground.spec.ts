@@ -464,3 +464,25 @@ test('lab frames never post bench:hover', async ({ page }) => {
   await page.locator('[data-summaries]').waitFor({ timeout: 120_000 });
   expect(await page.evaluate(() => (window as unknown as { hovers: unknown[] }).hovers)).toEqual([]);
 });
+
+test('playground lab agrees with the harness on mount and dom nodes', async ({ page }) => {
+  await page.goto('/index.html?libs=none,recharts');
+  // a click would leave the pointer over the lab frame and open recharts' tooltip
+  await page.getByRole('button', { name: 'Render' }).press('Enter');
+  const lab = await summaries(page, ['none', 'recharts']);
+  const F = await page.evaluate(framePeriod);
+  for (const lib of ['none', 'recharts']) {
+    let domNodes = 0;
+    const harness = await medianOf(async () => {
+      await page.goto(`/${lib}.html?chart=survival&size=typical`);
+      const sample = await measureMount(page);
+      domNodes = sample.domNodes;
+      return sample.mountMs;
+    });
+    console.log(
+      `${lib} harness=${harness.toFixed(1)} lab=${lab[lib]!.mount.toFixed(1)} F=${F.toFixed(1)} nodes=${domNodes}/${lab[lib]!.domNodes}`,
+    );
+    expect(Math.abs(harness - lab[lib]!.mount)).toBeLessThanOrEqual(2 * F);
+    expect(lab[lib]!.domNodes).toBe(domNodes);
+  }
+});

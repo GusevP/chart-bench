@@ -195,8 +195,9 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] agreement: `none` and `recharts`, survival-typical sample: harness `measureMount` × 5 on the top-level page vs playground lab × 5 → `|Δ| ≤ 2F` for mount, and domNodes equal
-- [ ] sensitivity (negative control): run the lab on `none` while the spec injects three neighbour iframes of `calibrate.html?cost=40` that re-mount in a loop → median shifts by more than `2F`. This proves the agreement check would catch interference, so its passing means the isolation holds
+- [x] agreement: `none` and `recharts`, survival-typical sample: harness `measureMount` × 5 on the top-level page vs playground lab × 5 → `|Δ| ≤ 2F` for mount, and domNodes equal
+- [ ] sensitivity (negative control): run the lab on `none` while the spec injects three neighbour iframes of `calibrate.html?cost=40` that re-mount in a loop → median shifts by more than `2F`. This proves the agreement check would catch interference, so its passing means the isolation holds (dropped by user decision 2026-11-03)
+      ⚠️ Deviation: the interference negative control was dropped by the user; isolation is covered by the single-frame and stale-run specs.
 - [ ] run tests — must pass before Task 7
 
 ### Task 7: Verify acceptance criteria
