@@ -25,7 +25,7 @@ const nudged: SurvivalSeries[] = series.map(s => ({
 }));
 
 async function openLab(page: Page, src: string) {
-  await page.goto('/index.html');
+  await page.goto('/calibrate.html');
   await page.evaluate(async src => {
     const frame = document.createElement('iframe');
     document.body.append(frame);
@@ -101,10 +101,23 @@ async function framePeriod(page: Page) {
 const RUNS = 5;
 const COST = 100;
 
-function expectKnownCost(delta: number, F: number) {
-  console.log(`delta=${delta.toFixed(1)} F=${F.toFixed(1)}`);
-  expect(delta).toBeGreaterThanOrEqual(COST - 2 * F);
-  expect(delta).toBeLessThanOrEqual(COST + 2 * F);
+const SLACK = 5;
+const SIGNAL_WAIT = 50;
+
+async function medianOf(sample: () => Promise<number>) {
+  const samples: number[] = [];
+  for (let i = 0; i < RUNS; i++) samples.push(await sample());
+  return summarize(samples).median;
+}
+
+function expectKnownCost(base: number, loaded: number, F: number, wait = 0) {
+  console.log(
+    `base=${base.toFixed(1)} loaded=${loaded.toFixed(1)} F=${F.toFixed(1)} delta=${(loaded - base).toFixed(1)}`,
+  );
+  expect(base).toBeGreaterThan(wait + F / 2);
+  expect(base).toBeLessThanOrEqual(wait + 2 * F + SLACK);
+  expect(loaded).toBeGreaterThanOrEqual(wait + COST);
+  expect(loaded).toBeLessThanOrEqual(wait + COST + 2 * F);
 }
 
 test('top-level arm page never loads the embedded chunk', async ({ page }) => {
@@ -136,17 +149,14 @@ test('embedded arm page answers mount then update with the sent run id', async (
 });
 
 test('harness mount recovers a known render cost', async ({ page }) => {
-  const median = async (cost: number) => {
-    const samples: number[] = [];
-    for (let i = 0; i < RUNS; i++) {
+  const median = (cost: number) =>
+    medianOf(async () => {
       await page.goto(`/calibrate.html?cost=${cost}`);
-      samples.push((await measureMount(page)).mountMs);
-    }
-    return summarize(samples).median;
-  };
+      return (await measureMount(page)).mountMs;
+    });
   const base = await median(0);
   const loaded = await median(COST);
-  expectKnownCost(loaded - base, await framePeriod(page));
+  expectKnownCost(base, loaded, await framePeriod(page));
 });
 
 const updatePaths: { name: string; query: string; settle: Settle }[] = [
@@ -157,20 +167,17 @@ const updatePaths: { name: string; query: string; settle: Settle }[] = [
 
 for (const { name, query, settle } of updatePaths) {
   test(`embedded update recovers a known cost (${name})`, async ({ page }) => {
-    const median = async (cost: number) => {
-      const samples: number[] = [];
-      for (let i = 0; i < RUNS; i++) {
+    const median = (cost: number) =>
+      medianOf(async () => {
         const lab = await openLab(page, `/calibrate.html?embed=lab&cost=${cost}${query}`);
         await lab.post(1, 'mount', settle, series);
         await lab.result('bench:result', 'mount');
         await lab.post(2, 'update', settle, nudged);
-        samples.push((await lab.result('bench:result', 'update')).updateMs!);
-      }
-      return summarize(samples).median;
-    };
+        return (await lab.result('bench:result', 'update')).updateMs!;
+      });
     const base = await median(0);
     const loaded = await median(COST);
-    expectKnownCost(loaded - base, await framePeriod(page));
+    expectKnownCost(base, loaded, await framePeriod(page), settle === 'signal' ? SIGNAL_WAIT : 0);
   });
 }
 

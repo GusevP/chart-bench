@@ -2,6 +2,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
+import { ARMS } from '../src/data/arms.ts';
+
 const manifest = JSON.parse(readFileSync('dist/.vite/manifest.json', 'utf8'));
 const gz = file => gzipSync(readFileSync(`dist/${file}`), { level: 9 }).length;
 
@@ -18,10 +20,7 @@ function entryBytes(key, seen = new Set()) {
 
 const totals = Object.fromEntries(
   Object.entries(manifest)
-    .filter(
-      ([key, chunk]) =>
-        chunk.isEntry && key.endsWith('.html') && key !== 'index.html' && key !== 'calibrate.html',
-    )
+    .filter(([key, chunk]) => chunk.isEntry && ARMS.some(arm => key === `${arm}.html`))
     .map(([key]) => [key.replace('.html', ''), entryBytes(key)]),
 );
 const result = Object.fromEntries(

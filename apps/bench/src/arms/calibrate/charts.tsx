@@ -29,7 +29,7 @@ function Calibrate({ width, height, series, onSettled }: SurvivalChartProps | Sc
     const id = setTimeout(() => {
       busyWait(cost);
       settledRef.current();
-    });
+    }, 50);
     return () => clearTimeout(id);
   }, [series]);
 
