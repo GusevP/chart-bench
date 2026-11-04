@@ -1,4 +1,4 @@
-import type { Categories, Donut } from './contract';
+import type { Categories, Combo, Donut } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -13,6 +13,10 @@ export const GALLERY_DATASETS = {
   radar: {
     typical: { seed: 11, categories: 6, series: 3 },
     heavy: { seed: 12, categories: 24, series: 8 },
+  },
+  combo: {
+    typical: { seed: 13, categories: 24 },
+    heavy: { seed: 14, categories: 500 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -60,3 +64,24 @@ export function generateDonut({ seed, slices }: { seed: number; slices: number }
 /** One slice per line: readable as a format example, and still small for heavy samples. */
 export const formatDonut = ({ slices }: Donut) =>
   `{\n  "slices": [\n${slices.map(s => `    ${JSON.stringify(s)}`).join(',\n')}\n  ]\n}`;
+
+export function generateCombo({ seed, categories }: { seed: number; categories: number }): Combo {
+  const rand = prng(seed);
+  return {
+    categories: Array.from({ length: categories }, (_, i) => `C${i + 1}`),
+    bars: {
+      id: 'Volume',
+      color: PALETTE[0]!,
+      values: Array.from({ length: categories }, () => Math.round(10 + 40 * rand())),
+    },
+    line: {
+      id: 'Trend',
+      color: PALETTE[1]!,
+      values: Array.from({ length: categories }, () => Math.round(200 + 600 * rand())),
+    },
+  };
+}
+
+/** One series per line: readable as a format example, and still small for heavy samples. */
+export const formatCombo = ({ categories, bars, line }: Combo) =>
+  `{\n  "categories": ${JSON.stringify(categories)},\n  "bars": ${JSON.stringify(bars)},\n  "line": ${JSON.stringify(line)}\n}`;

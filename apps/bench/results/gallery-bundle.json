@@ -1,5 +1,8 @@
 {
   "chartjs": {
+    "combo": {
+      "libraryKb": 55.6
+    },
     "donut": {
       "libraryKb": 50.7
     },
@@ -14,6 +17,9 @@
     }
   },
   "echarts": {
+    "combo": {
+      "libraryKb": 169.1
+    },
     "donut": {
       "libraryKb": 139
     },
@@ -42,6 +48,9 @@
     }
   },
   "recharts": {
+    "combo": {
+      "libraryKb": 101.7
+    },
     "donut": {
       "libraryKb": 88.2
     },
@@ -56,6 +65,9 @@
     }
   },
   "tanstack": {
+    "combo": {
+      "libraryKb": 39.9
+    },
     "donut": {
       "libraryKb": 38.7
     },
@@ -70,6 +82,9 @@
     }
   },
   "visx": {
+    "combo": {
+      "libraryKb": 23.1
+    },
     "donut": {
       "libraryKb": 5.6
     },

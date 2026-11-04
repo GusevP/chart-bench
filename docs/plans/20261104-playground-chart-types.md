@@ -43,7 +43,7 @@ Writing our own path, cell or custom-shape code means Not supported. So Recharts
 | Stacked area | yes | `@nivo/line` (stacked) | yes | yes | `AreaStack` | yes |
 | Donut | yes | `@nivo/pie` | yes | yes | `Pie` | `polar` |
 | Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | `polar` |
-| Bar + line, two axes | yes | no | yes | yes | shape + two scales | check in its task |
+| Bar + line, two axes | yes | no | yes | yes | shape + two scales | yes |
 | Heatmap | no | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes |
 | Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes |
 | Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes |
@@ -162,8 +162,8 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 7: Bar + line on two axes
-- [ ] `Combo` shape, sample, parser entry, `nudge`, wrappers per the matrix
-- [ ] settle the TanStack cell: yes only if it has a second y scale without custom marks, and update the matrix
+- [x] `Combo` shape, sample, parser entry, `nudge`, wrappers per the matrix
+- [x] settle the TanStack cell: yes only if it has a second y scale without custom marks, and update the matrix
 - [ ] run the per-task gate
 
 ### Task 8: Heatmap

@@ -4,8 +4,10 @@ import type { DatasetSize } from '../data/generate';
 import {
   GALLERY_DATASETS,
   formatCategories,
+  formatCombo,
   formatDonut,
   generateCategories,
+  generateCombo,
   generateDonut,
 } from '../data/gallery-samples';
 
@@ -63,32 +65,46 @@ export function formatSeries(series: { id: string; color: string; points: object
 
 const idOf = (raw: unknown, fallback: string) => (raw == null || raw === '' ? fallback : String(raw));
 
-function parseCategories(raw: any) {
+function parseCategoryNames(raw: any) {
   if (!Array.isArray(raw?.categories) || raw.categories.length === 0)
     throw new Error('Expected a non-empty "categories" array.');
-  if (!Array.isArray(raw.series) || raw.series.length === 0)
-    throw new Error('Expected a non-empty "series" array.');
   const categories = raw.categories.map(String);
   const dupCategory = categories.find((c: string, i: number) => categories.indexOf(c) !== i);
   if (dupCategory !== undefined) throw new Error(`Duplicate category ${JSON.stringify(dupCategory)}.`);
-  const series = raw.series.map((s: any, i: number) => {
-    const where = `series[${i}]`;
-    if (!Array.isArray(s?.values) || s.values.length !== categories.length)
-      throw new Error(`${where}: needs "values" with one number per category (${categories.length}).`);
-    return {
-      id: idOf(s.id, `Series ${i + 1}`),
-      color: typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!,
-      values: s.values.map((v: unknown, j: number) => {
-        const n = num(v, `${where}.values[${j}]`);
-        if (n < 0) throw new Error(`${where}.values[${j}]: expected a non-negative number, got ${n}`);
-        return n;
-      }),
-    };
-  });
+  return categories as string[];
+}
+
+function parseValues(s: any, where: string, count: number, index: number) {
+  if (!Array.isArray(s?.values) || s.values.length !== count)
+    throw new Error(`${where}: needs "values" with one number per category (${count}).`);
+  return {
+    id: idOf(s.id, `Series ${index + 1}`),
+    color: typeof s.color === 'string' ? s.color : PALETTE[index % PALETTE.length]!,
+    values: s.values.map((v: unknown, j: number) => {
+      const n = num(v, `${where}.values[${j}]`);
+      if (n < 0) throw new Error(`${where}.values[${j}]: expected a non-negative number, got ${n}`);
+      return n;
+    }),
+  };
+}
+
+function parseCategories(raw: any) {
+  const categories = parseCategoryNames(raw);
+  if (!Array.isArray(raw.series) || raw.series.length === 0)
+    throw new Error('Expected a non-empty "series" array.');
+  const series = raw.series.map((s: any, i: number) => parseValues(s, `series[${i}]`, categories.length, i));
   const ids = series.map((s: { id: string }) => s.id);
   const dupId = ids.find((id: string, i: number) => id === 'category' || ids.indexOf(id) !== i);
   if (dupId !== undefined) throw new Error(`Series id ${JSON.stringify(dupId)} is duplicated or reserved.`);
   return { categories, series };
+}
+
+function parseCombo(raw: any) {
+  const categories = parseCategoryNames(raw);
+  const bars = parseValues(raw.bars, 'bars', categories.length, 0);
+  const line = parseValues(raw.line, 'line', categories.length, 1);
+  if (bars.id === line.id) throw new Error(`"bars" and "line" share the id ${JSON.stringify(bars.id)}.`);
+  return { categories, bars, line };
 }
 
 function categoriesKind(
@@ -182,6 +198,29 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', () => (v, i) => v * byParity(1.1, 0.9)(i)),
   'stacked-area': categoriesKind('stacked-area', 'Stacked area', () => (v, i) => v * byParity(1.1, 0.9)(i)),
   radar: categoriesKind('radar', 'Radar', () => alternating(1.2, 0.8)),
+  combo: {
+    label: 'Bar + line',
+    hint: '{ categories: string[], bars: { id, color?, values }, line: { id, color?, values } }. Bars use the left axis, the line the right. Non-negative values.',
+    parse: raw => ({ chart: 'combo', data: parseCombo(raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'combo'
+        ? parsed
+        : {
+            chart: 'combo',
+            data: {
+              ...parsed.data,
+              bars: {
+                ...parsed.data.bars,
+                values: parsed.data.bars.values.map(alternating(1.3, 0.7)),
+              },
+              line: {
+                ...parsed.data.line,
+                values: parsed.data.line.values.map(alternating(0.7, 1.3)),
+              },
+            },
+          },
+    sample: size => formatCombo(generateCombo(GALLERY_DATASETS.combo[size])),
+  },
   donut: {
     label: 'Donut',
     hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',
