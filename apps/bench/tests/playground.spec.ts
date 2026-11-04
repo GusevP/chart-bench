@@ -317,7 +317,7 @@ test('a lab scrolled out of view mid-run repeats the run and still yields every 
       if (run !== 3 || fired) return;
       fired = true;
       scrollTo(0, 3000);
-      setTimeout(() => scrollTo(0, 0), 300);
+      setTimeout(() => document.querySelector('[data-lab]')!.scrollIntoView({ block: 'nearest' }), 300);
     }, 2);
   });
   await page.getByRole('button', { name: 'Render' }).click();
