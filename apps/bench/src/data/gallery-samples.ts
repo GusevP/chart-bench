@@ -10,6 +10,10 @@ export const GALLERY_DATASETS = {
     typical: { seed: 7, categories: 50, series: 4 },
     heavy: { seed: 8, categories: 1000, series: 8 },
   },
+  radar: {
+    typical: { seed: 11, categories: 6, series: 3 },
+    heavy: { seed: 12, categories: 24, series: 8 },
+  },
   donut: {
     typical: { seed: 9, slices: 6 },
     heavy: { seed: 10, slices: 60 },

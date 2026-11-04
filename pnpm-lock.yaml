@@ -29,6 +29,9 @@ importers:
       '@nivo/pie':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/radar':
+        specifier: ^0.99.0
+        version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@nivo/scatterplot':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -183,6 +186,11 @@ packages:
 
   '@nivo/pie@0.99.0':
     resolution: {integrity: sha512-zUbo8UdLndp2RMljrOqitAKKEnl7YypkJrOzjKLk8jQGU7qqUKtgFoJIPhiBsvNPs3xtX2KwgtS1+JKNTNns7A==}
+    peerDependencies:
+      react: ^16.14 || ^17.0 || ^18.0 || ^19.0
+
+  '@nivo/radar@0.99.0':
+    resolution: {integrity: sha512-nLLUBs/TR8qEoXpvhawjg2Kt22Pma8MQRc35e/3HQGW2xuX9cZeIEx2gyx6jJAsaxTrBsb4ZcxRAflNXVWiZSQ==}
     peerDependencies:
       react: ^16.14 || ^17.0 || ^18.0 || ^19.0
 
@@ -1250,6 +1258,23 @@ snapshots:
       '@nivo/theming': 0.99.0(react@19.3.1)
       '@nivo/tooltip': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/d3-shape': 3.2.0
+      d3-shape: 3.2.0
+      react: 19.3.1
+    transitivePeerDependencies:
+      - react-dom
+
+  '@nivo/radar@0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@nivo/colors': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/core': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/legends': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/text': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/theming': 0.99.0(react@19.3.1)
+      '@nivo/tooltip': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@react-spring/web': 10.1.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/d3-scale': 4.0.9
+      '@types/d3-shape': 3.2.0
+      d3-scale: 4.0.2
       d3-shape: 3.2.0
       react: 19.3.1
     transitivePeerDependencies:

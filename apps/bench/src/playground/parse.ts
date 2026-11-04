@@ -91,7 +91,11 @@ function parseCategories(raw: any) {
   return { categories, series };
 }
 
-function categoriesKind(chart: 'stacked-bar' | 'stacked-area', label: string): Kind {
+function categoriesKind(
+  chart: 'stacked-bar' | 'stacked-area' | 'radar',
+  label: string,
+  factor: (seriesIndex: number, categoryIndex: number) => number,
+): Kind {
   return {
     label,
     hint: '{ categories: string[], series: [{ id, color?, values: number[] }] }. One non-negative value per category.',
@@ -105,7 +109,7 @@ function categoriesKind(chart: 'stacked-bar' | 'stacked-area', label: string): K
               ...parsed.data,
               series: parsed.data.series.map((s, i) => ({
                 ...s,
-                values: s.values.map(v => v * (i % 2 ? 0.9 : 1.1)),
+                values: s.values.map((v, j) => v * factor(i, j)),
               })),
             },
           },
@@ -129,7 +133,8 @@ function parseDonut(raw: any) {
   const ids = slices.map((s: { id: string }) => s.id);
   const dupId = ids.find((id: string, i: number) => ids.indexOf(id) !== i);
   if (dupId !== undefined) throw new Error(`Duplicate slice id ${JSON.stringify(dupId)}.`);
-  if (!slices.some((s: { value: number }) => s.value > 0)) throw new Error('Slice values must not all be zero.');
+  if (!slices.some((s: { value: number }) => s.value > 0))
+    throw new Error('Slice values must not all be zero.');
   return { slices };
 }
 
@@ -168,8 +173,9 @@ const KINDS: { [K in ChartKind]?: Kind } = {
           },
     sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
   },
-  'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar'),
-  'stacked-area': categoriesKind('stacked-area', 'Stacked area'),
+  'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', i => (i % 2 ? 0.9 : 1.1)),
+  'stacked-area': categoriesKind('stacked-area', 'Stacked area', i => (i % 2 ? 0.9 : 1.1)),
+  radar: categoriesKind('radar', 'Radar', (_, j) => (j % 2 ? 0.8 : 1.2)),
   donut: {
     label: 'Donut',
     hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',

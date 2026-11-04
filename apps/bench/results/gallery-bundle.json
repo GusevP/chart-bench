@@ -3,6 +3,9 @@
     "donut": {
       "libraryKb": 50.7
     },
+    "radar": {
+      "libraryKb": 53.8
+    },
     "stacked-area": {
       "libraryKb": 54.7
     },
@@ -13,6 +16,9 @@
   "echarts": {
     "donut": {
       "libraryKb": 139
+    },
+    "radar": {
+      "libraryKb": 143.1
     },
     "stacked-area": {
       "libraryKb": 161.6
@@ -25,6 +31,9 @@
     "donut": {
       "libraryKb": 67.6
     },
+    "radar": {
+      "libraryKb": 65.8
+    },
     "stacked-area": {
       "libraryKb": 92.7
     },
@@ -35,6 +44,9 @@
   "recharts": {
     "donut": {
       "libraryKb": 88.2
+    },
+    "radar": {
+      "libraryKb": 90
     },
     "stacked-area": {
       "libraryKb": 97.4
@@ -47,6 +59,9 @@
     "donut": {
       "libraryKb": 38.7
     },
+    "radar": {
+      "libraryKb": 41.2
+    },
     "stacked-area": {
       "libraryKb": 36.8
     },
@@ -57,6 +72,9 @@
   "visx": {
     "donut": {
       "libraryKb": 5.6
+    },
+    "radar": {
+      "libraryKb": 16.3
     },
     "stacked-area": {
       "libraryKb": 24.7

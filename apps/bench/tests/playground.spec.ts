@@ -545,6 +545,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   `${lib}/stacked-bar`,
   `${lib}/stacked-area`,
   `${lib}/donut`,
+  `${lib}/radar`,
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({

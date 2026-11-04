@@ -158,7 +158,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 6: Radar
-- [ ] sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/radar`
+- [x] sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/radar`
 - [ ] run the per-task gate
 
 ### Task 7: Bar + line on two axes
