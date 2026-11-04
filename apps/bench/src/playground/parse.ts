@@ -255,7 +255,7 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             chart: 'heatmap',
             data: {
               ...parsed.data,
-              values: (cell => parsed.data.values.map(row => row.map(v => v * byParity(1.3, 0.7)(cell++))))(0),
+              values: (rank => parsed.data.values.map(row => row.map(v => (v === 0 ? v : v * byParity(1.3, 0.7)(rank++)))))(0),
             },
           },
     sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),

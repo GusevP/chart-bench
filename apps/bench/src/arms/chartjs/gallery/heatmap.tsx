@@ -6,7 +6,7 @@ import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { heatmapRamp } from '../../shared/heatmap';
+import { heatmapRamp } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
 import { fixHeight, fixWidth, useSettlePlugin } from '../shared/chart';
 
@@ -25,20 +25,18 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'heatmap'>)
   const plugins = useSettlePlugin<'matrix'>(onSettled);
   const chartData = useMemo<ChartData<'matrix', Cell[]>>(() => {
     const ramp = heatmapRamp(data.values);
-    const cellWidth = (width - MARGIN.left - MARGIN.right) / data.xs.length;
-    const cellHeight = (height - MARGIN.top - MARGIN.bottom) / data.ys.length;
     return {
       datasets: [
         {
           data: data.ys.flatMap((y, j) => data.xs.map((x, i) => ({ x, y, v: data.values[j]![i]! }))),
           backgroundColor: ctx => ramp((ctx.raw as Cell).v),
           // One pixel of overlap hides canvas antialiasing seams between fractional cells.
-          width: cellWidth + 1,
-          height: cellHeight + 1,
+          width: ({ chart }) => (chart.chartArea ? chart.chartArea.width / data.xs.length + 1 : 0),
+          height: ({ chart }) => (chart.chartArea ? chart.chartArea.height / data.ys.length + 1 : 0),
         },
       ],
     };
-  }, [data, width, height]);
+  }, [data]);
   const options = useMemo<ChartOptions<'matrix'>>(
     () => ({
       responsive: false,

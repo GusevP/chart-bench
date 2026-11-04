@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { HEAT_RANGE, heatmapDomain } from '../../shared/heatmap';
+import { HEAT_RANGE, heatmapDomain } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
 
 function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
@@ -33,7 +33,7 @@ function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
           axis: { ticks: { values: thinTicks(data.ys) } },
         },
       },
-      color: { scale: () => scaleLinear<string>().domain(heatmapDomain(data.values)).range(HEAT_RANGE) },
+      color: { domain: heatmapDomain(data.values), scale: () => scaleLinear<string>().range(HEAT_RANGE) },
       margin: MARGIN,
       tooltip,
     });

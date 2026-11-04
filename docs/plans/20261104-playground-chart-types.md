@@ -81,7 +81,7 @@ type Sankey = { nodes: { id: string }[]; links: { source: string; target: string
 type BoxGroups = { groups: { id: string; color: string; values: number[] }[] }; // raw values
 type Candles = { candles: { t: string; open: number; high: number; low: number; close: number }[] };
 ```
-Parsers require `values.length === categories.length` and non-negative values for stacked and donut types. Heatmap and treemap share one colour ramp in `spec.ts`. Candle `t` is an ISO date, `YYYY-MM-DD`.
+Parsers require `values.length === categories.length` and non-negative values for stacked and donut types. Heatmap and treemap share one colour ramp in `apps/bench/src/arms/shared/colorRamp.ts` (not `spec.ts`, which arm pages import). Candle `t` is an ISO date, `YYYY-MM-DD`.
 
 Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for libraries that take computed stats, so a library's own quantile method does not change the picture where we control it.
 

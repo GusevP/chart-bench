@@ -623,5 +623,11 @@ test('heatmap: non-rectangular values are rejected, nudge changes all-negative d
   expect(() => parseSeries('heatmap', heatmap('[[1,2],[3]]'))).toThrow(/one number per "xs"/);
   expect(() => parseSeries('heatmap', heatmap('[[1,2]]'))).toThrow(/one row per "ys"/);
   const allNegative = parseSeries('heatmap', heatmap('[[-1,-2],[-3,-4]]'));
-  expect(nudge(allNegative)).not.toEqual(allNegative);
+  const norm = (p: Parsed) => {
+    const flat = (p as Extract<Parsed, { chart: 'heatmap' }>).data.values.flat();
+    return flat.map(v => v / Math.max(...flat.map(Math.abs)));
+  };
+  expect(norm(nudge(allNegative))).not.toEqual(norm(allNegative));
+  const sameParity = parseSeries('heatmap', heatmap('[[0,5],[0,7]]'));
+  expect(norm(nudge(sameParity))).not.toEqual(norm(sameParity));
 });

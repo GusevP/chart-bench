@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { heatmapRamp } from '../../shared/heatmap';
+import { heatmapRamp } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
 
 function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
