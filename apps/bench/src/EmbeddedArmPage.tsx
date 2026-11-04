@@ -33,7 +33,7 @@ const UPDATE_START = 'play:update-start';
 const UPDATE_END = 'play:update-end';
 const UPDATE = 'play:update';
 
-const toParent = (message: ResultMessage) => window.parent.postMessage(message, location.origin);
+export const toParent = (message: ResultMessage) => window.parent.postMessage(message, location.origin);
 
 const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnimationFrame(() => done()));
 

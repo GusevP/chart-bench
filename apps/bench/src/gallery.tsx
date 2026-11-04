@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 
 import { HEIGHT, WIDTH } from './ArmPage';
-import { mountEmbedded } from './EmbeddedArmPage';
+import { mountEmbedded, toParent } from './EmbeddedArmPage';
 
 type GalleryModule = {
   default: {
@@ -13,7 +13,7 @@ type GalleryModule = {
 const modules = import.meta.glob<GalleryModule>('./arms/*/gallery/*.tsx');
 
 const fail = (message: string) =>
-  window.parent.postMessage({ type: 'bench:error', runId: null, message }, location.origin);
+  toParent({ type: 'bench:error', runId: null, message });
 
 async function main() {
   const params = new URLSearchParams(location.search);
@@ -23,7 +23,7 @@ async function main() {
   if (!load) return fail(`no gallery chart for ${lib}/${chart}`);
   const { settleMode, Chart } = (await load()).default;
   mountEmbedded(settleMode, (payload, onSettled) => (
-    <Chart width={WIDTH} height={HEIGHT} data={payload} onSettled={onSettled} />
+    <Chart width={WIDTH} height={HEIGHT} data={(payload as { data?: unknown }).data} onSettled={onSettled} />
   ));
 }
 

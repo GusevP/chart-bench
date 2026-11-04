@@ -526,7 +526,9 @@ test('playground lab agrees with the harness on mount and dom nodes', async ({ p
 });
 
 test('gallery page reports bench:error for an unknown pair, and dist holds both builds', async ({ page }) => {
-  expect((await page.request.get('/shell.html')).ok()).toBe(true);
+  const shell = await page.request.get('/shell.html');
+  expect(shell.ok()).toBe(true);
+  expect(await shell.text()).toContain('chart-bench: shell');
   await page.addInitScript(() => {
     (window as unknown as { inbox: unknown[] }).inbox = [];
     window.addEventListener('message', e => (window as unknown as { inbox: unknown[] }).inbox.push(e.data));

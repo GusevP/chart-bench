@@ -133,7 +133,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - Modify: `apps/bench/src/data/contract.ts`, `apps/bench/src/ArmPage.tsx`, `apps/bench/src/playground/parse.ts`, `apps/bench/src/playground/lab.ts`, `apps/bench/src/playground/main.tsx`, `apps/bench/src/playground/style.css`, `apps/bench/tests/playground.spec.ts`
 
 - [ ] make `ChartKind`, `Parsed`, `parseSeries`, `formatSeries`, `nudge` and `sample` table-driven per kind, one entry per kind, with Survival and Scatter moved onto it unchanged
-- [ ] add the `{ chart, data }` envelope; `ChartKind` is the old key type plus the new kinds
+- [ ] add the `{ chart, data }` envelope; `ChartKind` is the old key type plus the new kinds; drop the `payload.data` cast in `gallery.tsx` once `Payload` carries `data`
 - [ ] lab and display frames use `gallery.html?lib=&chart=` for gallery kinds and `<lib>.html` otherwise, except `shell`
 - [ ] cards show `libraryKb` from `gallery-bundle.json` for gallery kinds; a pair absent from it renders a Not supported card, runs no lab and has no table row values. Selected and measured stay two lists, and nothing starts when nothing is measurable
 - [ ] chart picker lists all kinds; a kind is reachable only once it has a table entry
