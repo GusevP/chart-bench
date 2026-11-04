@@ -13,6 +13,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       })),
     [data],
   );
+  const tickStep = Math.ceil(data.categories.length / 12);
   const colorById = useMemo(() => new Map(data.series.map(s => [s.id, s.color])), [data]);
   return (
     <Bar
@@ -25,7 +26,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       animate={false}
       enableLabel={false}
       colors={({ id }) => colorById.get(String(id)) ?? 'black'}
-      axisBottom={{ tickRotation: 0 }}
+      axisBottom={{ tickValues: data.categories.filter((_, i) => i % tickStep === 0) }}
     />
   );
 }

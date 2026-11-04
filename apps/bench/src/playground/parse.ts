@@ -61,6 +61,8 @@ function parseCategories(raw: any) {
   if (!Array.isArray(raw.series) || raw.series.length === 0)
     throw new Error('Expected a non-empty "series" array.');
   const categories = raw.categories.map(String);
+  const dupCategory = categories.find((c: string, i: number) => categories.indexOf(c) !== i);
+  if (dupCategory !== undefined) throw new Error(`Duplicate category ${JSON.stringify(dupCategory)}.`);
   const series = raw.series.map((s: any, i: number) => {
     const where = `series[${i}]`;
     if (!Array.isArray(s?.values) || s.values.length !== categories.length)
@@ -75,6 +77,9 @@ function parseCategories(raw: any) {
       }),
     };
   });
+  const ids = series.map((s: { id: string }) => s.id);
+  const dupId = ids.find((id: string, i: number) => id === 'category' || ids.indexOf(id) !== i);
+  if (dupId !== undefined) throw new Error(`Series id ${JSON.stringify(dupId)} is duplicated or reserved.`);
   return { categories, series };
 }
 

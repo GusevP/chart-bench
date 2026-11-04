@@ -21,7 +21,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'stacked-ba
       animation: false,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: { type: 'category', data: data.categories, axisLabel: { hideOverlap: true } },
-      yAxis: { type: 'value' },
+      yAxis: { type: 'value', axisLine: { show: true }, axisTick: { show: true } },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
       series: data.series.map((s): BarSeriesOption => ({
         type: 'bar',

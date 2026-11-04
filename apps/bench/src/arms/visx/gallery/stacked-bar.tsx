@@ -4,16 +4,13 @@ import { GridRows } from '@visx/grid';
 import { Group } from '@visx/group';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { BarStack } from '@visx/shape';
-import { TooltipWithBounds, defaultStyles, useTooltip } from '@visx/tooltip';
+import { TooltipWithBounds, useTooltip } from '@visx/tooltip';
 import { useMemo } from 'react';
 import type { MouseEvent } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-
-const AXIS_COLOR = '#999';
-const tickLabel = { fill: '#555', fontSize: 11 };
-const tooltipStyle = { ...defaultStyles, fontSize: 12, lineHeight: 1.4 };
+import { AXIS_COLOR, tickLabel, tooltipStyle } from '../shared/style';
 
 type Row = { category: string; [id: string]: number | string };
 type Tip = { category: string; id: string; color: string; value: number };

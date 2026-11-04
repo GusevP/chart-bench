@@ -3,9 +3,7 @@ import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-
-const CHART_MARGIN = { top: MARGIN.top, right: MARGIN.right, left: 0, bottom: 0 };
-const TICK = { fontSize: 11 };
+import { CHART_MARGIN, TICK } from '../shared/style';
 
 function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
   const rows = useMemo(
