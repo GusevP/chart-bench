@@ -557,13 +557,16 @@ test('gallery-bundle.json matches the expected pairs; supported pairs measure an
     await page.goto(`/index.html?libs=${LIBS.join(',')}`);
     await page.getByLabel(kindInfo(kind).label).check();
     await page.getByRole('button', { name: 'Render' }).click();
-    await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length, {
-      timeout: 120_000,
-    });
+    for (const lib of LIBS.filter(l => !libs.includes(l)))
+      await expect(page.locator(`[data-unsupported="${lib}"]`)).toHaveCount(1, { timeout: 120_000 });
+    await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length);
     if (libs.length) {
       await expect(page.locator('[data-summaries] tbody tr')).toHaveCount(libs.length + 1, {
         timeout: 300_000,
       });
+      await expect(page.locator('.card [data-card-stats]')).toHaveCount(libs.length);
+      for (let i = 0; i < libs.length; i++)
+        await expect(page.frameLocator('.card iframe').nth(i).locator('[data-bench-stage]')).toBeAttached();
       await expect(page.locator('.card .error')).toHaveCount(0);
     }
   }

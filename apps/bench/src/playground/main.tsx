@@ -297,6 +297,11 @@ function Playground() {
       data: parsed,
     });
   };
+  const endJob = () => {
+    if (job && job.unsupported.length)
+      setShown({ libraries: [], unsupported: job.unsupported, data: job.data });
+    setJob(null);
+  };
   const load = (nextChart: ChartKind, size: DatasetSize) => {
     const next = sample(nextChart, size);
     setChart(nextChart);
@@ -382,9 +387,9 @@ function Playground() {
             }}
             onFail={message => {
               setRunError(message);
-              setJob(null);
+              endJob();
             }}
-            onCancel={() => setJob(null)}
+            onCancel={endJob}
           />
         )}
         {libraries.length === 0 && <p>Select at least one library.</p>}

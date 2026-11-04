@@ -38,7 +38,9 @@ const renderArm =
       <arm.Survival width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
     ) : payload.chart === 'scatter' ? (
       <arm.Scatter width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
-    ) : null;
+    ) : (
+      <arm.Survival width={WIDTH} height={HEIGHT} series={[]} onSettled={onSettled} />
+    );
 
 function ArmPage({ arm }: { arm: Arm }) {
   const [payload] = useState<Payload>(fromUrl);
