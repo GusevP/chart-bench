@@ -129,7 +129,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] switch `ArmFrame` in `main.tsx` to `bench:result` (mount mode, `runId` from a counter) so the current playground keeps working until Task 3 replaces it
 - [x] write spec: a top-level `none.html` never requests the embedded chunk (no resource entry matching `EmbeddedArmPage`) and `measureMount` still works
 - [x] write spec: open `index.html`, inject an iframe to `none.html`, post mount then update for survival-typical; both results carry the sent `runId`; `domNodes` equals the harness `measureMount` value for the same case; `updateMs` finite and > 0
-- [ ] run regression gate (incl. `git diff --exit-code results/bundle.json`) + `pnpm typecheck` + specs — must pass before Task 2
+- [x] run regression gate (incl. `git diff --exit-code results/bundle.json`) + `pnpm typecheck` + specs — must pass before Task 2
 
 ### Task 2: Test-only known-cost page
 
@@ -143,7 +143,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] write spec: harness `measureMount` on `calibrate.html?cost=0` vs `?cost=100`, 5 runs each → `base`/`loaded` absolute bounds (see Testing Strategy)
 - [x] write spec: embedded update Δ (cost 0 vs 100) within the same absolute bounds for each of: default (`raf`, render), `drawIn=effect`, `settle=signal`
 - [x] write spec: embedded `throw=1` → `bench:error` carrying the run id of the mount that threw
-- [ ] run regression gate + specs — must pass before Task 3
+- [x] run regression gate + specs — must pass before Task 3
 - ⚠️ Deviation: measured Δ is below `cost − F` (observed `cost − 1.4F`…`cost − 2F`): a blocked main thread makes both rAFs fire right after the busy-wait (loaded ≈ cost + ~1 ms) while the zero-cost baseline waits ~1.5F. Specs assert absolute `loaded`/`base` bounds instead of Δ (review 2.1.1).
 
 ### Task 3: Sequential lab runner
@@ -161,7 +161,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] write spec: polling during a run, at most one of `[data-lab] iframe, .card iframe` exists
 - [x] write spec: a result posted with the previous `runId` after a new run started is ignored (inject via `page.evaluate` on the lab frame)
 - [x] write spec: override `document.visibilityState` to `hidden` via `Object.defineProperty` in the parent and dispatch `visibilitychange` mid-run, restore, → run repeated, final sample count still 5
-- [ ] run tests — must pass before Task 4
+- [x] run tests — must pass before Task 4
 - ⚠️ Deviation: Chrome exposes `long-animation-frame` only to the top-level window, so the embedded observer saw nothing (`blockingMs` was always 0). The mount result now carries `startAt`/`endAt` (timeOrigin-based) instead of `blockingMs`, and the playground (`lab.ts`) observes LoAF itself.
 - ⚠️ Deviation (Task 3): `bundle.json` `totalKb` may drift ±0.1 KB when `EmbeddedArmPage` changes (the statically loaded `ArmPage` chunk contains its hashed filename, shifting gzip by a few bytes); `libraryKb` and ARTICLE.md are unaffected. The reference is the committed file as of d76e15b.
 
@@ -175,7 +175,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] display cards (`?embed=display`, native 900×600 in a scroll box) created after the lab is removed; replace the "single run, side by side" disclaimer with one line on the method and "comparable within this session only"
 - [x] write spec (happy path): `?libs=none,recharts`, Render → two rows with finite mount/update, bundle KB matching `results/bundle.json`, then two display cards
 - [x] write spec: invalid JSON shows the parse error and starts no measurement (no `[data-lab]`)
-- [ ] run tests — must pass before Task 5
+- [x] run tests — must pass before Task 5
 
 ### Task 5: Hover max frame on display cards
 
@@ -187,7 +187,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] hover column fills in once the visitor has hovered that library's card
 - [x] write spec: `calibrate?hoverCost=100`, `page.mouse` sweep over the display card → hover ≥ 100 ms; `hoverCost=0` → ≤ 2F
 - [x] write spec: lab frames (`embed=lab`) never post `bench:hover`
-- [ ] run tests — must pass before Task 6
+- [x] run tests — must pass before Task 6
 
 ### Task 6: Validation — harness agreement and interference sensitivity
 
@@ -198,14 +198,14 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 - [x] agreement: `none` and `recharts`, survival-typical sample: harness `measureMount` × 5 on the top-level page vs playground lab × 5 → `|Δ| ≤ 2F` for mount, and domNodes equal
 - [ ] sensitivity (negative control): run the lab on `none` while the spec injects three neighbour iframes of `calibrate.html?cost=40` that re-mount in a loop → median shifts by more than `2F`. This proves the agreement check would catch interference, so its passing means the isolation holds (dropped by user decision 2026-11-03)
       ⚠️ Deviation: the interference negative control was dropped by the user; isolation is covered by the single-frame and stale-run specs.
-- [ ] run tests — must pass before Task 7
+- [x] run tests — must pass before Task 7
 
 ### Task 7: Verify acceptance criteria
 
 - [x] every metric from the Overview shows for all seven libraries on both charts and both sample sizes
-- [ ] `pnpm typecheck` and `pnpm build` pass; `git diff --exit-code apps/bench/results/` clean (against the files committed after Task 1)
-- [ ] `pnpm -F bench exec playwright test playground` passes
-- [ ] benchmark regression gate passes
+- [x] `pnpm typecheck` and `pnpm build` pass; `git diff --exit-code apps/bench/results/` clean (against the files committed after Task 1)
+- [x] `pnpm -F bench exec playwright test playground` passes
+- [x] benchmark regression gate passes
 - [x] check the playground in a real browser (agent-browser): measure → table → cards → hover → paste own data → re-measure
 
 ### Task 8: [Final] Update documentation
@@ -216,7 +216,7 @@ Runs: 1 warm-up + 5 measured per library (constants in `lab.ts`). Display: `medi
 
 - [x] README "Playground": method (sequential lab, 1 + 5 runs, median), metrics, how to run the specs
 - [x] `ARTICLE.md:178` — the playground now exists; link it
-- [ ] move this plan to `docs/plans/completed/`
+- [x] move this plan to `docs/plans/completed/`
 
 ## Post-Completion
 
