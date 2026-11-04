@@ -1,9 +1,16 @@
-import type { ScatterSeries, SurvivalSeries } from '../data/contract';
-import { PALETTE } from '../data/generate';
-import type { ChartKind } from '../data/generate';
+import type { ChartKind, GalleryKind, Payload } from '../data/contract';
+import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
+import type { DatasetSize } from '../data/generate';
 
-export type Parsed =
-  { chart: 'survival'; series: SurvivalSeries[] } | { chart: 'scatter'; series: ScatterSeries[] };
+export type Parsed = Payload;
+
+type Kind = {
+  label: string;
+  hint: string;
+  parse: (raw: unknown) => Parsed;
+  nudge: (parsed: Parsed) => Parsed;
+  sample: (size: DatasetSize) => string;
+};
 
 const num = (v: unknown, where: string) => {
   if (typeof v !== 'number' || !Number.isFinite(v))
@@ -11,11 +18,9 @@ const num = (v: unknown, where: string) => {
   return v;
 };
 
-/** Validates pasted JSON against the chart contract and fills optional fields. Throws a readable message. */
-export function parseSeries(chart: ChartKind, text: string): Parsed {
-  const raw: unknown = JSON.parse(text);
+function parsePoints(chart: 'survival' | 'scatter', raw: unknown) {
   if (!Array.isArray(raw) || raw.length === 0) throw new Error('Expected a non-empty array of series.');
-  const series = raw.map((s: any, i) => {
+  return raw.map((s: any, i) => {
     const where = `series[${i}]`;
     if (!s || !Array.isArray(s.points) || s.points.length === 0)
       throw new Error(`${where}: needs a non-empty "points" array.`);
@@ -38,7 +43,6 @@ export function parseSeries(chart: ChartKind, text: string): Parsed {
     if (chart === 'survival') points.sort((a: { x: number }, b: { x: number }) => a.x - b.x);
     return { id, color, points };
   });
-  return { chart, series } as Parsed;
 }
 
 /** One point per line: readable as a format example, and still small for heavy samples. */
@@ -50,18 +54,50 @@ export function formatSeries(series: { id: string; color: string; points: object
   return `[\n${series.map(block).join(',\n')}\n]`;
 }
 
+const KINDS: { [K in ChartKind]?: Kind } = {
+  survival: {
+    label: 'Survival curve',
+    hint: 'Array of { id, color?, points: [{ x, y, lower?, upper?, censored? }] }. y in 0..1.',
+    parse: raw => ({ chart: 'survival', series: parsePoints('survival', raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'survival'
+        ? parsed
+        : {
+            chart: 'survival',
+            series: parsed.series.map(s => ({
+              ...s,
+              points: s.points.map(p => ({
+                ...p,
+                y: p.y * 0.97,
+                lower: p.lower * 0.97,
+                upper: p.upper * 0.97,
+              })),
+            })),
+          },
+    sample: size => formatSeries(generateSurvival(DATASETS.survival[size])),
+  },
+  scatter: {
+    label: 'Scatter',
+    hint: 'Array of { id, color?, points: [{ x, y, size? }] }.',
+    parse: raw => ({ chart: 'scatter', series: parsePoints('scatter', raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'scatter'
+        ? parsed
+        : {
+            chart: 'scatter',
+            series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
+          },
+    sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
+  },
+};
+
+export const kinds = Object.keys(KINDS) as ChartKind[];
+export const kindInfo = (chart: ChartKind) => KINDS[chart]!;
+export const isGallery = (chart: ChartKind): chart is GalleryKind =>
+  chart !== 'survival' && chart !== 'scatter';
+
+/** Validates pasted JSON against the chart contract and fills optional fields. Throws a readable message. */
+export const parseSeries = (chart: ChartKind, text: string) => KINDS[chart]!.parse(JSON.parse(text));
 /** Same shape and ids, shifted values, so SVG libraries reconcile instead of remounting. */
-export function nudge(parsed: Parsed): Parsed {
-  return parsed.chart === 'survival'
-    ? {
-        chart: 'survival',
-        series: parsed.series.map(s => ({
-          ...s,
-          points: s.points.map(p => ({ ...p, y: p.y * 0.97, lower: p.lower * 0.97, upper: p.upper * 0.97 })),
-        })),
-      }
-    : {
-        chart: 'scatter',
-        series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
-      };
-}
+export const nudge = (parsed: Parsed) => KINDS[parsed.chart]!.nudge(parsed);
+export const sample = (chart: ChartKind, size: DatasetSize) => KINDS[chart]!.sample(size);

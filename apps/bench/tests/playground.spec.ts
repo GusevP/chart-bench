@@ -8,7 +8,7 @@ import { summarize } from 'bench-stage/stats';
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
-import { nudge } from '../src/playground/parse';
+import { isGallery, kindInfo, kinds, nudge } from '../src/playground/parse';
 import type { Parsed } from '../src/playground/parse';
 
 type Result = {
@@ -538,4 +538,33 @@ test('gallery page reports bench:error for an unknown pair, and dist holds both 
     (window as unknown as { inbox: Result[] }).inbox.find(m => m.type === 'bench:error'),
   );
   expect(await error.jsonValue()).toMatchObject({ runId: null, message: expect.stringContaining('none/nope') });
+});
+
+const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
+const EXPECTED_PAIRS: string[] = [];
+
+test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
+  page,
+}) => {
+  const bundle = JSON.parse(
+    readFileSync(new URL('../results/gallery-bundle.json', import.meta.url), 'utf8'),
+  ) as Record<string, Record<string, unknown>>;
+  const pairs = Object.entries(bundle).flatMap(([lib, types]) => Object.keys(types).map(t => `${lib}/${t}`));
+  expect(pairs.sort()).toEqual([...EXPECTED_PAIRS].sort());
+
+  for (const kind of kinds.filter(isGallery)) {
+    const libs = LIBS.filter(lib => pairs.includes(`${lib}/${kind}`));
+    await page.goto(`/index.html?libs=${LIBS.join(',')}`);
+    await page.getByLabel(kindInfo(kind).label).check();
+    await page.getByRole('button', { name: 'Render' }).click();
+    await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length, {
+      timeout: 120_000,
+    });
+    if (libs.length) {
+      await expect(page.locator('[data-summaries] tbody tr')).toHaveCount(libs.length + 1, {
+        timeout: 300_000,
+      });
+      await expect(page.locator('.card .error')).toHaveCount(0);
+    }
+  }
 });

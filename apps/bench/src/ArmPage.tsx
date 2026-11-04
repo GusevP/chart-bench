@@ -2,20 +2,17 @@ import { BenchStage } from 'bench-stage';
 import { useLayoutEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import type { Arm, ScatterSeries, SurvivalSeries } from './data/contract';
+import type { Arm, Payload } from './data/contract';
 import type { RenderChart } from './EmbeddedArmPage';
 import { DATASETS, generateScatter, generateSurvival } from './data/generate';
-import type { ChartKind, DatasetSize } from './data/generate';
+import type { DatasetSize } from './data/generate';
 
 export const WIDTH = 900;
 export const HEIGHT = 600;
 
-export type Payload =
-  { chart: 'survival'; series: SurvivalSeries[] } | { chart: 'scatter'; series: ScatterSeries[] };
-
 export function fromUrl(): Payload {
   const params = new URLSearchParams(location.search);
-  const chart: ChartKind = params.get('chart') === 'scatter' ? 'scatter' : 'survival';
+  const chart = params.get('chart') === 'scatter' ? 'scatter' : 'survival';
   const size: DatasetSize = params.get('size') === 'heavy' ? 'heavy' : 'typical';
   return chart === 'survival'
     ? { chart, series: generateSurvival(DATASETS.survival[size]) }
@@ -39,9 +36,9 @@ const renderArm =
   (payload, onSettled) =>
     payload.chart === 'survival' ? (
       <arm.Survival width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
-    ) : (
+    ) : payload.chart === 'scatter' ? (
       <arm.Scatter width={WIDTH} height={HEIGHT} series={payload.series} onSettled={onSettled} />
-    );
+    ) : null;
 
 function ArmPage({ arm }: { arm: Arm }) {
   const [payload] = useState<Payload>(fromUrl);

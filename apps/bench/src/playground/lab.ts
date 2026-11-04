@@ -1,8 +1,17 @@
 import { summarize } from 'bench-stage/stats';
 
+import type { ChartKind } from '../data/contract';
 import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
-import { nudge } from './parse';
+import { isGallery, nudge } from './parse';
 import type { Parsed } from './parse';
+
+export function frameSrc(library: string, chart: ChartKind, query: URLSearchParams) {
+  const params = new URLSearchParams(query);
+  if (library === 'shell' || !isGallery(chart)) return `${library}.html?${params}`;
+  params.set('lib', library);
+  params.set('chart', chart);
+  return `gallery.html?${params}`;
+}
 
 export type Summary = ReturnType<typeof summarize>;
 export type LibraryResult = {
@@ -189,7 +198,7 @@ export async function measureLibrary(
 ): Promise<LibraryResult> {
   const params = new URLSearchParams(query);
   params.set('embed', 'lab');
-  const src = `${library}.html?${params}`;
+  const src = frameSrc(library, data.chart, params);
   const updated = nudge(data);
 
   const samples: Sample[] = [];

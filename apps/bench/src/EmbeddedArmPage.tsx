@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { CommitMark, HEIGHT, WIDTH, fromUrl, markNaive } from './ArmPage';
-import type { Payload } from './ArmPage';
+import type { Payload } from './data/contract';
 
 export type RenderChart = (payload: Payload, onSettled: () => void) => ReactNode;
 

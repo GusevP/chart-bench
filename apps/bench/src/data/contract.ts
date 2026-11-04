@@ -25,6 +25,41 @@ export type ScatterSeries = {
   points: ScatterPoint[];
 };
 
+export type CategorySeries = { id: string; color: string; values: number[] };
+export type Categories = { categories: string[]; series: CategorySeries[] };
+export type Combo = { categories: string[]; bars: CategorySeries; line: CategorySeries };
+export type Donut = { slices: { id: string; color: string; value: number }[] };
+export type Heatmap = { xs: string[]; ys: string[]; values: number[][] };
+export type TreeNode = { id: string; value?: number; children?: TreeNode[] };
+export type Sankey = {
+  nodes: { id: string }[];
+  links: { source: string; target: string; value: number }[];
+};
+export type BoxGroups = { groups: { id: string; color: string; values: number[] }[] };
+export type Candles = {
+  candles: { t: string; open: number; high: number; low: number; close: number }[];
+};
+
+export type Shapes = {
+  'stacked-bar': Categories;
+  'stacked-area': Categories;
+  donut: Donut;
+  radar: Categories;
+  combo: Combo;
+  heatmap: Heatmap;
+  treemap: TreeNode;
+  sankey: Sankey;
+  boxplot: BoxGroups;
+  candlestick: Candles;
+};
+export type GalleryKind = keyof Shapes;
+export type ChartKind = 'survival' | 'scatter' | GalleryKind;
+
+export type Payload =
+  | { chart: 'survival'; series: SurvivalSeries[] }
+  | { chart: 'scatter'; series: ScatterSeries[] }
+  | { [K in GalleryKind]: { chart: K; data: Shapes[K] } }[GalleryKind];
+
 export type ChartSize = { width: number; height: number };
 
 export type SurvivalChartProps = ChartSize & {

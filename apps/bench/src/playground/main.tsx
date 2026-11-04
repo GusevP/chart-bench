@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import bundle from '../../results/bundle.json';
+import galleryBundle from '../../results/gallery-bundle.json';
 import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
 import { ARMS } from '../data/arms';
-import { DATASETS, generateScatter, generateSurvival } from '../data/generate';
-import type { ChartKind, DatasetSize } from '../data/generate';
+import type { ChartKind } from '../data/contract';
+import type { DatasetSize } from '../data/generate';
 import { framePeriod } from './frame';
-import { RUNS, WARMUP, measureAll } from './lab';
+import { RUNS, WARMUP, frameSrc, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
-import { formatSeries, parseSeries } from './parse';
+import { isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
 import type { Parsed } from './parse';
 
 const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
@@ -24,15 +25,15 @@ const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
 type Library = keyof typeof LIBRARIES | 'calibrate';
 const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
 
-const sample = (chart: ChartKind, size: DatasetSize) =>
-  formatSeries(
-    chart === 'survival'
-      ? generateSurvival(DATASETS.survival[size])
-      : generateScatter(DATASETS.scatter[size]),
-  );
-
 const fmt = ({ median, iqr }: Summary) => `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}`;
 const bundleKb: Record<string, { libraryKb: number } | undefined> = bundle;
+const galleryKb: Record<string, Record<string, { libraryKb: number } | undefined> | undefined> =
+  galleryBundle;
+
+const libraryKb = (library: string, chart: ChartKind) =>
+  isGallery(chart) ? galleryKb[library]?.[chart]?.libraryKb : bundleKb[library]?.libraryKb;
+const supported = (library: Library, chart: ChartKind) =>
+  isGallery(chart) ? libraryKb(library, chart) !== undefined : true;
 
 function ArmFrame({
   library,
@@ -81,6 +82,16 @@ function ArmFrame({
   const src = new URLSearchParams(params);
   src.set('embed', 'display');
 
+  if (!supported(library, data.chart))
+    return (
+      <section className="card unsupported" data-unsupported={library}>
+        <header>
+          <h2>{LABELS[library]}</h2>
+          <small>Not supported: no {kindInfo(data.chart).label.toLowerCase()} for this library.</small>
+        </header>
+      </section>
+    );
+
   return (
     <section className="card">
       <header>
@@ -89,14 +100,14 @@ function ArmFrame({
           <small data-card-stats>
             mount {fmt(result.mount)} ms · update {fmt(result.update)} ms · blocking{' '}
             {result.blocking ? `${fmt(result.blocking)} ms` : 'n/a'} · {result.domNodes} nodes ·{' '}
-            {bundleKb[library]?.libraryKb.toFixed(1) ?? 'n/a'} KB
+            {libraryKb(library, data.chart)?.toFixed(1) ?? 'n/a'} KB
             {hover !== undefined && ` · hover ${hover.toFixed(1)} ms`}
           </small>
         )}
         {error && <small className="error">{error}</small>}
       </header>
       <div className="frame">
-        <iframe ref={ref} src={`${library}.html?${src}`} title={LABELS[library]} />
+        <iframe ref={ref} src={frameSrc(library, data.chart, src)} title={LABELS[library]} />
       </div>
     </section>
   );
@@ -117,10 +128,12 @@ function Cell({ s, floor, frame }: { s: Summary | null; floor?: Summary; frame: 
 
 function Summaries({
   measured,
+  chart,
   frame,
   hover,
 }: {
   measured: Measurements;
+  chart: ChartKind;
   frame: number;
   hover: Record<string, number>;
 }) {
@@ -147,7 +160,7 @@ function Summaries({
         </thead>
         <tbody>
           {rows.map(([lib, r, isFloor]) => {
-            const kb = bundleKb[isFloor ? 'shell' : lib]?.libraryKb;
+            const kb = isFloor ? bundleKb.shell?.libraryKb : libraryKb(lib, chart);
             return (
               <tr
                 key={lib}
@@ -177,7 +190,7 @@ function Summaries({
   );
 }
 
-type Job = { libraries: Library[]; data: Parsed };
+type Job = { libraries: Library[]; unsupported: Library[]; data: Parsed };
 
 function Lab({
   job,
@@ -268,12 +281,19 @@ function Playground() {
   const measure = () => {
     const parsed = apply(chart, text);
     if (!parsed || libraries.length === 0) return;
+    const selected = (Object.keys(LABELS) as Library[]).filter(l => libraries.includes(l));
+    const measurable = selected.filter(l => supported(l, chart));
     setRunError('');
     setMeasured(null);
-    setShown(null);
     setHover({});
+    if (measurable.length === 0) {
+      setShown({ libraries: [], unsupported: selected, data: parsed });
+      return;
+    }
+    setShown(null);
     setJob({
-      libraries: (Object.keys(LABELS) as Library[]).filter(l => libraries.includes(l)),
+      libraries: measurable,
+      unsupported: selected.filter(l => !measurable.includes(l)),
       data: parsed,
     });
   };
@@ -306,7 +326,7 @@ function Playground() {
 
         <fieldset disabled={!!job}>
           <legend>Chart</legend>
-          {(['survival', 'scatter'] as const).map(kind => (
+          {kinds.map(kind => (
             <label key={kind}>
               <input
                 type="radio"
@@ -314,18 +334,14 @@ function Playground() {
                 checked={chart === kind}
                 onChange={() => load(kind, 'typical')}
               />
-              {kind === 'survival' ? 'Survival curve' : 'Scatter'}
+              {kindInfo(kind).label}
             </label>
           ))}
         </fieldset>
 
         <fieldset disabled={!!job}>
           <legend>Data (JSON)</legend>
-          <small>
-            {chart === 'survival'
-              ? 'Array of { id, color?, points: [{ x, y, lower?, upper?, censored? }] }. y in 0..1.'
-              : 'Array of { id, color?, points: [{ x, y, size? }] }.'}
-          </small>
+          <small>{kindInfo(chart).hint}</small>
           <div className="row">
             <button onClick={() => load(chart, 'typical')}>Sample: typical</button>
             <button onClick={() => load(chart, 'heavy')}>Sample: heavy</button>
@@ -377,7 +393,9 @@ function Playground() {
             {runError}
           </p>
         )}
-        {measured && <Summaries measured={measured} frame={frame} hover={hover} />}
+        {measured && shown && (
+          <Summaries measured={measured} chart={shown.data.chart} frame={frame} hover={hover} />
+        )}
         {shown?.libraries.map(lib => (
           <ArmFrame
             key={lib}
@@ -387,6 +405,9 @@ function Playground() {
             hover={hover[lib]}
             onHover={(l, ms) => setHover(cur => ({ ...cur, [l]: ms }))}
           />
+        ))}
+        {shown?.unsupported.map(lib => (
+          <ArmFrame key={lib} library={lib} data={shown.data} onHover={() => {}} />
         ))}
       </div>
     </main>

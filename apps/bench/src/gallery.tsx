@@ -12,8 +12,7 @@ type GalleryModule = {
 
 const modules = import.meta.glob<GalleryModule>('./arms/*/gallery/*.tsx');
 
-const fail = (message: string) =>
-  toParent({ type: 'bench:error', runId: null, message });
+const fail = (message: string) => toParent({ type: 'bench:error', runId: null, message });
 
 async function main() {
   const params = new URLSearchParams(location.search);
@@ -23,7 +22,12 @@ async function main() {
   if (!load) return fail(`no gallery chart for ${lib}/${chart}`);
   const { settleMode, Chart } = (await load()).default;
   mountEmbedded(settleMode, (payload, onSettled) => (
-    <Chart width={WIDTH} height={HEIGHT} data={(payload as { data?: unknown }).data} onSettled={onSettled} />
+    <Chart
+      width={WIDTH}
+      height={HEIGHT}
+      data={'data' in payload ? payload.data : undefined}
+      onSettled={onSettled}
+    />
   ));
 }
 
