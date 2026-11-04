@@ -10,7 +10,8 @@ import type { MouseEvent } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { AXIS_COLOR, thinTicks, tickLabel, tooltipStyle } from '../shared/style';
+import { thinTicks } from '../../shared/ticks';
+import { AXIS_COLOR, tickLabel, tooltipStyle } from '../shared/style';
 
 type Row = { category: string; [id: string]: number | string };
 

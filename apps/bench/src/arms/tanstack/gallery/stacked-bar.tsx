@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
+import { thinTicks } from '../../shared/ticks';
 
 function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
   const definition = useMemo(() => {
@@ -17,7 +18,10 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
     return defineChart({
       marks: [barY(rows, { x: 'category', y: 'value', color: 'series', layout: stack({ order: ids }) })],
       scales: {
-        x: { scale: () => scaleBand<string>().domain(data.categories).padding(0.2) },
+        x: {
+          scale: () => scaleBand<string>().domain(data.categories).padding(0.2),
+          axis: { ticks: { values: thinTicks(data.categories) } },
+        },
         y: { scale: scaleLinear, nice: true, grid: true },
       },
       color: { domain: ids, range: data.series.map(s => s.color) },
