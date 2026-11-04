@@ -589,8 +589,7 @@ test('stacked bar: chart chunk loads before bench:ready, malformed JSON is rejec
   const { readyAt, chunkEnd } = await page.evaluate(() => ({
     readyAt: (window as unknown as { readyAt: number }).readyAt,
     chunkEnd: Math.max(
-      ...performance
-        .getEntriesByType('resource')
+      ...(performance.getEntriesByType('resource') as PerformanceResourceTiming[])
         .filter(r => r.name.includes('stacked-bar'))
         .map(r => r.responseEnd),
     ),
