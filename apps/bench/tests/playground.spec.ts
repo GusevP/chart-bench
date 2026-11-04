@@ -541,9 +541,10 @@ test('gallery page reports bench:error for an unknown pair, and dist holds both 
 });
 
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
-const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].map(
-  lib => `${lib}/stacked-bar`,
-);
+const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
+  `${lib}/stacked-bar`,
+  `${lib}/stacked-area`,
+]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
   page,

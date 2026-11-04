@@ -6,6 +6,10 @@ export const GALLERY_DATASETS = {
     typical: { seed: 5, categories: 12, series: 3 },
     heavy: { seed: 6, categories: 200, series: 6 },
   },
+  'stacked-area': {
+    typical: { seed: 7, categories: 50, series: 4 },
+    heavy: { seed: 8, categories: 1000, series: 8 },
+  },
 } as const;
 
 export function generateCategories({

@@ -83,6 +83,28 @@ function parseCategories(raw: any) {
   return { categories, series };
 }
 
+function categoriesKind(chart: 'stacked-bar' | 'stacked-area', label: string): Kind {
+  return {
+    label,
+    hint: '{ categories: string[], series: [{ id, color?, values: number[] }] }. One non-negative value per category.',
+    parse: raw => ({ chart, data: parseCategories(raw) }),
+    nudge: parsed =>
+      parsed.chart !== chart
+        ? parsed
+        : {
+            chart,
+            data: {
+              ...parsed.data,
+              series: parsed.data.series.map((s, i) => ({
+                ...s,
+                values: s.values.map(v => v * (i % 2 ? 0.9 : 1.1)),
+              })),
+            },
+          },
+    sample: size => formatCategories(generateCategories(GALLERY_DATASETS[chart][size])),
+  };
+}
+
 const KINDS: { [K in ChartKind]?: Kind } = {
   survival: {
     label: 'Survival curve',
@@ -118,25 +140,8 @@ const KINDS: { [K in ChartKind]?: Kind } = {
           },
     sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
   },
-  'stacked-bar': {
-    label: 'Stacked bar',
-    hint: '{ categories: string[], series: [{ id, color?, values: number[] }] }. One non-negative value per category.',
-    parse: raw => ({ chart: 'stacked-bar', data: parseCategories(raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'stacked-bar'
-        ? parsed
-        : {
-            chart: 'stacked-bar',
-            data: {
-              ...parsed.data,
-              series: parsed.data.series.map((s, i) => ({
-                ...s,
-                values: s.values.map(v => v * (i % 2 ? 0.9 : 1.1)),
-              })),
-            },
-          },
-    sample: size => formatCategories(generateCategories(GALLERY_DATASETS['stacked-bar'][size])),
-  },
+  'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar'),
+  'stacked-area': categoriesKind('stacked-area', 'Stacked area'),
 };
 
 export const kinds = Object.keys(KINDS) as ChartKind[];

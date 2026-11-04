@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
+import { thinTicks } from '../shared/ticks';
 
 function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
   const rows = useMemo(
@@ -13,7 +14,6 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       })),
     [data],
   );
-  const tickStep = Math.ceil(data.categories.length / 12);
   const colorById = useMemo(() => new Map(data.series.map(s => [s.id, s.color])), [data]);
   return (
     <Bar
@@ -26,7 +26,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       animate={false}
       enableLabel={false}
       colors={({ id }) => colorById.get(String(id)) ?? 'black'}
-      axisBottom={{ tickValues: data.categories.filter((_, i) => i % tickStep === 0) }}
+      axisBottom={{ tickValues: thinTicks(data.categories) }}
     />
   );
 }

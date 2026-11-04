@@ -150,7 +150,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 4: Stacked area
-- [ ] sample, parser entry, `nudge`, wrappers per the matrix
+- [x] sample, parser entry, `nudge`, wrappers per the matrix
 - [ ] run the per-task gate
 
 ### Task 5: Donut

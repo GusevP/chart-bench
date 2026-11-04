@@ -1,30 +1,48 @@
 {
   "chartjs": {
+    "stacked-area": {
+      "libraryKb": 54.7
+    },
     "stacked-bar": {
       "libraryKb": 51
     }
   },
   "echarts": {
+    "stacked-area": {
+      "libraryKb": 161.6
+    },
     "stacked-bar": {
       "libraryKb": 159.5
     }
   },
   "nivo": {
+    "stacked-area": {
+      "libraryKb": 92.7
+    },
     "stacked-bar": {
       "libraryKb": 86.7
     }
   },
   "recharts": {
+    "stacked-area": {
+      "libraryKb": 97.4
+    },
     "stacked-bar": {
       "libraryKb": 98
     }
   },
   "tanstack": {
+    "stacked-area": {
+      "libraryKb": 36.8
+    },
     "stacked-bar": {
       "libraryKb": 39.3
     }
   },
   "visx": {
+    "stacked-area": {
+      "libraryKb": 24.7
+    },
     "stacked-bar": {
       "libraryKb": 23
     }

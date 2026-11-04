@@ -10,7 +10,7 @@ import type { MouseEvent } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { AXIS_COLOR, tickLabel, tooltipStyle } from '../shared/style';
+import { AXIS_COLOR, thinTicks, tickLabel, tooltipStyle } from '../shared/style';
 
 type Row = { category: string; [id: string]: number | string };
 type Tip = { category: string; id: string; color: string; value: number };
@@ -38,7 +38,6 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
     const totals = data.categories.map((_, i) => data.series.reduce((sum, s) => sum + s.values[i]!, 0));
     return scaleLinear<number>({ domain: [0, Math.max(...totals)], range: [innerH, 0], nice: true });
   }, [data, innerH]);
-  const tickStep = Math.ceil(data.categories.length / 12);
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } = useTooltip<Tip>();
 
   const onMove = (tip: Tip) => (event: MouseEvent<SVGRectElement>) => {
@@ -84,7 +83,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
           <AxisBottom
             top={innerH}
             scale={xScale}
-            tickValues={data.categories.filter((_, i) => i % tickStep === 0)}
+            tickValues={thinTicks(data.categories)}
             stroke={AXIS_COLOR}
             tickStroke={AXIS_COLOR}
             tickLabelProps={tickLabel}
