@@ -544,6 +544,7 @@ const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartj
 const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
   `${lib}/stacked-bar`,
   `${lib}/stacked-area`,
+  `${lib}/donut`,
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({

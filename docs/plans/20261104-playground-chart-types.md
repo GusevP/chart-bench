@@ -154,7 +154,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 5: Donut
-- [ ] `Donut` shape, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/pie`
+- [x] `Donut` shape, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/pie`
 - [ ] run the per-task gate
 
 ### Task 6: Radar

@@ -1,7 +1,13 @@
 import type { ChartKind, GalleryKind, Payload } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
-import { GALLERY_DATASETS, formatCategories, generateCategories } from '../data/gallery-samples';
+import {
+  GALLERY_DATASETS,
+  formatCategories,
+  formatDonut,
+  generateCategories,
+  generateDonut,
+} from '../data/gallery-samples';
 
 export type Parsed = Payload;
 
@@ -55,6 +61,8 @@ export function formatSeries(series: { id: string; color: string; points: object
   return `[\n${series.map(block).join(',\n')}\n]`;
 }
 
+const idOf = (raw: unknown, fallback: string) => (raw == null || raw === '' ? fallback : String(raw));
+
 function parseCategories(raw: any) {
   if (!Array.isArray(raw?.categories) || raw.categories.length === 0)
     throw new Error('Expected a non-empty "categories" array.');
@@ -68,7 +76,7 @@ function parseCategories(raw: any) {
     if (!Array.isArray(s?.values) || s.values.length !== categories.length)
       throw new Error(`${where}: needs "values" with one number per category (${categories.length}).`);
     return {
-      id: s.id == null ? `Series ${i + 1}` : String(s.id),
+      id: idOf(s.id, `Series ${i + 1}`),
       color: typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!,
       values: s.values.map((v: unknown, j: number) => {
         const n = num(v, `${where}.values[${j}]`);
@@ -103,6 +111,26 @@ function categoriesKind(chart: 'stacked-bar' | 'stacked-area', label: string): K
           },
     sample: size => formatCategories(generateCategories(GALLERY_DATASETS[chart][size])),
   };
+}
+
+function parseDonut(raw: any) {
+  if (!Array.isArray(raw?.slices) || raw.slices.length === 0)
+    throw new Error('Expected a non-empty "slices" array.');
+  const slices = raw.slices.map((s: any, i: number) => {
+    const where = `slices[${i}]`;
+    const value = num(s?.value, `${where}.value`);
+    if (value < 0) throw new Error(`${where}.value: expected a non-negative number, got ${value}`);
+    return {
+      id: idOf(s.id, `Slice ${i + 1}`),
+      color: typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!,
+      value,
+    };
+  });
+  const ids = slices.map((s: { id: string }) => s.id);
+  const dupId = ids.find((id: string, i: number) => ids.indexOf(id) !== i);
+  if (dupId !== undefined) throw new Error(`Duplicate slice id ${JSON.stringify(dupId)}.`);
+  if (!slices.some((s: { value: number }) => s.value > 0)) throw new Error('Slice values must not all be zero.');
+  return { slices };
 }
 
 const KINDS: { [K in ChartKind]?: Kind } = {
@@ -142,6 +170,21 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   },
   'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar'),
   'stacked-area': categoriesKind('stacked-area', 'Stacked area'),
+  donut: {
+    label: 'Donut',
+    hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',
+    parse: raw => ({ chart: 'donut', data: parseDonut(raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'donut'
+        ? parsed
+        : {
+            chart: 'donut',
+            data: {
+              slices: parsed.data.slices.map((s, i) => ({ ...s, value: s.value * (i % 2 ? 0.7 : 1.3) })),
+            },
+          },
+    sample: size => formatDonut(generateDonut(GALLERY_DATASETS.donut[size])),
+  },
 };
 
 export const kinds = Object.keys(KINDS) as ChartKind[];
