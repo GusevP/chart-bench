@@ -30,10 +30,10 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
           scale: () => scaleBand<string>().domain(data.categories).padding(0.2),
           axis: { ticks: { values: thinTicks(data.categories) } },
         },
-        y: { scale: () => scaleLinear().domain([0, Math.max(...data.bars.values)]), nice: true, grid: true },
+        y: { scale: scaleLinear().domain([0, Math.max(...data.bars.values) || 1]), nice: true, grid: true },
         line: {
           channel: 'y',
-          scale: () => scaleLinear().domain([0, Math.max(...data.line.values)]),
+          scale: scaleLinear().domain([0, Math.max(...data.line.values) || 1]),
           nice: true,
           side: 'right',
         },

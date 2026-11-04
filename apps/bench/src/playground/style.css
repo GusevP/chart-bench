@@ -21,7 +21,7 @@ main {
   gap: 24px;
   padding: 24px;
 }
-@media (max-width: 900px) {
+@media (max-width: 1400px) {
   main {
     grid-template-columns: 1fr;
     padding: 16px;

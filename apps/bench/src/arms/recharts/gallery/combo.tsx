@@ -18,7 +18,7 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
   );
   return (
     <ComposedChart width={width} height={height} margin={{ ...CHART_MARGIN, right: 0 }} data={rows}>
-      <CartesianGrid vertical={false} stroke="#eee" />
+      <CartesianGrid yAxisId="bars" vertical={false} stroke="#eee" />
       <XAxis dataKey="category" height={MARGIN.bottom} tick={TICK} />
       <YAxis yAxisId="bars" width={MARGIN.left} tick={TICK} domain={[0, 'auto']} />
       <YAxis yAxisId="line" orientation="right" width={MARGIN.left} tick={TICK} domain={[0, 'auto']} />

@@ -22,11 +22,11 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
     [data, innerW],
   );
   const barScale = useMemo(
-    () => scaleLinear<number>({ domain: [0, Math.max(...data.bars.values)], range: [innerH, 0], nice: true }),
+    () => scaleLinear<number>({ domain: [0, Math.max(...data.bars.values) || 1], range: [innerH, 0], nice: true }),
     [data, innerH],
   );
   const lineScale = useMemo(
-    () => scaleLinear<number>({ domain: [0, Math.max(...data.line.values)], range: [innerH, 0], nice: true }),
+    () => scaleLinear<number>({ domain: [0, Math.max(...data.line.values) || 1], range: [innerH, 0], nice: true }),
     [data, innerH],
   );
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } = useTooltip<number>();

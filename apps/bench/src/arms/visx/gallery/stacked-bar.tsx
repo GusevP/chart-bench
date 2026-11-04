@@ -37,7 +37,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
   );
   const yScale = useMemo(() => {
     const totals = data.categories.map((_, i) => data.series.reduce((sum, s) => sum + s.values[i]!, 0));
-    return scaleLinear<number>({ domain: [0, Math.max(...totals)], range: [innerH, 0], nice: true });
+    return scaleLinear<number>({ domain: [0, Math.max(...totals) || 1], range: [innerH, 0], nice: true });
   }, [data, innerH]);
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } = useTooltip<Tip>();
 
