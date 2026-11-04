@@ -619,7 +619,8 @@ test('stacked bar: chart chunk loads before bench:ready, malformed JSON is rejec
 });
 
 test('heatmap: non-rectangular values are rejected, nudge changes the mapped ramp position', () => {
-  const heatmap = (values: string) => `{"xs":["a","b"],"ys":["r","s"],"values":${values}}`;
+  const heatmap = (values: string, xs = '"a","b"', ys = '"r","s"') =>
+    `{"xs":[${xs}],"ys":[${ys}],"values":${values}}`;
   expect(() => parseSeries('heatmap', heatmap('[[1,2],[3]]'))).toThrow(/one number per "xs"/);
   expect(() => parseSeries('heatmap', heatmap('[[1,2]]'))).toThrow(/one row per "ys"/);
   const flat = (p: Parsed) => (p as Extract<Parsed, { chart: 'heatmap' }>).data.values.flat();
@@ -629,10 +630,21 @@ test('heatmap: non-rectangular values are rejected, nudge changes the mapped ram
     const hi = Math.max(...v);
     return v.map(x => (x - lo) / (hi - lo));
   };
-  for (const values of ['[[1,2],[1,2]]', '[[0,5],[0,7]]', '[[0,0],[0,5]]', '[[-1,-2],[-3,-4]]']) {
-    const parsed = parseSeries('heatmap', heatmap(values));
+  const abc = '"a","b","c"';
+  const cases: [string, string, string][] = [
+    ['[[1,2],[1,2]]', '"a","b"', '"r","s"'],
+    ['[[0,5],[0,7]]', '"a","b"', '"r","s"'],
+    ['[[0,0],[0,5]]', '"a","b"', '"r","s"'],
+    ['[[-1,-2],[-3,-4]]', '"a","b"', '"r","s"'],
+    ['[[1,2,3],[1,2,3]]', abc, '"r","s"'],
+    ['[[1,2]]', '"a","b"', '"r"'],
+  ];
+  for (const [values, xs, ys] of cases) {
+    const parsed = parseSeries('heatmap', heatmap(values, xs, ys));
     expect(ramp(nudge(parsed)), values).not.toEqual(ramp(parsed));
   }
   const constant = parseSeries('heatmap', heatmap('[[3,3],[3,3]]'));
   expect(new Set(flat(nudge(constant))).size).toBeGreaterThan(1);
+  const huge = nudge(parseSeries('heatmap', heatmap('[[1e308,-1e308,1]]', abc, '"r"')));
+  expect(flat(huge).every(Number.isFinite)).toBe(true);
 });

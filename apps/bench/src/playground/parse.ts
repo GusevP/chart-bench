@@ -256,9 +256,14 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             data: {
               ...parsed.data,
               values: (flat => {
-                const span = Math.max(...flat) - Math.min(...flat) || 1;
+                const constant = flat.every(v => v === flat[0]);
                 let i = 0;
-                return parsed.data.values.map(row => row.map(v => v + [0.15, 0, -0.15][i++ % 3]! * span));
+                return parsed.data.values.map(row =>
+                  row.map(() => {
+                    const k = i++;
+                    return constant ? flat[k]! + (k % 2) : flat[(k + 1) % flat.length]!;
+                  }),
+                );
               })(parsed.data.values.flat()),
             },
           },
