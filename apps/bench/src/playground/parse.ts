@@ -94,7 +94,7 @@ function parseCategories(raw: any) {
 function categoriesKind(
   chart: 'stacked-bar' | 'stacked-area' | 'radar',
   label: string,
-  factor: (seriesIndex: number, categoryIndex: number) => number,
+  scaler: () => (value: number, seriesIndex: number) => number,
 ): Kind {
   return {
     label,
@@ -107,15 +107,21 @@ function categoriesKind(
             chart,
             data: {
               ...parsed.data,
-              series: parsed.data.series.map((s, i) => ({
-                ...s,
-                values: s.values.map((v, j) => v * factor(i, j)),
-              })),
+              series: (scale => parsed.data.series.map((s, i) => ({ ...s, values: s.values.map(v => scale(v, i)) })))(
+                scaler(),
+              ),
             },
           },
     sample: size => formatCategories(generateCategories(GALLERY_DATASETS[chart][size])),
   };
 }
+
+const byParity = (up: number, down: number) => (i: number) => (i % 2 ? down : up);
+
+const alternating = (up: number, down: number) => {
+  let rank = 0;
+  return (value: number) => (value > 0 ? value * byParity(up, down)(rank++) : value);
+};
 
 function parseDonut(raw: any) {
   if (!Array.isArray(raw?.slices) || raw.slices.length === 0)
@@ -173,9 +179,9 @@ const KINDS: { [K in ChartKind]?: Kind } = {
           },
     sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
   },
-  'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', i => (i % 2 ? 0.9 : 1.1)),
-  'stacked-area': categoriesKind('stacked-area', 'Stacked area', i => (i % 2 ? 0.9 : 1.1)),
-  radar: categoriesKind('radar', 'Radar', (i, j) => ((i + j) % 2 ? 0.8 : 1.2)),
+  'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', () => (v, i) => v * byParity(1.1, 0.9)(i)),
+  'stacked-area': categoriesKind('stacked-area', 'Stacked area', () => (v, i) => v * byParity(1.1, 0.9)(i)),
+  radar: categoriesKind('radar', 'Radar', () => alternating(1.2, 0.8)),
   donut: {
     label: 'Donut',
     hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',
@@ -186,7 +192,9 @@ const KINDS: { [K in ChartKind]?: Kind } = {
         : {
             chart: 'donut',
             data: {
-              slices: parsed.data.slices.map((s, i) => ({ ...s, value: s.value * (i % 2 ? 0.7 : 1.3) })),
+              slices: (scale => parsed.data.slices.map(s => ({ ...s, value: scale(s.value) })))(
+                alternating(1.3, 0.7),
+              ),
             },
           },
     sample: size => formatDonut(generateDonut(GALLERY_DATASETS.donut[size])),
