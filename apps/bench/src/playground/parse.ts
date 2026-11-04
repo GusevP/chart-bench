@@ -175,7 +175,7 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   },
   'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', i => (i % 2 ? 0.9 : 1.1)),
   'stacked-area': categoriesKind('stacked-area', 'Stacked area', i => (i % 2 ? 0.9 : 1.1)),
-  radar: categoriesKind('radar', 'Radar', (_, j) => (j % 2 ? 0.8 : 1.2)),
+  radar: categoriesKind('radar', 'Radar', (i, j) => ((i + j) % 2 ? 0.8 : 1.2)),
   donut: {
     label: 'Donut',
     hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',

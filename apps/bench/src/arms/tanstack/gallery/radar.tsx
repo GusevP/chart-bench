@@ -1,5 +1,5 @@
 import { defineChart } from '@tanstack/charts';
-import { angleGrid, polar, radialArea, radialGrid, radialLine } from '@tanstack/charts/polar';
+import { angleGrid, polar, radialArea, radialGrid } from '@tanstack/charts/polar';
 import { Chart as TanChart } from '@tanstack/charts/react';
 import { scaleLinear } from '@tanstack/charts/scales/linear';
 import { scalePoint } from '@tanstack/charts/scales/point';
@@ -21,6 +21,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
   const definition = useMemo(() => {
     const ids = data.series.map(s => s.id);
     const max = radarMax(data);
+    const colorOf = new Map(data.series.map(s => [s.id, s.color]));
     const rows = data.series.flatMap(s =>
       data.categories.map((category, i) => ({ category, series: s.id, value: s.values[i]! })),
     );
@@ -50,15 +51,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
               z: 'series',
               curve: curveLinearClosed,
               fillOpacity: RADAR_FILL_OPACITY,
-              strokeWidth: 0,
-            }),
-            radialLine(rows, {
-              angle: 'category',
-              radius: 'value',
-              color: 'series',
-              key: d => `${d.series}:${d.category}`,
-              z: 'series',
-              curve: curveLinearClosed,
+              stroke: d => colorOf.get(d.series)!,
               strokeWidth: RADAR_STROKE_WIDTH,
             }),
           ],
