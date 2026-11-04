@@ -6,6 +6,9 @@
     "donut": {
       "libraryKb": 50.7
     },
+    "heatmap": {
+      "libraryKb": 48.9
+    },
     "radar": {
       "libraryKb": 53.8
     },
@@ -23,6 +26,9 @@
     "donut": {
       "libraryKb": 139
     },
+    "heatmap": {
+      "libraryKb": 153.5
+    },
     "radar": {
       "libraryKb": 143.1
     },
@@ -36,6 +42,9 @@
   "nivo": {
     "donut": {
       "libraryKb": 67.6
+    },
+    "heatmap": {
+      "libraryKb": 76.6
     },
     "radar": {
       "libraryKb": 65.8
@@ -71,6 +80,9 @@
     "donut": {
       "libraryKb": 38.7
     },
+    "heatmap": {
+      "libraryKb": 41.8
+    },
     "radar": {
       "libraryKb": 40.8
     },
@@ -87,6 +99,9 @@
     },
     "donut": {
       "libraryKb": 5.6
+    },
+    "heatmap": {
+      "libraryKb": 17.8
     },
     "radar": {
       "libraryKb": 16.3

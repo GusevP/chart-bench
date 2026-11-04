@@ -6,9 +6,11 @@ import {
   formatCategories,
   formatCombo,
   formatDonut,
+  formatHeatmap,
   generateCategories,
   generateCombo,
   generateDonut,
+  generateHeatmap,
 } from '../data/gallery-samples';
 
 export type Parsed = Payload;
@@ -160,6 +162,27 @@ function parseDonut(raw: any) {
   return { slices };
 }
 
+function parseLabels(raw: unknown, name: 'xs' | 'ys') {
+  if (!Array.isArray(raw) || raw.length === 0) throw new Error(`Expected a non-empty "${name}" array.`);
+  const labels = raw.map(String);
+  const dup = labels.find((l, i) => labels.indexOf(l) !== i);
+  if (dup !== undefined) throw new Error(`Duplicate ${name} label ${JSON.stringify(dup)}.`);
+  return labels;
+}
+
+function parseHeatmap(raw: any) {
+  const xs = parseLabels(raw?.xs, 'xs');
+  const ys = parseLabels(raw?.ys, 'ys');
+  if (!Array.isArray(raw.values) || raw.values.length !== ys.length)
+    throw new Error(`"values" needs one row per "ys" entry (${ys.length}).`);
+  const values = raw.values.map((row: unknown, y: number) => {
+    if (!Array.isArray(row) || row.length !== xs.length)
+      throw new Error(`values[${y}]: needs one number per "xs" entry (${xs.length}).`);
+    return row.map((v, x) => num(v, `values[${y}][${x}]`));
+  });
+  return { xs, ys, values };
+}
+
 const KINDS: { [K in ChartKind]?: Kind } = {
   survival: {
     label: 'Survival curve',
@@ -220,6 +243,22 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             },
           },
     sample: size => formatCombo(generateCombo(GALLERY_DATASETS.combo[size])),
+  },
+  heatmap: {
+    label: 'Heatmap',
+    hint: '{ xs: string[], ys: string[], values: number[][] }. values[y][x]: one row per ys entry, row 0 on top, one number per xs entry.',
+    parse: raw => ({ chart: 'heatmap', data: parseHeatmap(raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'heatmap'
+        ? parsed
+        : {
+            chart: 'heatmap',
+            data: {
+              ...parsed.data,
+              values: (cell => parsed.data.values.map(row => row.map(v => v * byParity(1.3, 0.7)(cell++))))(0),
+            },
+          },
+    sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),
   },
   donut: {
     label: 'Donut',

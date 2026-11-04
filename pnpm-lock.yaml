@@ -23,6 +23,9 @@ importers:
       '@nivo/core':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/heatmap':
+        specifier: ^0.99.0
+        version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@nivo/line':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -53,6 +56,9 @@ importers:
       '@visx/group':
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.3.0)(react@19.3.1)
+      '@visx/heatmap':
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.3.0)(react@19.3.1)
       '@visx/scale':
         specifier: ^4.0.0
         version: 4.0.0
@@ -68,6 +74,9 @@ importers:
       chart.js:
         specifier: ^4.6.1
         version: 4.6.1
+      chartjs-chart-matrix:
+        specifier: ^3.1.0
+        version: 3.1.0(chart.js@4.6.1)
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
@@ -171,6 +180,11 @@ packages:
 
   '@nivo/core@0.99.0':
     resolution: {integrity: sha512-olCItqhPG3xHL5ei+vg52aB6o+6S+xR2idpkd9RormTTUniZb8U2rOdcQojOojPY5i9kVeQyLFBpV4YfM7OZ9g==}
+    peerDependencies:
+      react: ^16.14 || ^17.0 || ^18.0 || ^19.0
+
+  '@nivo/heatmap@0.99.0':
+    resolution: {integrity: sha512-cnd5V6XYLvHtQ8GObUyYyEgmAUa5/ERYVmNXR1znA+yzmB+tGthJsOeGar+ntCb43pIL5HbhEaD3YpsYzBxOhQ==}
     peerDependencies:
       react: ^16.14 || ^17.0 || ^18.0 || ^19.0
 
@@ -579,6 +593,15 @@ packages:
       '@types/react':
         optional: true
 
+  '@visx/heatmap@4.0.0':
+    resolution: {integrity: sha512-+78FPvR3kGWRGwlA3j8kLARRdwTGWViIOMe8OC6layuAGWIa8Cgi1DXXc4054xoUwMkVC0bqcHdsbldIGKhz4w==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@visx/point@4.0.0':
     resolution: {integrity: sha512-hwJ9UlIjg3iV4iiJ3RN5SNTXama+zGaNe57sXSrSvPiqhkDXypsYBdDSlAnHmKbMzHP0zFmgB1UJciB/QUyigw==}
 
@@ -644,6 +667,11 @@ packages:
   chart.js@4.6.1:
     resolution: {integrity: sha512-hJyniucsFmq//EvXYvJ6c6mahPoI3kaxdjVH8awTaJ/fDNWeSqqqArixMJWkWNN6fcYvPU3HneSANFNYtRi61g==}
     engines: {pnpm: '>=8'}
+
+  chartjs-chart-matrix@3.1.0:
+    resolution: {integrity: sha512-pdo8DnhFXOisjbLDgfkzZH1w0xmjGqiaAMgkQSHCEMzxQENsXTgkXImIyweDiO7SqlE5PuzjhklyBCiorQhRmw==}
+    peerDependencies:
+      chart.js: '>=3.0.0'
 
   classnames@2.5.1:
     resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
@@ -1219,6 +1247,25 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
+  '@nivo/heatmap@0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@nivo/annotations': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/axes': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/colors': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/core': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/legends': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/scales': 0.99.0
+      '@nivo/text': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/theming': 0.99.0(react@19.3.1)
+      '@nivo/tooltip': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@react-spring/core': 10.1.2(react@19.3.1)
+      '@react-spring/web': 10.1.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/d3-scale': 4.0.9
+      d3-scale: 4.0.2
+      react: 19.3.1
+    transitivePeerDependencies:
+      - react-dom
+
   '@nivo/legends@0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@nivo/colors': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1624,6 +1671,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
+  '@visx/heatmap@4.0.0(@types/react@19.3.0)(react@19.3.1)':
+    dependencies:
+      '@visx/group': 4.0.0(@types/react@19.3.0)(react@19.3.1)
+      classnames: 2.5.1
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
+
   '@visx/point@4.0.0': {}
 
   '@visx/scale@4.0.0':
@@ -1698,6 +1753,10 @@ snapshots:
   chart.js@4.6.1:
     dependencies:
       '@kurkle/color': 0.3.4
+
+  chartjs-chart-matrix@3.1.0(chart.js@4.6.1):
+    dependencies:
+      chart.js: 4.6.1
 
   classnames@2.5.1: {}
 

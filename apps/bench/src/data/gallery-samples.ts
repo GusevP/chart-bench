@@ -1,4 +1,4 @@
-import type { Categories, Combo, Donut } from './contract';
+import type { Categories, Combo, Donut, Heatmap } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -17,6 +17,10 @@ export const GALLERY_DATASETS = {
   combo: {
     typical: { seed: 13, categories: 24 },
     heavy: { seed: 14, categories: 500 },
+  },
+  heatmap: {
+    typical: { seed: 15, columns: 20, rows: 20 },
+    heavy: { seed: 16, columns: 100, rows: 100 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -85,3 +89,26 @@ export function generateCombo({ seed, categories }: { seed: number; categories: 
 /** One series per line: readable as a format example, and still small for heavy samples. */
 export const formatCombo = ({ categories, bars, line }: Combo) =>
   `{\n  "categories": ${JSON.stringify(categories)},\n  "bars": ${JSON.stringify(bars)},\n  "line": ${JSON.stringify(line)}\n}`;
+
+export function generateHeatmap({
+  seed,
+  columns,
+  rows,
+}: {
+  seed: number;
+  columns: number;
+  rows: number;
+}): Heatmap {
+  const rand = prng(seed);
+  return {
+    xs: Array.from({ length: columns }, (_, i) => `X${i + 1}`),
+    ys: Array.from({ length: rows }, (_, i) => `Y${i + 1}`),
+    values: Array.from({ length: rows }, () => Array.from({ length: columns }, () => Math.round(100 * rand()))),
+  };
+}
+
+/** One row per line: readable as a format example, and still small for heavy samples. */
+export const formatHeatmap = ({ xs, ys, values }: Heatmap) =>
+  `{\n  "xs": ${JSON.stringify(xs)},\n  "ys": ${JSON.stringify(ys)},\n  "values": [\n` +
+  values.map(row => `    ${JSON.stringify(row)}`).join(',\n') +
+  '\n  ]\n}';

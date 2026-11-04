@@ -547,6 +547,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   `${lib}/donut`,
   `${lib}/radar`,
   ...(lib === 'nivo' ? [] : [`${lib}/combo`]),
+  ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
@@ -615,4 +616,12 @@ test('stacked bar: chart chunk loads before bench:ready, malformed JSON is rejec
   };
   const parsed = parseSeries('stacked-bar', text);
   expect(share(nudge(parsed))).not.toBeCloseTo(share(parsed), 2);
+});
+
+test('heatmap: non-rectangular values are rejected, nudge changes all-negative data', () => {
+  const heatmap = (values: string) => `{"xs":["a","b"],"ys":["r","s"],"values":${values}}`;
+  expect(() => parseSeries('heatmap', heatmap('[[1,2],[3]]'))).toThrow(/one number per "xs"/);
+  expect(() => parseSeries('heatmap', heatmap('[[1,2]]'))).toThrow(/one row per "ys"/);
+  const allNegative = parseSeries('heatmap', heatmap('[[-1,-2],[-3,-4]]'));
+  expect(nudge(allNegative)).not.toEqual(allNegative);
 });

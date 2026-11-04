@@ -167,8 +167,8 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 8: Heatmap
-- [ ] `Heatmap` shape, sample, parser entry (rectangular `values`), `nudge`, wrappers per the matrix, installing `@nivo/heatmap`, `chartjs-chart-matrix`, `@visx/heatmap`
-- [ ] spec: a non-rectangular `values` rejected
+- [x] `Heatmap` shape, sample, parser entry (rectangular `values`), `nudge`, wrappers per the matrix, installing `@nivo/heatmap`, `chartjs-chart-matrix`, `@visx/heatmap`
+- [x] spec: a non-rectangular `values` rejected
 - [ ] run the per-task gate
 
 ### Task 9: Treemap
