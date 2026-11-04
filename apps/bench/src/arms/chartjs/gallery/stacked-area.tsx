@@ -42,7 +42,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'stacked-ar
       interaction: { mode: 'index', intersect: false },
       scales: {
         x: { grid: { drawOnChartArea: false }, afterFit: fixHeight },
-        y: { stacked: true, afterFit: fixWidth },
+        y: { stacked: true, beginAtZero: true, afterFit: fixWidth },
       },
     }),
     [],
