@@ -1,1 +1,32 @@
-{}
+{
+  "chartjs": {
+    "stacked-bar": {
+      "libraryKb": 51
+    }
+  },
+  "echarts": {
+    "stacked-bar": {
+      "libraryKb": 159.5
+    }
+  },
+  "nivo": {
+    "stacked-bar": {
+      "libraryKb": 86.7
+    }
+  },
+  "recharts": {
+    "stacked-bar": {
+      "libraryKb": 98
+    }
+  },
+  "tanstack": {
+    "stacked-bar": {
+      "libraryKb": 39.3
+    }
+  },
+  "visx": {
+    "stacked-bar": {
+      "libraryKb": 23
+    }
+  }
+}

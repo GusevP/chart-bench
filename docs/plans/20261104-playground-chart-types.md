@@ -105,7 +105,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - `settleMode` comes from the chart module, so ECharts stays `signal` and the rest stay as their arm. `nudge` keeps ids and shape, so update reconciles rather than remounts, and it must change rendered geometry. A uniform scale leaves donut, treemap and sankey proportions as they were, so alternating elements move in opposite directions.
 - `MARGIN`, 900 × 600 and hover tracking are shared with the existing types.
 - `shell` always loads its own page, whatever the chart: it is the floor, ignores its props and reads `bundle.json`. Only frame `src` depends on the chart kind. `calibrate` keys its cost on `series`, so it stays on Survival and Scatter: it is absent from `gallery-bundle.json` and shows Not supported for new kinds.
-- `bundle.json`: `EmbeddedArmPage` changes may shift totals by a byte through chunk hashes. This one-time tolerance is the only exception to unchanged numbers. Regenerate `bundle.json` once in Task 1 and hand-edit any moved bundle row in `report.md` (`pnpm report` writes `raw.md`, not that file), require `libraryKb` within 0.1 of the committed values, and use exact `git diff --exit-code` afterwards.
+- `bundle.json`: `EmbeddedArmPage` changes may shift totals by a byte through chunk hashes. This one-time tolerance is the only exception to unchanged numbers. Regenerate `bundle.json` once in Task 1 and hand-edit any moved bundle row in `report.md` (`pnpm report` writes `raw.md`, not that file), require `libraryKb` within 0.1 of the committed values, and use exact `git diff --exit-code` afterwards. Task 2 also regenerated it once (nivo `totalKb` 172 to 172.1, `libraryKb` unchanged, shared `ArmPage` code grew by bytes).
 
 ## What Goes Where
 - **Implementation Steps**: code, tests and docs in this repo.
@@ -144,9 +144,9 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 ### Task 3: Stacked bar
 **Files:** `apps/bench/src/arms/{recharts,nivo,echarts,chartjs,visx,tanstack}/gallery/stacked-bar.tsx`, data and spec files from Task 2, `apps/bench/package.json`, `apps/bench/results/gallery-bundle.json`
 
-- [ ] add the `Categories` shape, sample, parser entry and `nudge`
-- [ ] add the wrappers from the matrix, installing `@nivo/bar`
-- [ ] spec: the chart chunk's `responseEnd` comes before `bench:ready` arrives; malformed JSON is rejected; `nudge` changes proportions
+- [x] add the `Categories` shape, sample, parser entry and `nudge`
+- [x] add the wrappers from the matrix, installing `@nivo/bar`
+- [x] spec: the chart chunk's `responseEnd` comes before `bench:ready` arrives; malformed JSON is rejected; `nudge` changes proportions
 - [ ] run the per-task gate
 
 ### Task 4: Stacked area

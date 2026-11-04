@@ -22,6 +22,7 @@
     "vite": "^8.3.5"
   },
   "dependencies": {
+    "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
     "@nivo/scatterplot": "^0.99.0",

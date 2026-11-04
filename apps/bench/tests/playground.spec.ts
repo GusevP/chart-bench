@@ -8,7 +8,7 @@ import { summarize } from 'bench-stage/stats';
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
-import { isGallery, kindInfo, kinds, nudge } from '../src/playground/parse';
+import { isGallery, kindInfo, kinds, nudge, parseSeries, sample } from '../src/playground/parse';
 import type { Parsed } from '../src/playground/parse';
 
 type Result = {
@@ -541,7 +541,9 @@ test('gallery page reports bench:error for an unknown pair, and dist holds both 
 });
 
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
-const EXPECTED_PAIRS: string[] = [];
+const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].map(
+  lib => `${lib}/stacked-bar`,
+);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
   page,
@@ -557,17 +559,57 @@ test('gallery-bundle.json matches the expected pairs; supported pairs measure an
     await page.goto(`/index.html?libs=${LIBS.join(',')}`);
     await page.getByLabel(kindInfo(kind).label).check();
     await page.getByRole('button', { name: 'Render' }).click();
-    for (const lib of LIBS.filter(l => !libs.includes(l)))
-      await expect(page.locator(`[data-unsupported="${lib}"]`)).toHaveCount(1, { timeout: 120_000 });
-    await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length);
-    if (libs.length) {
+    if (libs.length)
       await expect(page.locator('[data-summaries] tbody tr')).toHaveCount(libs.length + 1, {
         timeout: 300_000,
       });
+    for (const lib of LIBS.filter(l => !libs.includes(l)))
+      await expect(page.locator(`[data-unsupported="${lib}"]`)).toHaveCount(1);
+    await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length);
+    if (libs.length) {
       await expect(page.locator('.card [data-card-stats]')).toHaveCount(libs.length);
       for (let i = 0; i < libs.length; i++)
         await expect(page.frameLocator('.card iframe').nth(i).locator('[data-bench-stage]')).toBeAttached();
       await expect(page.locator('.card .error')).toHaveCount(0);
     }
   }
+});
+
+test('stacked bar: chart chunk loads before bench:ready, malformed JSON is rejected, nudge moves proportions', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { readyAt: number };
+    window.addEventListener('message', e => {
+      if (e.data?.type === 'bench:ready') w.readyAt = performance.now();
+    });
+  });
+  await page.goto('/gallery.html?lib=recharts&chart=stacked-bar');
+  await page.waitForFunction(() => (window as unknown as { readyAt?: number }).readyAt !== undefined);
+  const { readyAt, chunkEnd } = await page.evaluate(() => ({
+    readyAt: (window as unknown as { readyAt: number }).readyAt,
+    chunkEnd: Math.max(
+      ...performance
+        .getEntriesByType('resource')
+        .filter(r => r.name.includes('stacked-bar'))
+        .map(r => r.responseEnd),
+    ),
+  }));
+  expect(chunkEnd).toBeGreaterThan(0);
+  expect(chunkEnd).toBeLessThan(readyAt);
+
+  const text = sample('stacked-bar', 'typical');
+  expect(() => parseSeries('stacked-bar', '{')).toThrow();
+  expect(() => parseSeries('stacked-bar', '{"categories":["a","b"],"series":[{"values":[1]}]}')).toThrow(
+    /one number per category/,
+  );
+  expect(() => parseSeries('stacked-bar', '{"categories":["a"],"series":[{"values":[-1]}]}')).toThrow(
+    /non-negative/,
+  );
+  const share = (p: Parsed) => {
+    const { series } = (p as Extract<Parsed, { chart: 'stacked-bar' }>).data;
+    return series[0]!.values[0]! / series.reduce((sum, s) => sum + s.values[0]!, 0);
+  };
+  const parsed = parseSeries('stacked-bar', text);
+  expect(share(nudge(parsed))).not.toBeCloseTo(share(parsed), 2);
 });

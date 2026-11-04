@@ -1,6 +1,7 @@
 import type { ChartKind, GalleryKind, Payload } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
+import { GALLERY_DATASETS, formatCategories, generateCategories } from '../data/gallery-samples';
 
 export type Parsed = Payload;
 
@@ -54,6 +55,29 @@ export function formatSeries(series: { id: string; color: string; points: object
   return `[\n${series.map(block).join(',\n')}\n]`;
 }
 
+function parseCategories(raw: any) {
+  if (!Array.isArray(raw?.categories) || raw.categories.length === 0)
+    throw new Error('Expected a non-empty "categories" array.');
+  if (!Array.isArray(raw.series) || raw.series.length === 0)
+    throw new Error('Expected a non-empty "series" array.');
+  const categories = raw.categories.map(String);
+  const series = raw.series.map((s: any, i: number) => {
+    const where = `series[${i}]`;
+    if (!Array.isArray(s?.values) || s.values.length !== categories.length)
+      throw new Error(`${where}: needs "values" with one number per category (${categories.length}).`);
+    return {
+      id: s.id == null ? `Series ${i + 1}` : String(s.id),
+      color: typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!,
+      values: s.values.map((v: unknown, j: number) => {
+        const n = num(v, `${where}.values[${j}]`);
+        if (n < 0) throw new Error(`${where}.values[${j}]: expected a non-negative number, got ${n}`);
+        return n;
+      }),
+    };
+  });
+  return { categories, series };
+}
+
 const KINDS: { [K in ChartKind]?: Kind } = {
   survival: {
     label: 'Survival curve',
@@ -88,6 +112,25 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
           },
     sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
+  },
+  'stacked-bar': {
+    label: 'Stacked bar',
+    hint: '{ categories: string[], series: [{ id, color?, values: number[] }] }. One non-negative value per category.',
+    parse: raw => ({ chart: 'stacked-bar', data: parseCategories(raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'stacked-bar'
+        ? parsed
+        : {
+            chart: 'stacked-bar',
+            data: {
+              ...parsed.data,
+              series: parsed.data.series.map((s, i) => ({
+                ...s,
+                values: s.values.map(v => v * (i % 2 ? 0.9 : 1.1)),
+              })),
+            },
+          },
+    sample: size => formatCategories(generateCategories(GALLERY_DATASETS['stacked-bar'][size])),
   },
 };
 

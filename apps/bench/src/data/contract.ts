@@ -62,6 +62,11 @@ export type Payload =
 
 export type ChartSize = { width: number; height: number };
 
+export type GalleryChartProps<K extends GalleryKind> = ChartSize & {
+  data: Shapes[K];
+  onSettled: () => void;
+};
+
 export type SurvivalChartProps = ChartSize & {
   series: SurvivalSeries[];
   onSettled: () => void;
