@@ -618,16 +618,21 @@ test('stacked bar: chart chunk loads before bench:ready, malformed JSON is rejec
   expect(share(nudge(parsed))).not.toBeCloseTo(share(parsed), 2);
 });
 
-test('heatmap: non-rectangular values are rejected, nudge changes all-negative data', () => {
+test('heatmap: non-rectangular values are rejected, nudge changes the mapped ramp position', () => {
   const heatmap = (values: string) => `{"xs":["a","b"],"ys":["r","s"],"values":${values}}`;
   expect(() => parseSeries('heatmap', heatmap('[[1,2],[3]]'))).toThrow(/one number per "xs"/);
   expect(() => parseSeries('heatmap', heatmap('[[1,2]]'))).toThrow(/one row per "ys"/);
-  const allNegative = parseSeries('heatmap', heatmap('[[-1,-2],[-3,-4]]'));
-  const norm = (p: Parsed) => {
-    const flat = (p as Extract<Parsed, { chart: 'heatmap' }>).data.values.flat();
-    return flat.map(v => v / Math.max(...flat.map(Math.abs)));
+  const flat = (p: Parsed) => (p as Extract<Parsed, { chart: 'heatmap' }>).data.values.flat();
+  const ramp = (p: Parsed) => {
+    const v = flat(p);
+    const lo = Math.min(...v);
+    const hi = Math.max(...v);
+    return v.map(x => (x - lo) / (hi - lo));
   };
-  expect(norm(nudge(allNegative))).not.toEqual(norm(allNegative));
-  const sameParity = parseSeries('heatmap', heatmap('[[0,5],[0,7]]'));
-  expect(norm(nudge(sameParity))).not.toEqual(norm(sameParity));
+  for (const values of ['[[1,2],[1,2]]', '[[0,5],[0,7]]', '[[0,0],[0,5]]', '[[-1,-2],[-3,-4]]']) {
+    const parsed = parseSeries('heatmap', heatmap(values));
+    expect(ramp(nudge(parsed)), values).not.toEqual(ramp(parsed));
+  }
+  const constant = parseSeries('heatmap', heatmap('[[3,3],[3,3]]'));
+  expect(new Set(flat(nudge(constant))).size).toBeGreaterThan(1);
 });

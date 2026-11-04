@@ -255,7 +255,11 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             chart: 'heatmap',
             data: {
               ...parsed.data,
-              values: (rank => parsed.data.values.map(row => row.map(v => (v === 0 ? v : v * byParity(1.3, 0.7)(rank++)))))(0),
+              values: (flat => {
+                const span = Math.max(...flat) - Math.min(...flat) || 1;
+                let i = 0;
+                return parsed.data.values.map(row => row.map(v => v + [0.15, 0, -0.15][i++ % 3]! * span));
+              })(parsed.data.values.flat()),
             },
           },
     sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),
