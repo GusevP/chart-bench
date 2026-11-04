@@ -1,10 +1,12 @@
 import { BenchStage, MEASURE, benchWindow } from 'bench-stage';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { CommitMark, HEIGHT, WIDTH, fromUrl, markNaive } from './ArmPage';
 import type { Payload } from './ArmPage';
-import type { Arm } from './data/contract';
+
+export type RenderChart = (payload: Payload, onSettled: () => void) => ReactNode;
 
 export type DataMessage = {
   type: 'bench:data';
@@ -82,7 +84,7 @@ function trackHover() {
   };
 }
 
-function EmbeddedArmPage({ arm }: { arm: Arm }) {
+function EmbeddedArmPage({ settleMode, render }: { settleMode: 'raf' | 'signal'; render: RenderChart }) {
   const [payload, setPayload] = useState<Payload>(fromUrl);
   const [version, setVersion] = useState(0);
   const runIdRef = useRef<number | null>(null);
@@ -139,7 +141,7 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
     window.addEventListener('message', onMessage);
     window.addEventListener('error', onError);
     const stopHover = new URLSearchParams(location.search).get('embed') === 'display' ? trackHover() : null;
-    toParent({ type: 'bench:ready', settleMode: arm.settleMode });
+    toParent({ type: 'bench:ready', settleMode });
     return () => {
       stopHover?.();
       observer.disconnect();
@@ -165,7 +167,7 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
   }, []);
 
   return (
-    <BenchStage key={version} width={WIDTH} height={HEIGHT} settleMode={arm.settleMode}>
+    <BenchStage key={version} width={WIDTH} height={HEIGHT} settleMode={settleMode}>
       {({ onSettled }) => {
         onSettledRef.current = () => {
           if (modeRef.current === 'update') {
@@ -174,12 +176,8 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
         };
         return (
           <>
-            {payload.chart === 'survival' ? (
-              <arm.Survival width={WIDTH} height={HEIGHT} series={payload.series} onSettled={settled} />
-            ) : (
-              <arm.Scatter width={WIDTH} height={HEIGHT} series={payload.series} onSettled={settled} />
-            )}
-            {arm.settleMode === 'raf' && <CommitMark />}
+            {render(payload, settled)}
+            {settleMode === 'raf' && <CommitMark />}
           </>
         );
       }}
@@ -187,6 +185,8 @@ function EmbeddedArmPage({ arm }: { arm: Arm }) {
   );
 }
 
-export function mountEmbedded(arm: Arm) {
-  createRoot(document.getElementById('root')!).render(<EmbeddedArmPage arm={arm} />);
+export function mountEmbedded(settleMode: 'raf' | 'signal', render: RenderChart) {
+  createRoot(document.getElementById('root')!).render(
+    <EmbeddedArmPage settleMode={settleMode} render={render} />,
+  );
 }

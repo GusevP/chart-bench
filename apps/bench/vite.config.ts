@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     manifest: true,
+    emptyOutDir: false,
     rollupOptions: {
       input: {
         index: resolve(import.meta.dirname, 'index.html'),

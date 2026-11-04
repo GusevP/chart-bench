@@ -524,3 +524,16 @@ test('playground lab agrees with the harness on mount and dom nodes', async ({ p
     expect(lab[lib]!.domNodes).toBe(domNodes);
   }
 });
+
+test('gallery page reports bench:error for an unknown pair, and dist holds both builds', async ({ page }) => {
+  expect((await page.request.get('/shell.html')).ok()).toBe(true);
+  await page.addInitScript(() => {
+    (window as unknown as { inbox: unknown[] }).inbox = [];
+    window.addEventListener('message', e => (window as unknown as { inbox: unknown[] }).inbox.push(e.data));
+  });
+  await page.goto('/gallery.html?lib=none&chart=nope');
+  const error = await page.waitForFunction(() =>
+    (window as unknown as { inbox: Result[] }).inbox.find(m => m.type === 'bench:error'),
+  );
+  expect(await error.jsonValue()).toMatchObject({ runId: null, message: expect.stringContaining('none/nope') });
+});

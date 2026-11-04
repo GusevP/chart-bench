@@ -119,11 +119,11 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - Create: `apps/bench/gallery.html`, `apps/bench/vite.gallery.config.ts`, `apps/bench/src/gallery.tsx`, `apps/bench/scripts/gallery-bundle.mjs`, `apps/bench/results/gallery-bundle.json`
 - Modify: `apps/bench/src/EmbeddedArmPage.tsx`, `apps/bench/src/ArmPage.tsx`, `apps/bench/vite.config.ts`, `apps/bench/package.json`, `apps/bench/tests/playground.spec.ts`
 
-- [ ] make the embedded mount take a render function instead of an `Arm`, with Survival/Scatter behaviour unchanged
-- [ ] add `vite.gallery.config.ts` and `gallery.html`; `build` follows the build order above
-- [ ] `gallery.tsx` awaits `arms/<lib>/gallery/<type>.tsx` before mounting, and posts `bench:error` with `runId: null` for an unknown pair, a failed import or a throw during module evaluation
-- [ ] regenerate `bundle.json` once, with `libraryKb` within 0.1 of the committed values
-- [ ] spec: `gallery.html` for an unknown pair reports `bench:error`; `dist` holds both builds
+- [x] make the embedded mount take a render function instead of an `Arm`, with Survival/Scatter behaviour unchanged
+- [x] add `vite.gallery.config.ts` and `gallery.html`; `build` follows the build order above
+- [x] `gallery.tsx` awaits `arms/<lib>/gallery/<type>.tsx` before mounting, and posts `bench:error` with `runId: null` for an unknown pair, a failed import or a throw during module evaluation
+- [x] regenerate `bundle.json` once, with `libraryKb` within 0.1 of the committed values
+- [x] spec: `gallery.html` for an unknown pair reports `bench:error`; `dist` holds both builds
 - [ ] run the per-task gate and the harness command
 
 ### Task 2: Playground chart picker over all kinds
