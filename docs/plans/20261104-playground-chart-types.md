@@ -199,8 +199,71 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 ### Task 13: Verify acceptance criteria
 - [ ] `pnpm typecheck` and `pnpm build` pass
 - [ ] `pnpm -F bench exec playwright test tests/playground.spec.ts` passes
-- [ ] open every type in a real browser with `agent-browser` at both sample sizes, and compare the cards by eye for the same data, legend and axes
-- [ ] record in the plan any library that cannot finish a heavy sample
+- [x] open every type in a real browser with `agent-browser` at both sample sizes, and compare the cards by eye for the same data, legend and axes
+- [x] record in the plan any library that cannot finish a heavy sample
+
+## Heavy sample results
+
+Built site, 1440 × 900, all libraries selected, 5 runs after 1 warm-up (median ± half IQR), one session. Every supported library finished every heavy sample; none failed or timed out.
+
+| Kind | Library | Mount ms | Update ms | Blocking ms | DOM nodes | KB |
+|---|---|---|---|---|---|---|
+| Stacked bar | nivo | 202.2 ± 4.6 | 265.1 ± 5.4 | 144.4 ± 4.0 | 2502 | 86.7 |
+| Stacked bar | recharts | 61.7 ± 1.6 | 55.6 ± 0.8 | 10.8 ± 1.6 | 3823 | 98.0 |
+| Stacked bar | echarts | 19.6 ± 0.3 | 32.2 ± 0.3 | 0.0 ± 0.0 | 5 | 159.5 |
+| Stacked bar | visx | 19.3 ± 0.7 | 32.6 ± 0.8 | 0.0 ± 0.0 | 1305 | 23.0 |
+| Stacked bar | tanstack | 22.1 ± 0.6 | 32.6 ± 0.6 | 0.0 ± 0.0 | 1256 | 39.3 |
+| Stacked bar | chartjs | 24.8 ± 1.1 | 32.1 ± 0.2 | 0.0 ± 0.0 | 2 | 51.0 |
+| Stacked area | nivo | 58.9 ± 0.6 | 73.2 ± 2.5 | 8.1 ± 0.5 | 97 | 92.7 |
+| Stacked area | recharts | 53.3 ± 0.8 | 33.8 ± 0.7 | 0.0 ± 0.0 | 235 | 97.4 |
+| Stacked area | echarts | 112.7 ± 1.9 | 193.9 ± 0.4 | 0.0 ± 0.0 | 5 | 161.6 |
+| Stacked area | visx | 32.6 ± 0.6 | 31.0 ± 0.3 | 0.0 ± 0.0 | 126 | 24.7 |
+| Stacked area | tanstack | 24.1 ± 0.3 | 47.8 ± 0.6 | 0.0 ± 0.0 | 67 | 36.8 |
+| Stacked area | chartjs | 89.0 ± 0.7 | 153.1 ± 2.3 | 0.0 ± 0.0 | 2 | 54.7 |
+| Donut | nivo | 19.2 ± 0.4 | 32.7 ± 0.1 | 0.0 ± 0.0 | 66 | 67.6 |
+| Donut | recharts | 18.9 ± 7.0 | 32.9 ± 0.9 | 0.0 ± 0.0 | 205 | 88.2 |
+| Donut | echarts | 22.6 ± 0.9 | 32.8 ± 0.1 | 0.0 ± 0.0 | 5 | 139.0 |
+| Donut | visx | 31.4 ± 0.4 | 32.9 ± 0.1 | 0.0 ± 0.0 | 64 | 5.6 |
+| Donut | tanstack | 21.3 ± 4.6 | 32.9 ± 0.6 | 0.0 ± 0.0 | 68 | 38.7 |
+| Donut | chartjs | 19.3 ± 0.7 | 32.4 ± 0.0 | 0.0 ± 0.0 | 2 | 50.7 |
+| Radar | nivo | 30.2 ± 0.9 | 32.7 ± 0.3 | 0.0 ± 0.0 | 69 | 65.8 |
+| Radar | recharts | 31.3 ± 0.4 | 32.9 ± 0.1 | 0.0 ± 0.0 | 80 | 90.0 |
+| Radar | echarts | 21.2 ± 0.4 | 33.0 ± 0.1 | 0.0 ± 0.0 | 5 | 143.1 |
+| Radar | visx | 19.0 ± 0.5 | 33.0 ± 0.2 | 0.0 ± 0.0 | 43 | 16.3 |
+| Radar | tanstack | 21.3 ± 0.5 | 32.8 ± 0.1 | 0.0 ± 0.0 | 47 | 40.8 |
+| Radar | chartjs | 21.5 ± 1.5 | 32.8 ± 0.1 | 0.0 ± 0.0 | 2 | 53.8 |
+| Bar + line | recharts | 38.8 ± 0.6 | 43.3 ± 0.4 | 0.0 ± 0.0 | 1726 | 101.7 |
+| Bar + line | echarts | 20.1 ± 4.5 | 32.9 ± 0.1 | 0.0 ± 0.0 | 5 | 169.1 |
+| Bar + line | visx | 19.0 ± 6.4 | 33.0 ± 0.1 | 0.0 ± 0.0 | 654 | 23.1 |
+| Bar + line | tanstack | 40.1 ± 3.0 | 51.2 ± 2.6 | 0.0 ± 0.0 | 575 | 39.9 |
+| Bar + line | chartjs | 24.8 ± 0.4 | 33.1 ± 0.1 | 0.0 ± 0.0 | 2 | 55.6 |
+| Heatmap | nivo | 5681.9 ± 135.5 | 8115.1 ± 60.7 | 5561.2 ± 131.4 | 20083 | 76.6 |
+| Heatmap | echarts | 381.3 ± 4.9 | 399.6 ± 25.0 | 0.0 ± 0.0 | 6 | 162.9 |
+| Heatmap | visx | 35.7 ± 0.6 | 33.3 ± 1.6 | 0.0 ± 0.0 | 10128 | 17.8 |
+| Heatmap | tanstack | 49.9 ± 0.4 | 70.3 ± 5.7 | 0.0 ± 0.0 | 10060 | 41.8 |
+| Heatmap | chartjs | 54.0 ± 0.5 | 47.3 ± 0.3 | 0.0 ± 0.1 | 2 | 48.9 |
+| Treemap | nivo | 1972.5 ± 157.1 | 5712.0 ± 110.2 | 1890.5 ± 158.6 | 10007 | 66.4 |
+| Treemap | recharts | 129.8 ± 0.3 | 140.8 ± 2.1 | 76.7 ± 0.4 | 20217 | 82.7 |
+| Treemap | echarts | 73.3 ± 7.1 | 72.4 ± 2.1 | 20.3 ± 6.9 | 5 | 145.7 |
+| Treemap | visx | 20.4 ± 0.5 | 31.5 ± 0.9 | 0.0 ± 0.0 | 5004 | 4.6 |
+| Treemap | tanstack | 29.4 ± 1.1 | 54.7 ± 3.3 | 0.0 ± 0.0 | 5009 | 38.0 |
+| Treemap | chartjs | 104.8 ± 0.3 | 99.8 ± 1.4 | 50.4 ± 0.1 | 2 | 53.0 |
+| Sankey | nivo | 57.2 ± 0.3 | 59.6 ± 2.9 | 3.5 ± 0.3 | 655 | 64.5 |
+| Sankey | recharts | 18.4 ± 1.8 | 32.7 ± 1.3 | 0.0 ± 0.0 | 1310 | 80.6 |
+| Sankey | echarts | 21.2 ± 1.1 | 32.8 ± 1.1 | 0.0 ± 0.0 | 5 | 145.0 |
+| Sankey | visx | 22.8 ± 0.3 | 32.8 ± 0.1 | 0.0 ± 0.0 | 654 | 5.6 |
+| Sankey | tanstack | 20.6 ± 0.2 | 32.7 ± 0.0 | 0.0 ± 0.0 | 658 | 41.7 |
+| Sankey | chartjs | 24.5 ± 0.2 | 32.8 ± 0.1 | 0.0 ± 0.0 | 2 | 53.5 |
+| Box plot | nivo | 33.8 ± 0.5 | 41.0 ± 2.1 | 0.0 ± 0.0 | 352 | 82.8 |
+| Box plot | echarts | 36.0 ± 0.1 | 48.1 ± 0.2 | 0.0 ± 0.0 | 5 | 159.5 |
+| Box plot | visx | 26.4 ± 1.8 | 41.7 ± 3.3 | 0.0 ± 0.0 | 1149 | 22.9 |
+| Box plot | tanstack | 25.3 ± 0.2 | 42.1 ± 0.5 | 0.0 ± 0.0 | 987 | 41.8 |
+| Box plot | chartjs | 39.2 ± 0.9 | 48.2 ± 0.1 | 0.0 ± 0.0 | 2 | 56.4 |
+| Candlestick | echarts | 47.5 ± 1.3 | 42.5 ± 1.9 | 0.0 ± 0.0 | 5 | 153.9 |
+| Candlestick | tanstack | 57.4 ± 1.0 | 83.9 ± 3.2 | 3.9 ± 0.8 | 10267 | 40.6 |
+| Candlestick | chartjs | 21.8 ± 0.3 | 29.2 ± 0.7 | 0.0 ± 0.0 | 2 | 74.2 |
+
+Slowest: nivo heatmap (mount 5.7 s, blocking 5.6 s) and nivo treemap (mount 2.0 s, update 5.7 s).
 
 ### Task 14: [Final] Update documentation
 - [ ] update the Playground section of `README.md`: chart types, the support rule, the matrix, how to paste each shape, and the Chart.js treemap ratio-1 outlier
