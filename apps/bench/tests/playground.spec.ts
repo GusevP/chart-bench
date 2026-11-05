@@ -550,6 +550,7 @@ test('a missing embedded chunk reports its error at once instead of the lab time
 });
 
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
+const CANVAS_LIBS = ['echarts', 'chartjs'];
 const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
   `${lib}/stacked-bar`,
   `${lib}/stacked-area`,
@@ -586,8 +587,32 @@ test('gallery-bundle.json matches the expected pairs; supported pairs measure an
     await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length);
     if (libs.length) {
       await expect(page.locator('.card [data-card-stats]')).toHaveCount(libs.length);
-      for (let i = 0; i < libs.length; i++)
-        await expect(page.frameLocator('.card iframe').nth(i).locator('[data-bench-stage]')).toBeAttached();
+      const domNodes = async (lib: string) =>
+        Number(await page.locator(`[data-summaries] tr[data-lib="${lib}"]`).getAttribute('data-dom-nodes'));
+      const floor = await domNodes('shell (floor)');
+      for (const lib of libs) {
+        if (!CANVAS_LIBS.includes(lib)) {
+          expect(await domNodes(lib), `${lib}/${kind}`).toBeGreaterThan(floor);
+          continue;
+        }
+        const card = `.card iframe[src*="lib=${lib}&"]`;
+        await page.locator(card).scrollIntoViewIfNeeded();
+        await expect
+          .poll(
+            () =>
+              page
+                .frameLocator(card)
+                .locator('canvas')
+                .evaluateAll((canvases: HTMLCanvasElement[]) =>
+                  canvases.some(c => {
+                    const { data } = c.getContext('2d')!.getImageData(0, 0, c.width, c.height);
+                    return new Set(new Uint32Array(data.buffer)).size > 1;
+                  }),
+                ),
+            { message: `${lib}/${kind}` },
+          )
+          .toBe(true);
+      }
       await expect(page.locator('.card .error')).toHaveCount(0);
     }
   }
