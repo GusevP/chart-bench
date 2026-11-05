@@ -172,7 +172,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 9: Treemap
-- [ ] `TreeNode` shape, sample, parser entry (leaves need a positive `value`), `nudge`, wrappers per the matrix, installing `@nivo/treemap`, `chartjs-chart-treemap`, `@visx/hierarchy`
+- [x] `TreeNode` shape, sample, parser entry (leaves need a positive `value`), `nudge`, wrappers per the matrix, installing `@nivo/treemap`, `chartjs-chart-treemap`, `@visx/hierarchy`
 - [ ] run the per-task gate
 
 ### Task 10: Sankey

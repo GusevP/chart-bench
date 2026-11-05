@@ -17,6 +17,9 @@
     },
     "stacked-bar": {
       "libraryKb": 51
+    },
+    "treemap": {
+      "libraryKb": 53
     }
   },
   "echarts": {
@@ -37,6 +40,9 @@
     },
     "stacked-bar": {
       "libraryKb": 159.5
+    },
+    "treemap": {
+      "libraryKb": 145.7
     }
   },
   "nivo": {
@@ -54,6 +60,9 @@
     },
     "stacked-bar": {
       "libraryKb": 86.7
+    },
+    "treemap": {
+      "libraryKb": 66.4
     }
   },
   "recharts": {
@@ -71,6 +80,9 @@
     },
     "stacked-bar": {
       "libraryKb": 98
+    },
+    "treemap": {
+      "libraryKb": 82.7
     }
   },
   "tanstack": {
@@ -91,6 +103,9 @@
     },
     "stacked-bar": {
       "libraryKb": 39.3
+    },
+    "treemap": {
+      "libraryKb": 38
     }
   },
   "visx": {
@@ -111,6 +126,9 @@
     },
     "stacked-bar": {
       "libraryKb": 23
+    },
+    "treemap": {
+      "libraryKb": 4.6
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { Categories, Combo, Donut, Heatmap } from './contract';
+import type { Categories, Combo, Donut, Heatmap, TreeNode } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -21,6 +21,10 @@ export const GALLERY_DATASETS = {
   heatmap: {
     typical: { seed: 15, columns: 20, rows: 20 },
     heavy: { seed: 16, columns: 100, rows: 100 },
+  },
+  treemap: {
+    typical: { seed: 17, leaves: 50, groups: 5 },
+    heavy: { seed: 18, leaves: 5000, groups: 50 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -112,3 +116,35 @@ export const formatHeatmap = ({ xs, ys, values }: Heatmap) =>
   `{\n  "xs": ${JSON.stringify(xs)},\n  "ys": ${JSON.stringify(ys)},\n  "values": [\n` +
   values.map(row => `    ${JSON.stringify(row)}`).join(',\n') +
   '\n  ]\n}';
+
+
+export function generateTreemap({
+  seed,
+  leaves,
+  groups,
+}: {
+  seed: number;
+  leaves: number;
+  groups: number;
+}): TreeNode {
+  const rand = prng(seed);
+  const perGroup = leaves / groups;
+  return {
+    id: 'Root',
+    children: Array.from({ length: groups }, (_, g) => ({
+      id: `Group ${g + 1}`,
+      children: Array.from({ length: perGroup }, (_, i) => ({
+        id: `Leaf ${g * perGroup + i + 1}`,
+        value: Math.round(5 + 95 * rand()),
+      })),
+    })),
+  };
+}
+
+/** One leaf per line: readable as a format example, and still small for heavy samples. */
+export const formatTreemap = (node: TreeNode, indent = ''): string =>
+  node.children
+    ? `${indent}{"id": ${JSON.stringify(node.id)}, "children": [\n` +
+      node.children.map(c => formatTreemap(c, `${indent}  `)).join(',\n') +
+      `\n${indent}]}`
+    : `${indent}${JSON.stringify(node)}`;

@@ -1,4 +1,5 @@
-import type { ChartKind, GalleryKind, Payload } from '../data/contract';
+import { treeLeaves } from '../arms/shared/treemap';
+import type { ChartKind, GalleryKind, Payload, TreeNode } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
 import {
@@ -7,10 +8,12 @@ import {
   formatCombo,
   formatDonut,
   formatHeatmap,
+  formatTreemap,
   generateCategories,
   generateCombo,
   generateDonut,
   generateHeatmap,
+  generateTreemap,
 } from '../data/gallery-samples';
 
 export type Parsed = Payload;
@@ -183,6 +186,33 @@ function parseHeatmap(raw: any) {
   return { xs, ys, values };
 }
 
+const MAX_TREE_DEPTH = 8;
+
+function parseTreemap(raw: any) {
+  const seen = new Set<string>();
+  const walk = (node: any, where: string, depth: number): TreeNode => {
+    if (!node || typeof node !== 'object' || Array.isArray(node))
+      throw new Error(`${where}: expected an object.`);
+    if (node.id == null || node.id === '') throw new Error(`${where}: needs an "id".`);
+    const id = String(node.id);
+    if (seen.has(id)) throw new Error(`Duplicate node id ${JSON.stringify(id)}.`);
+    seen.add(id);
+    if (node.children === undefined) {
+      const value = num(node.value, `${where}.value`);
+      if (value <= 0) throw new Error(`${where}.value: expected a positive number, got ${value}`);
+      return { id, value };
+    }
+    if (!Array.isArray(node.children) || node.children.length === 0)
+      throw new Error(`${where}.children: expected a non-empty array.`);
+    if (depth >= MAX_TREE_DEPTH) throw new Error(`Nesting deeper than ${MAX_TREE_DEPTH} levels.`);
+    return {
+      id,
+      children: node.children.map((c: unknown, i: number) => walk(c, `${where}.children[${i}]`, depth + 1)),
+    };
+  };
+  return walk(raw, 'root', 0);
+}
+
 const KINDS: { [K in ChartKind]?: Kind } = {
   survival: {
     label: 'Survival curve',
@@ -268,6 +298,28 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             },
           },
     sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),
+  },
+  treemap: {
+    label: 'Treemap',
+    hint: '{ id, children: [...] } nested to any depth up to 8. Every leaf needs a positive "value" and every id must be unique. A parent\'s own "value" is ignored: its size is the sum of its leaves.',
+    parse: raw => ({ chart: 'treemap', data: parseTreemap(raw) }),
+    nudge: parsed =>
+      parsed.chart !== 'treemap'
+        ? parsed
+        : {
+            chart: 'treemap',
+            data: (values => {
+              const constant = values.every(v => v === values[0]);
+              let i = 0;
+              const rotate = (node: TreeNode): TreeNode => {
+                if (node.children) return { ...node, children: node.children.map(rotate) };
+                const k = i++;
+                return { ...node, value: constant ? values[k]! * (k % 2 ? 1.5 : 1) : values[(k + 1) % values.length]! };
+              };
+              return rotate(parsed.data);
+            })(treeLeaves(parsed.data).map(l => l.value)),
+          },
+    sample: size => formatTreemap(generateTreemap(GALLERY_DATASETS.treemap[size])),
   },
   donut: {
     label: 'Donut',

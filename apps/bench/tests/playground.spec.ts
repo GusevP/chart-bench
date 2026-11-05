@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
 
+import { treeLeaves } from '../src/arms/shared/treemap';
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
@@ -548,6 +549,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   `${lib}/radar`,
   ...(lib === 'nivo' ? [] : [`${lib}/combo`]),
   ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
+  `${lib}/treemap`,
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
@@ -647,4 +649,34 @@ test('heatmap: non-rectangular values are rejected, nudge changes the mapped ram
   expect(new Set(flat(nudge(constant))).size).toBeGreaterThan(1);
   const huge = nudge(parseSeries('heatmap', heatmap('[[1e308,-1e308,1]]', abc, '"r"')));
   expect(flat(huge).every(Number.isFinite)).toBe(true);
+});
+
+test('treemap: invalid trees are rejected, parent values are ignored, nudge changes leaf shares', () => {
+  const leaf = (id: string, value: unknown) => ({ id, value });
+  const tree = (...children: unknown[]) => JSON.stringify({ id: 'root', children });
+  expect(() => parseSeries('treemap', tree(leaf('a', 1), leaf('a', 2)))).toThrow(/Duplicate node id/);
+  expect(() => parseSeries('treemap', tree(leaf('a', 0)))).toThrow(/positive/);
+  expect(() => parseSeries('treemap', tree({ id: 'g', children: [] }))).toThrow(/non-empty/);
+  let deep: unknown = leaf('x', 1);
+  for (let i = 0; i < 20; i++) deep = { id: `n${i}`, children: [deep] };
+  expect(() => parseSeries('treemap', JSON.stringify(deep))).toThrow(/Nesting/);
+
+  const parsed = parseSeries(
+    'treemap',
+    tree({ id: 'g', value: 99, children: [leaf('a', 1), leaf('b', 2)] }, leaf('c', 3)),
+  );
+  if (parsed.chart !== 'treemap') throw new Error('wrong kind');
+  expect(parsed.data.children![0]).not.toHaveProperty('value');
+
+  const shares = (p: typeof parsed) => {
+    const leaves = treeLeaves(p.data);
+    const total = leaves.reduce((sum, l) => sum + l.value, 0);
+    return Object.fromEntries(leaves.map(l => [l.id, l.value / total]));
+  };
+  const after = nudge(parsed);
+  if (after.chart !== 'treemap') throw new Error('wrong kind');
+  const before = shares(parsed);
+  const moved = shares(after);
+  expect(Object.keys(moved)).toEqual(Object.keys(before));
+  expect(Object.keys(before).every(id => moved[id] !== before[id])).toBe(true);
 });
