@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { hierarchy, treemapSquarify } from '@visx/hierarchy';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
 import { scaleBand, scaleLinear } from 'd3-scale';
@@ -14,9 +15,12 @@ import { band } from '../src/arms/none/shared/band';
 import { linear } from '../src/arms/none/shared/linear';
 import { TAU, arcPath, polar, polygonPoints } from '../src/arms/none/shared/polar';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
+import { boxLeaves, squarify } from '../src/arms/none/shared/treemap';
+import type { Box } from '../src/arms/none/shared/treemap';
 import { boxPaddingInner, boxPaddingOuter, boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
 import { treeLeaves } from '../src/arms/shared/treemap';
-import type { SurvivalSeries } from '../src/data/contract';
+import type { SurvivalSeries, TreeNode } from '../src/data/contract';
+import { GALLERY_DATASETS, generateTreemap } from '../src/data/gallery-samples';
 import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
 import { isGallery, kindInfo, kinds, nudge, parseSeries, sample } from '../src/playground/parse';
@@ -724,6 +728,7 @@ const EXPECTED_PAIRS = [
   'none/heatmap',
   'none/boxplot',
   'none/candlestick',
+  'none/treemap',
   ...['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
     `${lib}/stacked-bar`,
     `${lib}/stacked-area`,
@@ -1102,6 +1107,79 @@ test('none helpers: band matches d3 scaleBand and every bar sits in its hover sl
       expect(box.index(box.center(i))).toBe(i);
     }
   }
+});
+
+test('none treemap: uneven nested tree keeps area, containment, disjoint leaves and the d3 squarify order', () => {
+  const leaf = (id: string, value: number): TreeNode => ({ id, value });
+  const tree: TreeNode = {
+    id: 'root',
+    children: [
+      leaf('tiny', 1),
+      {
+        id: 'big',
+        children: [
+          leaf('b1', 400),
+          leaf('b2', 2),
+          { id: 'deep', children: [leaf('d1', 30), leaf('d2', 2), leaf('d3', 200), leaf('d4', 0.5)] },
+          leaf('b3', 90),
+        ],
+      },
+      leaf('mid', 150),
+      { id: 'only', children: [leaf('o1', 75)] },
+      { id: 'small', children: [leaf('s3', 3), leaf('s1', 9), leaf('s2', 6)] },
+    ],
+  };
+  const [W, H] = [800, 500];
+  const root = squarify(tree, 0, 0, W, H);
+  const area = (b: Box) => (b.x1 - b.x0) * (b.y1 - b.y0);
+  const walk = (b: Box): Box[] => [b, ...(b.children ?? []).flatMap(walk)];
+  const leaves = boxLeaves(root);
+  const total = treeLeaves(tree).reduce((sum, l) => sum + l.value, 0);
+
+  expect(leaves.map(l => l.id)).toEqual(treeLeaves(tree).map(l => l.id));
+  expect(root.value).toBeCloseTo(total, 9);
+  for (const b of walk(root)) {
+    expect(area(b) / (W * H)).toBeCloseTo(b.value / total, 9);
+    for (const c of b.children ?? []) {
+      expect(c.x0).toBeGreaterThanOrEqual(b.x0 - 1e-9);
+      expect(c.y0).toBeGreaterThanOrEqual(b.y0 - 1e-9);
+      expect(c.x1).toBeLessThanOrEqual(b.x1 + 1e-9);
+      expect(c.y1).toBeLessThanOrEqual(b.y1 + 1e-9);
+    }
+  }
+  for (const [i, a] of leaves.entries())
+    for (const b of leaves.slice(i + 1)) {
+      const overlap = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+      const lap = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+      expect(Math.min(overlap, lap)).toBeLessThan(1e-9);
+    }
+
+  const d3root = hierarchy(tree).sum(d => d.value ?? 0) as unknown as Parameters<typeof treemapSquarify>[0];
+  Object.assign(d3root, { x0: 0, y0: 0, x1: W, y1: H });
+  d3root.eachBefore(n => {
+    if (n.children) treemapSquarify(n, n.x0, n.y0, n.x1, n.y1);
+  });
+  const d3nodes = new Map(d3root.descendants().map(n => [(n.data as TreeNode).id, n]));
+  for (const b of walk(root)) {
+    const d = d3nodes.get(b.id)!;
+    for (const k of ['x0', 'y0', 'x1', 'y1'] as const) expect(b[k]).toBeCloseTo(d[k], 6);
+  }
+});
+
+test('none treemap: a single leaf fills the plot, and 5,000 leaves lay out fast', () => {
+  const only = { id: 'only', value: 7 };
+  for (const tree of [only, { id: 'r', children: [{ id: 'g', children: [only] }] }]) {
+    expect(boxLeaves(squarify(tree, 10, 20, 110, 220))).toMatchObject([{ x0: 10, y0: 20, x1: 110, y1: 220 }]);
+  }
+
+  const heavy = generateTreemap(GALLERY_DATASETS.treemap.heavy);
+  const start = performance.now();
+  const leaves = boxLeaves(squarify(heavy, 0, 0, 800, 500));
+  const elapsed = performance.now() - start;
+  expect(leaves).toHaveLength(5000);
+  expect(leaves.every(l => l.x1 >= l.x0 && l.y1 >= l.y0 && Number.isFinite(l.x1 + l.y1))).toBe(true);
+  expect(leaves.reduce((sum, l) => sum + (l.x1 - l.x0) * (l.y1 - l.y0), 0)).toBeCloseTo(800 * 500, 6);
+  expect(elapsed).toBeLessThan(100);
 });
 
 test('none helpers: step paths match d3 curveStepAfter and lookup is right-closed at knots', async () => {

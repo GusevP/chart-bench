@@ -149,7 +149,7 @@
       }
     },
     "none": {
-      "coverage": 8
+      "coverage": 9
     }
   },
   "perChart": {
@@ -946,6 +946,20 @@
           "src/arms/none/shared/linear.ts",
           "src/arms/none/shared/stack.ts",
           "src/arms/shared/ticks.ts"
+        ]
+      },
+      "treemap": {
+        "chart": 414,
+        "adapter": 1553,
+        "shared": 331,
+        "total": 2298,
+        "files": [
+          "src/arms/none/gallery/treemap.tsx",
+          "src/arms/none/shared/Chart.tsx",
+          "src/arms/none/shared/treemap.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/shared/treemap.ts"
         ]
       }
     }

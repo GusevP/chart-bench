@@ -113,6 +113,9 @@
     },
     "stacked-bar": {
       "libraryKb": 1.9
+    },
+    "treemap": {
+      "libraryKb": 1.4
     }
   },
   "recharts": {

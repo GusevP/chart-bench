@@ -159,11 +159,11 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/treemap.tsx`
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] write `squarify` with the golden-ratio target, hierarchy preserved and input order kept
-- [ ] render leaves with `treemapRamp`, hovering via a data id on the event target
-- [ ] add the pair to `EXPECTED_PAIRS`
-- [ ] spec: Testing Strategy invariants on an uneven nested tree
-- [ ] spec: single-leaf tree, and 5,000 leaves stays fast
+- [x] write `squarify` with the golden-ratio target, hierarchy preserved and input order kept
+- [x] render leaves with `treemapRamp`, hovering via a data id on the event target
+- [x] add the pair to `EXPECTED_PAIRS`
+- [x] spec: Testing Strategy invariants on an uneven nested tree
+- [x] spec: single-leaf tree, and 5,000 leaves stays fast
 - [ ] build and run specs
 
 ### Task 7: Sankey layout
