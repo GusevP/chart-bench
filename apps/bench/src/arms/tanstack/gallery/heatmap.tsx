@@ -12,7 +12,7 @@ import { thinTicks } from '../../shared/ticks';
 
 function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
   const definition = useMemo(() => {
-    const rows = data.ys.flatMap((y, j) => data.xs.map((x, i) => ({ x, y, value: data.values[j]![i]! })));
+    const rows = data.ys.flatMap((y, j) => data.xs.map((x, i) => ({ x, y, value: data.values[j]![i]!, key: `${j}:${i}` })));
     return defineChart({
       marks: [
         cell(rows, {
@@ -20,7 +20,7 @@ function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
           y: 'y',
           color: 'value',
           inset: 0,
-          key: row => `${row.y}/${row.x}`,
+          key: 'key',
         }),
       ],
       scales: {

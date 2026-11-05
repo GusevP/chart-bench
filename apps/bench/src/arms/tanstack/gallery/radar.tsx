@@ -22,8 +22,8 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
     const ids = data.series.map(s => s.id);
     const max = radarMax(data);
     const colorOf = new Map(data.series.map(s => [s.id, s.color]));
-    const rows = data.series.flatMap(s =>
-      data.categories.map((category, i) => ({ category, series: s.id, value: s.values[i]! })),
+    const rows = data.series.flatMap((s, j) =>
+      data.categories.map((category, i) => ({ category, series: s.id, value: s.values[i]!, key: `${j}:${i}` })),
     );
     return defineChart({
       marks: [
@@ -47,7 +47,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
               angle: 'category',
               radius: 'value',
               color: 'series',
-              key: d => `${d.series}:${d.category}`,
+              key: 'key',
               z: 'series',
               curve: curveLinearClosed,
               fillOpacity: RADAR_FILL_OPACITY,
