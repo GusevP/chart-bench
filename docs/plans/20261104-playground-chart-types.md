@@ -144,7 +144,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [x] cards show `libraryKb` from `gallery-bundle.json` for gallery kinds; a pair absent from it renders a Not supported card, runs no lab and has no table row values. Selected and measured stay two lists, and nothing starts when nothing is measurable
 - [x] chart picker lists all kinds; a kind is reachable only once it has a table entry
 - [x] add one spec that first compares the pairs in `gallery-bundle.json` to a literal expected list in the spec, then iterates them with the typical sample, asserting stats and no `bench:error`, and every other pair shows Not supported. Each type's task adds its pairs to that list from the matrix, so an omitted wrapper fails instead of reading as unsupported. Runtime lookups still use the JSON
-- [x] existing 24 specs pass, one of them edited. 81488d3 moved the playground's one-column breakpoint from 900px to 1400px (`style.css`), a layout change this plan did not list. The specs run at 1000px wide, so the page is now one column there, and 90d69e1 changed `a lab scrolled out of view mid-run repeats the run and still yields every` to bring the lab back with `scrollIntoView` instead of `scrollTo(0, 0)`
+- [x] existing 24 specs pass, one of them edited. 81488d3 moved the playground's one-column breakpoint from 900px to 1400px (`style.css`), a layout change this plan did not list. The specs run at 1000px wide, so the page is now one column there, and 90d69e1 changed `a lab scrolled out of view mid-run repeats the run and still yields every sample` to bring the lab back with `scrollIntoView` instead of `scrollTo(0, 0)`
 - [ ] run the per-task gate
 
 ### Task 3: Stacked bar
