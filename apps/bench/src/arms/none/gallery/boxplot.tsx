@@ -39,7 +39,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
         const low = y(s.whiskerLow);
         return (
           <g key={s.id}>
-            <g fill={BOX_OUTLIER_COLOR}>
+            <g fill={BOX_OUTLIER_COLOR} stroke="none">
               {s.outliers.map((o, k) => (
                 <circle key={k} cx={cx} cy={y(o)} r={BOX_OUTLIER_RADIUS} />
               ))}
