@@ -128,10 +128,10 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/radar.tsx`
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] implement both from `donutRadius`, `INNER_RATIO`, `radarRings`, `radarMax` and the radar constants
-- [ ] hit-test by angle and radius, one handler on the `<svg>`
-- [ ] check the single-slice donut, where a full circle needs two arcs
-- [ ] add the two pairs to `EXPECTED_PAIRS`
+- [x] implement both from `donutRadius`, `INNER_RATIO`, `radarRings`, `radarMax` and the radar constants
+- [x] hit-test by angle and radius, one handler on the `<svg>`
+- [x] check the single-slice donut, where a full circle needs two arcs
+- [x] add the two pairs to `EXPECTED_PAIRS`
 - [ ] build and run specs
 
 ### Task 5: Heatmap, box plot, candlestick

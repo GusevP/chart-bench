@@ -7,11 +7,12 @@ import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
 import { scaleBand, scaleLinear } from 'd3-scale';
-import { area as d3area, curveStepAfter, line as d3line } from 'd3-shape';
+import { arc as d3arc, area as d3area, curveStepAfter, line as d3line, pointRadial } from 'd3-shape';
 import ts from 'typescript';
 
 import { band } from '../src/arms/none/shared/band';
 import { linear } from '../src/arms/none/shared/linear';
+import { TAU, arcPath, polar, polygonPoints } from '../src/arms/none/shared/polar';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
 import { boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
 import { treeLeaves } from '../src/arms/shared/treemap';
@@ -588,6 +589,54 @@ test('playground lab agrees with the harness on mount and dom nodes', async ({ p
   }
 });
 
+test('polar helpers: arcPath fills what d3 arc fills, angles and vertices match pointRadial', async ({ page }) => {
+  const [inner, outer] = [60, 100];
+  const cases = [
+    [0, TAU],
+    [0, Math.PI / 2],
+    [1, 5],
+    [0.5, 0.5 + 1e-3],
+    [0, TAU - 0.01],
+    // d3 rounds to 3 digits, which collapses its near-full arc to nothing, so a full turn is the oracle here.
+    [0, TAU - 1e-6, TAU],
+  ];
+  const d3path = d3arc();
+  await page.setContent('<svg><path id="p"/></svg>');
+  for (const [start, end, oracleEnd = end] of cases as [number, number, number?][]) {
+    const expected = d3path({ innerRadius: inner, outerRadius: outer, startAngle: start, endAngle: oracleEnd })!;
+    const [ours, theirs] = await page.evaluate(
+      paths =>
+        paths.map(d => {
+          const path = document.querySelector<SVGPathElement>('#p')!;
+          path.setAttribute('d', d);
+          const hits: string[] = [];
+          for (let x = -110.37; x < 110; x += 3) {
+            for (let y = -110.37; y < 110; y += 3) {
+              if (path.isPointInFill(new DOMPoint(x, y))) hits.push(`${x},${y}`);
+            }
+          }
+          return hits;
+        }),
+      [arcPath(inner, outer, start, end), expected],
+    );
+    expect(ours).toEqual(theirs);
+    if (end - start > 0.1) expect(ours!.length).toBeGreaterThan(0);
+  }
+
+  for (const a of [0.001, 1, Math.PI, 4, TAU - 0.001]) {
+    const [x, y] = pointRadial(a, 7);
+    const { angle, r } = polar(x, y);
+    expect(angle).toBeCloseTo(a, 9);
+    expect(r).toBeCloseTo(7, 9);
+  }
+  const radii = [3, 5, 8, 13, 21];
+  polygonPoints(radii).forEach(([x, y], i) => {
+    const [px, py] = pointRadial((i * TAU) / radii.length, radii[i]!);
+    expect(x).toBeCloseTo(px, 9);
+    expect(y).toBeCloseTo(py, 9);
+  });
+});
+
 function runtimeClosure(entries: string[], root: string) {
   const src = resolve(root, 'src') + sep;
   const seen = new Set<string>();
@@ -632,7 +681,12 @@ test('none arm: the runtime import closure holds only react and local files', ()
   const { files, violations } = runtimeClosure(entries, root);
   expect(violations).toEqual([]);
   expect(files).toEqual(
-    expect.arrayContaining(['src/arms/none/shared/linear.ts', 'src/arms/none/shared/step.ts', 'src/data/spec.ts']),
+    expect.arrayContaining([
+      'src/arms/none/shared/linear.ts',
+      'src/arms/none/shared/polar.ts',
+      'src/arms/none/shared/step.ts',
+      'src/data/spec.ts',
+    ]),
   );
 });
 
@@ -665,6 +719,8 @@ const EXPECTED_PAIRS = [
   'none/stacked-bar',
   'none/stacked-area',
   'none/combo',
+  'none/donut',
+  'none/radar',
   ...['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
     `${lib}/stacked-bar`,
     `${lib}/stacked-area`,
