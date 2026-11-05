@@ -89,6 +89,17 @@
       "libraryKb": 66.4
     }
   },
+  "none": {
+    "combo": {
+      "libraryKb": 1.8
+    },
+    "stacked-area": {
+      "libraryKb": 1.7
+    },
+    "stacked-bar": {
+      "libraryKb": 1.9
+    }
+  },
   "recharts": {
     "combo": {
       "libraryKb": 101.7

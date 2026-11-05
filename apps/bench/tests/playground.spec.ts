@@ -6,10 +6,11 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
-import { scaleLinear } from 'd3-scale';
+import { scaleBand, scaleLinear } from 'd3-scale';
 import { area as d3area, curveStepAfter, line as d3line } from 'd3-shape';
 import ts from 'typescript';
 
+import { band } from '../src/arms/none/shared/band';
 import { linear } from '../src/arms/none/shared/linear';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
 import { boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
@@ -660,18 +661,23 @@ test('a missing embedded chunk reports its error at once instead of the lab time
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
 const MARK_SPREAD = 40;
 const MARK_MIN_PIXELS = 1000;
-const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
-  `${lib}/stacked-bar`,
-  `${lib}/stacked-area`,
-  `${lib}/donut`,
-  `${lib}/radar`,
-  ...(lib === 'nivo' ? [] : [`${lib}/combo`]),
-  ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
-  `${lib}/treemap`,
-  `${lib}/sankey`,
-  ...(lib === 'recharts' ? [] : [`${lib}/boxplot`]),
-  ...['chartjs', 'echarts', 'tanstack'].includes(lib) ? [`${lib}/candlestick`] : [],
-]);
+const EXPECTED_PAIRS = [
+  'none/stacked-bar',
+  'none/stacked-area',
+  'none/combo',
+  ...['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
+    `${lib}/stacked-bar`,
+    `${lib}/stacked-area`,
+    `${lib}/donut`,
+    `${lib}/radar`,
+    ...(lib === 'nivo' ? [] : [`${lib}/combo`]),
+    ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
+    `${lib}/treemap`,
+    `${lib}/sankey`,
+    ...(lib === 'recharts' ? [] : [`${lib}/boxplot`]),
+    ...['chartjs', 'echarts', 'tanstack'].includes(lib) ? [`${lib}/candlestick`] : [],
+  ]),
+];
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
   page,
@@ -1010,6 +1016,21 @@ test('none helpers: linear scale matches d3-scale', async () => {
   expect(flat(5)).toBe(50);
   expect(flat.ticks(6)).toEqual([5]);
   expect(flat.nice().domain).toEqual([5, 5]);
+});
+
+test('none helpers: band matches d3 scaleBand and every bar sits in its hover slot', () => {
+  for (const n of [1, 2, 12, 500]) {
+    const mine = band(n, [56, 900], 0.2);
+    const domain = Array.from({ length: n }, (_, i) => i);
+    const ref = scaleBand<number>().domain(domain).range([56, 900]).padding(0.2);
+    expect(mine.width).toBeCloseTo(ref.bandwidth(), 9);
+    for (const i of domain) {
+      expect(mine.start(i)).toBeCloseTo(ref(i)!, 9);
+      expect(mine.index(mine.start(i))).toBe(i);
+      expect(mine.index(mine.start(i) + mine.width - 1e-6)).toBe(i);
+    }
+    expect(mine.index(900)).toBe(n - 1);
+  }
 });
 
 test('none helpers: step paths match d3 curveStepAfter and lookup is right-closed at knots', async () => {

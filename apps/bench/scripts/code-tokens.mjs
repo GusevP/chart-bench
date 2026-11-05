@@ -88,7 +88,7 @@ for (const lib of LIBS) {
   );
   const implemented = Object.keys(pairs[lib]).filter(type => type !== SPEC_CHARTS);
   totals[lib] = { coverage: implemented.length };
-  if (implemented.length) {
+  if (common.every(type => pairs[lib][type])) {
     totals[lib].common = measure(common.map(type => pairs[lib][type]));
   }
 }

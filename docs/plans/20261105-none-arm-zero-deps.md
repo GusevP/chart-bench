@@ -107,11 +107,17 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/stacked-bar.tsx`
 - Create: `apps/bench/src/arms/none/gallery/stacked-area.tsx`
 - Create: `apps/bench/src/arms/none/gallery/combo.tsx`
+- Create: `apps/bench/src/arms/none/shared/band.ts`
+- Create: `apps/bench/src/arms/none/shared/stack.ts`
+- Modify: `apps/bench/src/arms/none/shared/Chart.tsx`
+- Modify: `apps/bench/src/arms/shared/ticks.ts`
+- Modify: `apps/bench/scripts/code-tokens.mjs`
+- Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] add `none/shared/band.ts`, and implement all three with the shared axes and an index-based hover
-- [ ] follow `COMBO_RIGHT` and `COMBO_LINE_WIDTH` for the second axis
-- [ ] add the three pairs to `EXPECTED_PAIRS`
-- [ ] check each with the sample and heavy data in the browser
+- [x] add `none/shared/band.ts`, and implement all three with the shared axes and an index-based hover
+- [x] follow `COMBO_RIGHT` and `COMBO_LINE_WIDTH` for the second axis
+- [x] add the three pairs to `EXPECTED_PAIRS`
+- [x] check each with the sample and heavy data in the browser
 - [ ] build and run specs
 
 ### Task 4: Donut and radar
