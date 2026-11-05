@@ -205,7 +205,7 @@ Reuse:
 - [ ] `pnpm -F bench test:playground`
 
 ### Task 10: Refresh published numbers (about 560 page loads across both regimes)
-- [x] run the bench once per regime on the final code, with nothing else running. Both use fresh output files, never appending to `results/run-*` or `raw.jsonl`, because `report.mjs` does not split by throttle: `BENCH_CPU_THROTTLE=1 BENCH_OUT=results/<fresh>-1x.jsonl pnpm bench`, and the same with `4` and `-4x`
+- [x] run the bench once per regime on the final code. The user chose to run on a loaded machine rather than with nothing else running; `apps/bench/results/report.md` gives the load and the drift against the quieter 2026-11-03 runs. Both use fresh output files, never appending to `results/run-*` or `raw.jsonl`, because `report.mjs` does not split by throttle: `BENCH_CPU_THROTTLE=1 BENCH_OUT=results/<fresh>-1x.jsonl pnpm bench`, and the same with `4` and `-4x`
 - [x] run `pnpm -F bench report <file>` for each output; it writes `<file>.md`, so reconcile `report.md` and `ARTICLE.md` by hand
 - [x] update `ARTICLE.md`: arm description, numbers, "lines of code", ranking claims and conclusions, the "animation off" wording, and TanStack's bundle
 - [x] update the regenerated README token tables

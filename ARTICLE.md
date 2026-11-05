@@ -1,6 +1,6 @@
 # Your chart benchmark is probably lying: 6 React chart libraries vs hand-written SVG, measured fairly
 
-*Draft. Every timing below comes from a [chart-bench](https://github.com/GusevP/chart-bench) run on 2026-11-06 on a machine with other work running, not an idle one; [the Runs section](#the-setup) gives the load. Sizes and token counts are from the same commit. Clone it and you can reproduce all of them, though not these exact timings.*
+*Draft. Every bench table below comes from a [chart-bench](https://github.com/GusevP/chart-bench) run on 2026-11-06 on a machine with other work running, not an idle one; [the Runs section](#the-setup) gives the load. Sizes and token counts are from the same commit. Clone it and you can reproduce all of them, though not these exact timings.*
 
 ## Why I measured this
 
@@ -34,9 +34,9 @@ Every port was written against [one written spec](apps/bench/ARMS.md): exact siz
 | typical | 3 series × 200 points | 500 points |
 | heavy | 6 series × 1,000 points | 10,000 points |
 
-**Runs:** production build (`vite build` + `vite preview`), headless Chromium driven by Playwright, one worker. Each cell gets one warm-up load and then 9 measured page loads, reported as the median ± half the IQR. One run is at native speed. A second run uses Chrome's 4× CPU throttle, roughly a mid-range phone, because at native speed the typical charts all finish inside one frame (more below). Apple M3 Pro (11 cores), macOS 27.
+**Runs:** production build (`vite build` + `vite preview`), headless Chromium driven by Playwright, one worker. Each cell gets one warm-up load and then 9 measured page loads, reported as the median ± half the IQR. One run is at native speed. A second run uses Chrome's 4× CPU throttle, roughly a mid-range phone, because at native speed almost all the typical charts finish inside one frame (more below). Apple M3 Pro (11 cores), macOS 27.
 
-**Conditions: this was not a quiet machine.** I ran these on 2026-11-06 with other work running. Load averages (1 min) were 4.35 before and 5.45 after the native run, and 6.48 before and 3.66 after the throttled run.
+**Conditions: this was not a quiet machine.** I ran these on 2026-11-06 with other work running. Load averages (1 min) were 4.35 before and 5.45 after the native run, and 6.48 before and 3.66 after the throttled run. The report and drift scripts also overlapped the start of the throttled run; the logs have no per-test timestamps, so I can't say how many cells that touched.
 
 To size the damage I compared them with the quieter 2026-11-03 runs (`apps/bench/results/run-1x.md`, `run-4x.md`). Six arms draw the same charts in both, so their movement is noise, not code:
 
@@ -47,7 +47,7 @@ To size the damage I compared them with the quieter 2026-11-03 runs (`apps/bench
 
 The worst typical moves are nivo's survival chart at native speed (14.9 → 27.0 ms) and Chart.js's at 4× (23.3 → 35.1 ms). So below, **a gap on a heavy chart under 20%, or any gap under one frame, is a tie**, and the typical columns support bands at most, not a ranking.
 
-The `none` arm was rewritten between the two dates, so its movement isn't only noise. On the heavy scatter it went 92.5 → 120.3 ms at 4×, which is 1.30× and past anything the same-code heavy cells did, so part of that may be the rewrite. At native speed the same cell went 29.6 → 25.6 ms, so this run can't settle it.
+The `none` arm was rewritten between the two dates, so the same-code comparison doesn't cover it. On the heavy scatter it went 92.5 → 120.3 ms at 4×, which is 1.30× and past anything the same-code heavy cells did. At native speed the same cell went 29.6 → 25.6 ms. That move is unexplained: the bench runs `none` first, so its throttled cells ran nearest the 6.48 load reading and the script overlap, while the same-code arms ran later as load fell to 3.66. The two aren't like for like, so this run can't settle it.
 
 ## The stopwatch
 
@@ -108,7 +108,7 @@ For Canvas the two clocks are close, because the library's own "done" callback i
 
 | library | survival typical | survival heavy | scatter typical | scatter heavy |
 | --- | ---: | ---: | ---: | ---: |
-| no library | 24.4 | **30.0** | 22.8 | 120.3 |
+| no library | 24.4 | 30.0 | 22.8 | 120.3 |
 | visx | 20.0 | 55.9 | 23.2 | 130.1 |
 | TanStack Charts | 24.0 | 89.7 | 24.8 | 189.2 |
 | Chart.js | 35.1 | 58.5 | 36.4 | 305.3 |
@@ -116,7 +116,7 @@ For Canvas the two clocks are close, because the library's own "done" callback i
 | nivo | 60.9 | 144.4 | 170.4 | **14,201.7** |
 | Recharts | 97.4 | 435.4 | 112.1 | 1,162.0 |
 
-Bold marks no library's heavy-survival lead and nivo's heavy-scatter cost. On the heavy scatter, no library and visx tie, and so do ECharts and Chart.js. No library's heavy-survival lead has a wide spread (±14.6 ms), and visx and Chart.js tie behind it. In the typical columns, no library, visx and TanStack form one band; Recharts and nivo's scatter sit clearly above it.
+Bold marks nivo's heavy-scatter cost. On the heavy scatter, no library and visx tie, and so do ECharts and Chart.js. On the heavy survival chart no library has the lowest median, but that cell is bimodal (±14.6 ms): its runs split into two clusters, and the upper one falls inside visx's range, as the same cell also split on 2026-11-03. So that isn't a clean lead, and visx and Chart.js tie with each other. In the typical columns, no library, visx and TanStack form one band; Recharts and nivo's scatter sit clearly above it.
 
 At native speed on an M3 Pro, the typical charts are almost all ties at 22–30 ms; only nivo's typical scatter stands out, at 42.3 ms. So for typical dashboard sizes on a developer laptop, speed barely separates them. The heavy scatter still does: 10,000 points take 26 ms with hand-written SVG and 32 ms with visx (a tie), 49 ms with TanStack, 69–78 ms with the two Canvas libraries, 295 ms with Recharts and **3.2 s with nivo**. nivo's cost holds even with animation off: it still routes every node through its spring-transition machinery on mount.
 
@@ -140,7 +140,7 @@ Hover barely moved under load, because it is frame-quantised. Against 2026-11-03
 | Recharts | 106.2 KB | 1,064 | 30,109 |
 | ECharts | 164.2 KB | 1,117 | 5 (canvas) |
 
-*Library cost* is the gzipped JS each page loads minus an identical page with no chart library; for no library, that is its own chart code. *Code tokens* count both charts including tooltips, after TypeScript normalises the code to JS/JSX, excluding imports, comments and whitespace. A chart pays for every file it reaches, so no library's count includes its own scales, step paths, axes and tooltip: 3,171 tokens against 720–1,683 is roughly what a library saves you.
+*Library cost* is the gzipped JS each page loads minus an identical page with no chart library; for no library, that is its own chart code. *Code tokens* count both charts including tooltips, after TypeScript normalises the code to JS/JSX, excluding imports, comments and whitespace. A chart pays for every file it reaches, so no library's 3,171 tokens include its own scales, step paths, axes and tooltip, and also the axis code in that same file that only the playground's other charts use. Read the gap to 720–1,683 as an upper bound on what a library saves you on these two charts.
 
 TanStack's cost includes about 15 KB for the `motion` renderer. Only the playground's effects mode uses it, but the arm imports it statically, so timed pages load it too, and that puts TanStack just behind Chart.js on weight.
 
@@ -156,7 +156,7 @@ None of the seven ports needed a narrowing `as` cast (the only `as` is one `as c
 - **ECharts:**
   - A **misspelled top-level option key type-checks cleanly**, because the option type has an index signature. At runtime it throws inside `setOption`. Misspelled nested keys are ignored silently.
   - For large series the defaults switch on progressive rendering. On a 50,000-point test series, a dev-mode check measured 2.4 s instead of 0.4 s.
-- **visx:** everything is composed from primitives, and hit-testing is your own code. You get exactly what you write: it ties the no-library baseline at native speed and on the throttled heavy scatter, and trails it on the throttled heavy survival chart.
+- **visx:** everything is composed from primitives, and hit-testing is your own code. You get exactly what you write: it ties the no-library baseline at native speed and on the throttled heavy scatter. On the throttled heavy survival chart its median is higher, but no library's runs there are bimodal.
 - **TanStack Charts 1.2:**
   - A mark grammar in the Observable Plot lineage. Censoring ticks are a stock `tickX`, and the band is `areaY` with `y1`/`y2`.
   - It needed 720 tokens against nivo's 993 and Recharts' 1,064.
@@ -181,16 +181,16 @@ marks: [
 - **Recharts is the risky default.** It is widely used, but it was the slowest library on the heavy survival chart (435 ms throttled, nivo 144 ms) and second slowest on the heavy scatter, the worst on hover (7 frames throttled), and it needs data reshaping that fails silently when skipped.
 - **Canvas isn't a shortcut.** At 10,000 points ECharts and Chart.js took about twice as long or more to mount as plain SVG, at both CPU speeds. ECharts' hover stayed smooth, at 164 KB.
 - **For the least code, TanStack Charts 1.2:** 720 tokens, the fewest, and 57 KB, mounting behind visx and plain SVG on the heavy scatter at both speeds, nearly every requirement native. The risk is age: its first release was in July 2026.
-- **For control and size, visx, or no library at all.** They tie as the fastest on the 10,000-point scatter at both speeds and are the smallest (2–25 KB), and you own every mark, tooltip and hit-test. That costs code: 3,171 tokens with no library and 1,683 with visx.
+- **For control and size, visx, or no library at all.** They tie as the fastest on the 10,000-point scatter at both speeds and are the smallest (2–25 KB), and you own every mark, tooltip and hit-test. That costs code: 3,171 tokens with no library, a count that includes axis code for the playground's other charts, and 1,683 with visx.
 
 The bigger lesson is about the stopwatch, not the libraries. **Measure to the paint, and put SVG and Canvas through the same final step.** Mine nearly ranked the second-slowest library first.
 
 ## Limitations
 
 - One machine, one browser engine (Chromium), headless. Frame-quantised: differences under 16.7 ms are ties.
-- These timings come from a machine with other work running, and the empty-page baseline was not re-measured. Same-code cells moved up to 1.17× on heavy charts and 1.81× on typical ones against the quieter 2026-11-03 runs.
+- The bench timings come from a machine with other work running, and the empty-page baseline was not re-measured. Same-code cells moved up to 1.17× on heavy charts and 1.81× on typical ones against the quieter 2026-11-03 runs.
 - Two chart types. A bar-heavy or dual-axis product could rank differently.
-- "Code tokens" measures what this spec needed, written idiomatically per the docs. A more experienced user of one library might do it in fewer.
+- "Code tokens" measures what this spec needed, written idiomatically per the docs, plus for no library the shared axis code added for the playground's other charts. A more experienced user of one library might do it in fewer.
 - Hover is a scripted sweep, not real input latency.
 
 ## Try it
