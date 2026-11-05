@@ -784,7 +784,7 @@ test('box plot: statistics match a hand-computed case, parsing rejects bad group
   }
 });
 
-test('candlestick: an impossible bar is rejected, nudge flips alternate candles and keeps low and high', () => {
+test('candlestick: an impossible bar is rejected, nudge keeps low, stays valid, moves every body and flips some candles', () => {
   const bar = (b: object) =>
     JSON.stringify({ candles: [{ t: '2024-01-02', open: 5, high: 8, low: 2, close: 6, ...b }] });
   expect(() => parseSeries('candlestick', bar({ low: 5.5 }))).toThrow(/low <= open/);
