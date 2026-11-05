@@ -173,12 +173,12 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/sankey.tsx`
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] write columns, scale, stacking offsets, relaxation and collision resolution as Technical Details specifies
-- [ ] render nodes and ribbon links with `sankeyColors`, `LINK_OPACITY`, `NODE_WIDTH`, hovering via data ids
-- [ ] add the pair to `EXPECTED_PAIRS`
-- [ ] spec: Testing Strategy invariants, plus unequal flows, parallel edges and a skipped layer
-- [ ] spec: disconnected node, single link, and a column too full for `NODE_GAP`
-- [ ] check the heavy dataset in the browser: 150 nodes, 500 links, 6 layers
+- [x] write columns, scale, stacking offsets, relaxation and collision resolution as Technical Details specifies
+- [x] render nodes and ribbon links with `sankeyColors`, `LINK_OPACITY`, `NODE_WIDTH`, hovering via data ids
+- [x] add the pair to `EXPECTED_PAIRS`
+- [x] spec: Testing Strategy invariants, plus unequal flows, parallel edges and a skipped layer
+- [x] spec: disconnected node, single link, and a column too full for `NODE_GAP`
+- [x] check the heavy dataset in the browser: 150 nodes, 500 links, 6 layers
 - [ ] build and run specs
 
 ### Task 8: Wire `none` into totals, specs and docs

@@ -14,13 +14,15 @@ import ts from 'typescript';
 import { band } from '../src/arms/none/shared/band';
 import { linear } from '../src/arms/none/shared/linear';
 import { TAU, arcPath, polar, polygonPoints } from '../src/arms/none/shared/polar';
+import { sankeyLayout } from '../src/arms/none/shared/sankey';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
 import { boxLeaves, squarify } from '../src/arms/none/shared/treemap';
 import type { Box } from '../src/arms/none/shared/treemap';
 import { boxPaddingInner, boxPaddingOuter, boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
+import { NODE_GAP } from '../src/arms/shared/sankey';
 import { treeLeaves } from '../src/arms/shared/treemap';
-import type { SurvivalSeries, TreeNode } from '../src/data/contract';
-import { GALLERY_DATASETS, generateTreemap } from '../src/data/gallery-samples';
+import type { Sankey, SurvivalSeries, TreeNode } from '../src/data/contract';
+import { GALLERY_DATASETS, generateSankey, generateTreemap } from '../src/data/gallery-samples';
 import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
 import { isGallery, kindInfo, kinds, nudge, parseSeries, sample } from '../src/playground/parse';
@@ -729,6 +731,7 @@ const EXPECTED_PAIRS = [
   'none/boxplot',
   'none/candlestick',
   'none/treemap',
+  'none/sankey',
   ...['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
     `${lib}/stacked-bar`,
     `${lib}/stacked-area`,
@@ -1180,6 +1183,106 @@ test('none treemap: a single leaf fills the plot, and 5,000 leaves lay out fast'
   expect(leaves.every(l => l.x1 >= l.x0 && l.y1 >= l.y0 && Number.isFinite(l.x1 + l.y1))).toBe(true);
   expect(leaves.reduce((sum, l) => sum + (l.x1 - l.x0) * (l.y1 - l.y0), 0)).toBeCloseTo(800 * 500, 6);
   expect(elapsed).toBeLessThan(100);
+});
+
+function sankeySound(data: Sankey, W: number, H: number) {
+  const layout = sankeyLayout(data, 0, 0, W, H);
+  const eps = 1e-6;
+  const scale = layout.links[0]!.width / layout.links[0]!.value;
+  expect(scale).toBeGreaterThan(0);
+  for (const n of layout.nodes) {
+    for (const v of [n.x0, n.x1, n.y0, n.y1]) expect(Number.isFinite(v)).toBe(true);
+    expect(n.x0).toBeGreaterThanOrEqual(0);
+    expect(n.x1).toBeLessThanOrEqual(W + eps);
+    expect(n.y0).toBeGreaterThanOrEqual(-eps);
+    expect(n.y1).toBeLessThanOrEqual(H + eps);
+    expect(n.y1 - n.y0).toBeCloseTo(n.value * scale, 6);
+
+    const edges = (links: typeof n.in, end: 'y0' | 'y1') =>
+      links
+        .map(l => [l[end] - l.width / 2, l[end] + l.width / 2] as const)
+        .toSorted((a, b) => a[0] - b[0]);
+    for (const stack of [edges(n.in, 'y1'), edges(n.out, 'y0')]) {
+      for (const [i, [lo, hi]] of stack.entries()) {
+        expect(lo).toBeGreaterThanOrEqual(i ? stack[i - 1]![1] - eps : n.y0 - eps);
+        expect(hi).toBeLessThanOrEqual(n.y1 + eps);
+      }
+    }
+  }
+  for (const l of layout.links) {
+    expect(l.source.x1).toBeLessThanOrEqual(l.target.x0);
+    expect(l.target.layer).toBeGreaterThan(l.source.layer);
+    expect(l.width / l.value).toBeCloseTo(scale, 9);
+  }
+  for (const layer of new Set(layout.nodes.map(n => n.layer))) {
+    const sorted = layout.nodes.filter(n => n.layer === layer).toSorted((a, b) => a.y0 - b.y0);
+    for (const [i, n] of sorted.entries()) if (i) expect(n.y0).toBeGreaterThanOrEqual(sorted[i - 1]!.y1 - eps);
+  }
+  return layout;
+}
+
+const sankeyGraph = (ids: Iterable<string>, links: [string, string, number][]): Sankey => ({
+  nodes: [...ids].map(id => ({ id })),
+  links: links.map(([source, target, value]) => ({ source, target, value })),
+});
+
+test('none sankey: unequal flows, parallel edges and a skipped layer keep the layout invariants', () => {
+  const data = sankeyGraph('dcba', [
+    ['b', 'd', 3],
+    ['a', 'd', 2],
+    ['c', 'd', 4],
+    ['a', 'b', 1],
+    ['a', 'b', 6],
+    ['a', 'c', 5],
+    ['b', 'c', 1],
+  ]);
+  const { nodes } = sankeySound(data, 800, 300);
+  const node = (id: string) => nodes.find(n => n.id === id)!;
+  expect(['a', 'b', 'c', 'd'].map(id => node(id).layer)).toEqual([0, 1, 2, 3]);
+  expect(node('a').value).toBe(14);
+  expect(node('b').value).toBe(7);
+  expect(node('c').value).toBe(6);
+  expect(node('d').value).toBe(9);
+  expect(node('a').x0).toBe(0);
+  expect(node('d').x1).toBeCloseTo(800, 9);
+});
+
+test('none sankey: a disconnected node, a single link and an overfull column stay drawable', () => {
+  const lone = sankeySound(sankeyGraph('xab', [['a', 'b', 5]]), 400, 200);
+  expect(lone.nodes[0]).toMatchObject({ id: 'x', value: 0, layer: 0 });
+  expect(lone.nodes[0]!.y0).toBe(lone.nodes[0]!.y1);
+
+  const single = sankeySound(sankeyGraph('ab', [['a', 'b', 5]]), 400, 200);
+  expect(single.links[0]!.width).toBeCloseTo(200, 6);
+  expect(single.links[0]!.y0).toBeCloseTo(100, 6);
+
+  const ids = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const fan = sankeyGraph(
+    `S${ids}`,
+    [...ids].map((id, i) => ['S', id, 1 + (i % 5)]),
+  );
+  const { nodes } = sankeySound(fan, 400, 100);
+  const targets = nodes.filter(n => n.id !== 'S').toSorted((a, b) => a.y0 - b.y0);
+  const gap = targets[1]!.y0 - targets[0]!.y1;
+  expect(gap).toBeGreaterThan(0);
+  expect(gap).toBeLessThan(NODE_GAP);
+  expect(targets.at(-1)!.y1 - targets[0]!.y0).toBeCloseTo(100, 6);
+});
+
+test('none sankey: the heavy graph is sound, and layering does not walk paths', () => {
+  sankeySound(generateSankey(GALLERY_DATASETS.sankey.heavy), 800, 296);
+
+  const diamonds = Array.from({ length: 60 }, (_, i) => [
+    [`j${i}`, `u${i}`, 1],
+    [`j${i}`, `d${i}`, 1],
+    [`u${i}`, `j${i + 1}`, 1],
+    [`d${i}`, `j${i + 1}`, 1],
+  ]).flat() as [string, string, number][];
+  const chain = sankeyGraph(new Set(diamonds.flatMap(([s, t]) => [s, t])), diamonds);
+  const start = performance.now();
+  const { nodes } = sankeyLayout(chain, 0, 0, 800, 296);
+  expect(performance.now() - start).toBeLessThan(100);
+  expect(Math.max(...nodes.map(n => n.layer))).toBe(120);
 });
 
 test('none helpers: step paths match d3 curveStepAfter and lookup is right-closed at knots', async () => {

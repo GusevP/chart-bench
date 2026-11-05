@@ -108,6 +108,9 @@
     "radar": {
       "libraryKb": 1
     },
+    "sankey": {
+      "libraryKb": 1.7
+    },
     "stacked-area": {
       "libraryKb": 1.7
     },
