@@ -191,3 +191,12 @@ iframe {
 .summaries .noise {
   color: var(--muted);
 }
+.summaries .best {
+  color: #166534;
+  background: #dcfce7;
+  font-weight: 600;
+}
+.summaries .worst {
+  color: #991b1b;
+  background: #fee2e2;
+}

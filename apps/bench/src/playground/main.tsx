@@ -13,6 +13,8 @@ import { RUNS, WARMUP, frameSrc, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
 import { isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
 import type { Parsed } from './parse';
+import { rankBy } from './rank';
+import type { Rank } from './rank';
 
 const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
   none: 'No library (React + d3-scale SVG)',
@@ -120,17 +122,19 @@ function ArmFrame({
   );
 }
 
-function Cell({ s, floor, frame }: { s: Summary | null; floor?: Summary; frame: number }) {
+const RANK_TITLES = { best: 'lowest in this column', worst: 'highest in this column' };
+
+const cellProps = (rank?: Rank, noise = false) => ({
+  className: [noise && 'noise', rank].filter(Boolean).join(' ') || undefined,
+  title:
+    [noise && 'within 2 frames of the shell floor', rank && RANK_TITLES[rank]].filter(Boolean).join('; ') ||
+    undefined,
+});
+
+function Cell({ s, floor, frame, rank }: { s: Summary | null; floor?: Summary; frame: number; rank?: Rank }) {
   if (!s) return <td>n/a</td>;
   const noise = floor !== undefined && s.median <= floor.median + 2 * frame;
-  return (
-    <td
-      className={noise ? 'noise' : undefined}
-      title={noise ? 'within 2 frames of the shell floor' : undefined}
-    >
-      {fmt(s)}
-    </td>
-  );
+  return <td {...cellProps(rank, noise)}>{fmt(s)}</td>;
 }
 
 function Summaries({
@@ -148,12 +152,28 @@ function Summaries({
     ['shell (floor)', measured.floor, true],
     ...Object.entries(measured.results).map(([lib, r]): [string, LibraryResult, boolean] => [lib, r, false]),
   ];
+  const libs = Object.entries(measured.results);
+  const rankOf = (value: (lib: string, r: LibraryResult) => number | undefined, margin = 0) =>
+    rankBy(
+      libs.map(([lib, r]) => value(lib, r)),
+      margin,
+    );
+  const ranks = {
+    mount: rankOf((_, r) => r.mount.median, 2 * frame),
+    update: rankOf((_, r) => r.update.median, 2 * frame),
+    blocking: rankOf((_, r) => r.blocking?.median, 2 * frame),
+    domNodes: rankOf((_, r) => r.domNodes),
+    kb: rankOf(lib => libraryKb(lib, chart)),
+    tokens: rankOf(lib => tokenCount(lib, chart)),
+    hover: rankOf(lib => hover[lib], 2 * frame),
+  };
   return (
     <div className="table-scroll">
       <table className="summaries" data-summaries>
         <caption>
           Median ± half the IQR, {RUNS} runs after {WARMUP} warm-up.
-          {!isGallery(chart) && ' Survival and Scatter share one token count.'}
+          {!isGallery(chart) && ' Survival and Scatter share one token count.'} Green is a column's lowest
+          value and red its highest; timing columns rank only when the gap exceeds 2 frames.
         </caption>
         <thead>
           <tr>
@@ -170,6 +190,9 @@ function Summaries({
         <tbody>
           {rows.map(([lib, r, isFloor]) => {
             const kb = isFloor ? bundleKb.shell?.libraryKb : libraryKb(lib, chart);
+            const tokens = tokenCount(lib, chart);
+            const rank = (of: (value: number | undefined) => Rank | undefined, value?: number) =>
+              isFloor ? undefined : of(value);
             return (
               <tr
                 key={lib}
@@ -182,13 +205,23 @@ function Summaries({
                 data-bundle-kb={kb ?? ''}
               >
                 <th scope="row">{lib}</th>
-                <Cell s={r.mount} floor={isFloor ? undefined : measured.floor.mount} frame={frame} />
-                <Cell s={r.update} floor={isFloor ? undefined : measured.floor.update} frame={frame} />
-                <Cell s={r.blocking} frame={frame} />
-                <td>{r.domNodes}</td>
-                <td>{kb?.toFixed(1) ?? 'n/a'}</td>
-                <td>{tokenCount(lib, chart) ?? 'n/a'}</td>
-                <td data-hover={hover[lib] ?? ''}>
+                <Cell
+                  s={r.mount}
+                  floor={isFloor ? undefined : measured.floor.mount}
+                  frame={frame}
+                  rank={rank(ranks.mount, r.mount.median)}
+                />
+                <Cell
+                  s={r.update}
+                  floor={isFloor ? undefined : measured.floor.update}
+                  frame={frame}
+                  rank={rank(ranks.update, r.update.median)}
+                />
+                <Cell s={r.blocking} frame={frame} rank={rank(ranks.blocking, r.blocking?.median)} />
+                <td {...cellProps(rank(ranks.domNodes, r.domNodes))}>{r.domNodes}</td>
+                <td {...cellProps(rank(ranks.kb, kb))}>{kb?.toFixed(1) ?? 'n/a'}</td>
+                <td {...cellProps(rank(ranks.tokens, tokens))}>{tokens ?? 'n/a'}</td>
+                <td data-hover={hover[lib] ?? ''} {...cellProps(rank(ranks.hover, hover[lib]))}>
                   {isFloor ? '' : hover[lib] === undefined ? 'hover a chart' : hover[lib].toFixed(1)}
                 </td>
               </tr>

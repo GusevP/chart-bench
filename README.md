@@ -96,7 +96,7 @@ Candlestick needs at least two candles, `t` as `YYYY-MM-DD` and unique, and `low
 
 ### Code size
 
-Implementation burden of these ports under this contract, not a ranking of how simple each library is. Each cell is the token count of that chart's code after TypeScript normalizes it to JS/JSX, excluding imports, comments and whitespace. N/A is not zero. `pnpm -F bench tokens` prints these tables and writes `apps/bench/results/code-tokens.json`, which lists the counted files for each cell. The playground shows each pair's count on its card and in the results table; Survival and Scatter share one count because both live in `charts.tsx`.
+Implementation burden of these ports under this contract, not a ranking of how simple each library is. Each cell is the token count of that chart's code after TypeScript normalizes it to JS/JSX, excluding imports, comments and whitespace. N/A is not zero. `pnpm -F bench tokens` prints these tables and writes `apps/bench/results/code-tokens.json`, which lists the counted files for each cell. The playground shows each pair's count on its card and in the results table, where each column's lowest and highest values are highlighted; Survival and Scatter share one count because both live in `charts.tsx`.
 
 | Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

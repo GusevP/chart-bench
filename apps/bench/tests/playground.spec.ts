@@ -12,6 +12,7 @@ import { DATASETS, generateSurvival } from '../src/data/generate';
 import { framePeriod } from '../src/playground/frame';
 import { isGallery, kindInfo, kinds, nudge, parseSeries, sample } from '../src/playground/parse';
 import type { Parsed } from '../src/playground/parse';
+import { rankBy } from '../src/playground/rank';
 
 type Result = {
   type: string;
@@ -392,6 +393,15 @@ const codeTokens = () =>
     perChart: Record<string, Record<string, { total: number }>>;
   }).perChart;
 
+test('rankBy marks the extremes, skips gaps within the margin and ignores missing values', () => {
+  const rank = rankBy([10, 20, undefined, 30, 10]);
+  expect([10, 20, 30, undefined].map(rank)).toEqual(['best', undefined, 'worst', undefined]);
+  expect(rankBy([10, 14], 4)(10)).toBeUndefined();
+  expect(rankBy([10, 14.1], 4)(14.1)).toBe('worst');
+  expect(rankBy([10, undefined])(10)).toBeUndefined();
+  expect(rankBy([7, 7])(7)).toBeUndefined();
+});
+
 test('render shows a results table, then display cards', async ({ page }) => {
   const bundle = JSON.parse(
     readFileSync(new URL('../results/bundle.json', import.meta.url), 'utf8'),
@@ -414,6 +424,8 @@ test('render shows a results table, then display cards', async ({ page }) => {
     String(codeTokens()['recharts']!['survival+scatter']!.total),
   );
   await expect(page.locator('tr[data-lib="shell (floor)"] td').nth(5)).toHaveText('n/a');
+  await expect(page.locator('tr[data-lib="recharts"] td').nth(5)).toHaveClass('best');
+  await expect(page.locator('tr[data-lib="none"] td').nth(5)).toHaveClass('worst');
   await expect(page.locator('[data-summaries] td.noise').first()).toBeVisible();
   await expect(page.locator('.card iframe')).toHaveCount(2);
   await expect(page.locator('.card [data-card-stats]').first()).toContainText(
