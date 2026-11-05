@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { CHART_MARGIN, TICK } from '../shared/style';
 
@@ -19,7 +20,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-area'>) {
       <CartesianGrid vertical={false} stroke="#eee" />
       <XAxis dataKey="category" height={MARGIN.bottom} tick={TICK} />
       <YAxis width={MARGIN.left} tick={TICK} />
-      <Tooltip isAnimationActive={false} />
+      <Tooltip isAnimationActive={EFFECTS} />
       {data.series.map((s, j) => (
         <Area
           key={s.id}
@@ -31,7 +32,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-area'>) {
           fill={s.color}
           fillOpacity={1}
           dot={false}
-          isAnimationActive={false}
+          isAnimationActive={EFFECTS}
         />
       ))}
     </AreaChart>

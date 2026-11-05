@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { INNER_RATIO } from '../../shared/donut';
 import { useSettlePlugin } from '../shared/chart';
@@ -12,7 +13,7 @@ ChartJS.register(ArcElement, Tooltip);
 
 const options: ChartOptions<'doughnut'> = {
   responsive: false,
-  animation: false,
+  animation: EFFECTS ? undefined : false,
   layout: { padding: MARGIN },
   cutout: `${INNER_RATIO * 100}%`,
   rotation: 0,
@@ -30,7 +31,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'donut'>) {
           data: data.slices.map(s => s.value),
           backgroundColor: data.slices.map(s => s.color),
           borderWidth: 0,
-          hoverOffset: 0,
+          hoverOffset: EFFECTS ? 4 : 0,
         },
       ],
     }),

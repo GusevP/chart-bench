@@ -2,6 +2,7 @@ import { Line } from '@nivo/line';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { thinTicks } from '../../shared/ticks';
 
@@ -21,7 +22,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-area'>) {
       height={height}
       margin={MARGIN}
       data={lines}
-      animate={false}
+      animate={EFFECTS}
       xScale={{ type: 'point' }}
       yScale={{ type: 'linear', stacked: true, min: 0, max: 'auto' }}
       enableArea

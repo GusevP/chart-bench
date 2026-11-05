@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   BOX_OUTLIER_COLOR,
@@ -60,7 +61,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'boxplot'>)
     const { domain, step } = boxScale(stats);
     return {
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },
       scales: {
         x: { grid: { drawOnChartArea: false }, ticks: { maxRotation: 0, maxTicksLimit: 12 }, afterFit: fixHeight },

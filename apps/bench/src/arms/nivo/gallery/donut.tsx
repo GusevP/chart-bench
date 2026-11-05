@@ -2,6 +2,7 @@ import { Pie } from '@nivo/pie';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { INNER_RATIO } from '../../shared/donut';
 
@@ -19,7 +20,8 @@ function Chart({ width, height, data }: GalleryChartProps<'donut'>) {
       padAngle={0}
       cornerRadius={0}
       borderWidth={0}
-      animate={false}
+      animate={EFFECTS}
+      activeOuterRadiusOffset={EFFECTS ? 8 : 0}
       enableArcLabels={false}
       enableArcLinkLabels={false}
       colors={({ id }) => colorById.get(String(id)) ?? 'black'}

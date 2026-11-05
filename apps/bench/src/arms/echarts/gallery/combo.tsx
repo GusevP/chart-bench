@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { COMBO_LINE_WIDTH, COMBO_RIGHT } from '../../shared/combo';
 import { EChart } from '../shared/EChart';
@@ -21,7 +22,7 @@ type Option = ComposeOption<
 function Chart({ width, height, data, onSettled }: GalleryChartProps<'combo'>) {
   const option = useMemo(
     (): Option => ({
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, right: COMBO_RIGHT, outerBoundsMode: 'none' },
       xAxis: { type: 'category', data: data.categories, axisLabel: { hideOverlap: true } },
       yAxis: [
@@ -30,9 +31,10 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'combo'>) {
       ],
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
       series: [
-        { type: 'bar', name: data.bars.id, yAxisIndex: 0, data: data.bars.values, color: data.bars.color },
+        { type: 'bar', emphasis: { focus: EFFECTS ? 'series' : 'none' }, name: data.bars.id, yAxisIndex: 0, data: data.bars.values, color: data.bars.color },
         {
           type: 'line',
+          emphasis: { focus: EFFECTS ? 'series' : 'none' },
           name: data.line.id,
           yAxisIndex: 1,
           data: data.line.values,

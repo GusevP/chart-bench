@@ -1,5 +1,5 @@
 import { defineChart } from '@tanstack/charts';
-import { Chart as TanChart } from '@tanstack/charts/react';
+import { Chart as TanChart } from '../shared/Chart';
 import { treemap } from '@tanstack/charts/hierarchy/treemap';
 import { tooltip } from '@tanstack/charts/tooltip';
 import { useMemo } from 'react';

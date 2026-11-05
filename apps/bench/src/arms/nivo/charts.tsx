@@ -14,6 +14,7 @@ import type {
   SurvivalPoint,
   SurvivalSeries,
 } from '../../data/contract';
+import { EFFECTS } from '../../data/effects';
 import { MARGIN } from '../../data/spec';
 
 type NivoSurvivalSeries = { id: string; color: string; data: SurvivalPoint[] };
@@ -90,7 +91,7 @@ function Survival({ width, height, series }: SurvivalChartProps) {
       height={height}
       margin={MARGIN}
       data={data}
-      animate={false}
+      animate={EFFECTS}
       curve="stepAfter"
       colors={{ datum: 'color' }}
       lineWidth={1.5}
@@ -121,7 +122,7 @@ function Scatter({ width, height, series }: ScatterChartProps) {
       height={height}
       margin={MARGIN}
       data={data}
-      animate={false}
+      animate={EFFECTS}
       colors={({ serieId }) => colorById.get(String(serieId)) ?? 'black'}
       nodeSize={n => n.data.size * 2}
       nodeComponent={ScatterNode}

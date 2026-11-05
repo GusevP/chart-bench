@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   CANDLE_DOWN,
@@ -44,7 +45,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
     const shown = new Set(thinTicks(data.candles.map(c => c.t)).map(t => Date.parse(t)));
     return {
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },
       scales: {
         x: {

@@ -369,6 +369,27 @@ test('cancel during the final LoAF drain discards the run', async ({ page }) => 
   await expect(page.locator('[data-summaries]')).toHaveCount(0);
 });
 
+test('cancel during frame calibration discards the run', async ({ page }) => {
+  await holdFinalDrain(page);
+  await page.evaluate(() => {
+    const w = window as unknown as { release: () => void; slowFrames: number };
+    w.release();
+    w.slowFrames = 0;
+    window.requestAnimationFrame = callback =>
+      window.setTimeout(() => {
+        w.slowFrames++;
+        callback(performance.now());
+      }, 100);
+  });
+  await page.waitForFunction(() => (window as unknown as { slowFrames: number }).slowFrames >= 5, null, {
+    polling: 50,
+  });
+  await page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-lab] button')!.click());
+  await page.waitForTimeout(3500);
+  await expect(page.locator('[data-lab]')).toHaveCount(0);
+  await expect(page.locator('[data-summaries]')).toHaveCount(0);
+});
+
 test('a tab hidden during the final LoAF drain repeats that run', async ({ page }) => {
   await holdFinalDrain(page);
   await page.evaluate(() => {
@@ -403,10 +424,14 @@ test('rankBy marks the extremes, skips gaps within the margin and ignores missin
 });
 
 test('render shows a results table, then display cards', async ({ page }) => {
+  const labFrames: string[] = [];
+  page.on('framenavigated', frame => {
+    if (frame.url().includes('embed=lab')) labFrames.push(frame.url());
+  });
   const bundle = JSON.parse(
     readFileSync(new URL('../results/bundle.json', import.meta.url), 'utf8'),
   ) as Record<string, { libraryKb: number }>;
-  await page.goto('/index.html?libs=none,recharts');
+  await page.goto('/index.html?libs=none,recharts&effects=1');
   await page.getByRole('button', { name: 'Render' }).click();
   const rows = page.locator('[data-summaries] tbody tr');
   await expect(rows).toHaveCount(3, { timeout: 120_000 });
@@ -431,7 +456,14 @@ test('render shows a results table, then display cards', async ({ page }) => {
   await expect(page.locator('.card [data-card-stats]').first()).toContainText(
     `mount ${none!.mount.toFixed(1)}`,
   );
-  expect(await page.locator('.card iframe').first().getAttribute('src')).toContain('embed=display');
+  const firstFrame = page.locator('.card iframe').first();
+  expect(await firstFrame.getAttribute('src')).toContain('embed=display');
+  expect(await firstFrame.getAttribute('src')).toContain('effects=1');
+  expect(labFrames.length).toBeGreaterThan(0);
+  expect(labFrames.filter(url => url.includes('effects'))).toEqual([]);
+  await page.getByLabel('Animation and hover effects').uncheck();
+  await expect(firstFrame).not.toHaveAttribute('src', /effects=1/);
+  await expect(page.locator('.card .error')).toHaveCount(0);
 });
 
 test('loading a sample after a measurement leaves the measured cards alone', async ({ page }) => {

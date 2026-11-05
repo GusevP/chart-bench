@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { ITERATIONS, LINK_OPACITY, NODE_GAP, NODE_WIDTH, sankeyColors } from '../../shared/sankey';
 import { EChart } from '../shared/EChart';
@@ -20,7 +21,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'sankey'>) 
   const option = useMemo((): Option => {
     const colors = sankeyColors(data);
     return {
-      animation: false,
+      animation: EFFECTS,
       tooltip: { trigger: 'item' },
       series: [
         {
@@ -35,7 +36,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'sankey'>) 
           label: { show: false },
           itemStyle: { borderWidth: 0 },
           lineStyle: { color: 'source', opacity: LINK_OPACITY, curveness: 0.5 },
-          emphasis: { disabled: true },
+          emphasis: { disabled: !EFFECTS, focus: EFFECTS ? 'adjacency' : 'none' },
           data: data.nodes.map(n => ({ name: n.id, itemStyle: { color: colors.get(n.id) } })),
           links: data.links,
         },

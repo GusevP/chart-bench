@@ -22,6 +22,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Line, Scatter as ScatterChart } from 'react-chartjs-2';
 
 import type { Arm, ScatterChartProps, SurvivalChartProps } from '../../data/contract';
+import { EFFECTS } from '../../data/effects';
 import { MARGIN } from '../../data/spec';
 
 declare module 'chart.js' {
@@ -133,7 +134,7 @@ function Survival({ width, height, series, onSettled }: SurvivalChartProps) {
   const options = useMemo<ChartOptions<'line'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       parsing: false,
       normalized: true,
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },
@@ -197,7 +198,7 @@ function Scatter({ width, height, series, onSettled }: ScatterChartProps) {
   const options = useMemo<ChartOptions<'scatter'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       parsing: false,
       normalized: true,
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },

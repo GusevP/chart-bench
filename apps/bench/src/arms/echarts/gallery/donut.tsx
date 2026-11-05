@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { INNER_RATIO, donutRadius } from '../../shared/donut';
 import { EChart } from '../shared/EChart';
@@ -20,7 +21,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'donut'>) {
   const option = useMemo((): Option => {
     const radius = donutRadius(width, height);
     return {
-      animation: false,
+      animation: EFFECTS,
       tooltip: { trigger: 'item' },
       series: [
         {
@@ -37,7 +38,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'donut'>) {
           label: { show: false },
           labelLine: { show: false },
           itemStyle: { borderWidth: 0 },
-          emphasis: { scale: false },
+          emphasis: { scale: EFFECTS, focus: EFFECTS ? 'self' : 'none' },
           data: data.slices.map(s => ({ name: s.id, value: s.value, itemStyle: { color: s.color } })),
         },
       ],

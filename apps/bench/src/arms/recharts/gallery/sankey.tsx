@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Sankey, Tooltip } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { ITERATIONS, LINK_OPACITY, NODE_GAP, NODE_WIDTH, sankeyColors } from '../../shared/sankey';
 
@@ -51,7 +52,7 @@ function Chart({ width, height, data }: GalleryChartProps<'sankey'>) {
       node={node}
       link={link}
     >
-      <Tooltip isAnimationActive={false} />
+      <Tooltip isAnimationActive={EFFECTS} />
     </Sankey>
   );
 }

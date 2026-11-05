@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps, TreeNode } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { treemapRamp } from '../../shared/treemap';
 import { EChart } from '../shared/EChart';
@@ -25,13 +26,13 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'treemap'>)
         ? { name: node.id, itemStyle: { color: 'transparent' }, children: node.children.map(toItem) }
         : { name: node.id, value: node.value!, itemStyle: { color: ramp(node.value!) } };
     return {
-      animation: false,
+      animation: EFFECTS,
       tooltip: { trigger: 'item' },
       series: [
         {
           type: 'treemap',
-          // TreemapSeries defaults `animation` on, which outranks the top-level `animation: false`.
-          animation: false,
+          // TreemapSeries defaults `animation` on, which outranks the top-level `animation: EFFECTS`.
+          animation: EFFECTS,
           ...MARGIN,
           roam: false,
           nodeClick: false,
@@ -41,7 +42,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'treemap'>)
           visibleMin: 0,
           label: { show: false },
           upperLabel: { show: false },
-          emphasis: { upperLabel: { show: false } },
+          emphasis: { upperLabel: { show: false }, focus: EFFECTS ? 'self' : 'none' },
           itemStyle: { borderWidth: 0, gapWidth: 0 },
           data: data.children ? data.children.map(toItem) : [toItem(data)],
         },

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { CHART_MARGIN, TICK } from '../shared/style';
 
@@ -19,9 +20,9 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       <CartesianGrid vertical={false} stroke="#eee" />
       <XAxis dataKey="category" height={MARGIN.bottom} tick={TICK} />
       <YAxis width={MARGIN.left} tick={TICK} />
-      <Tooltip isAnimationActive={false} />
+      <Tooltip isAnimationActive={EFFECTS} />
       {data.series.map((s, j) => (
-        <Bar key={s.id} name={s.id} dataKey={`v${j}`} stackId="total" fill={s.color} isAnimationActive={false} />
+        <Bar key={s.id} name={s.id} dataKey={`v${j}`} stackId="total" fill={s.color} activeBar={EFFECTS && { fillOpacity: 0.7 }} isAnimationActive={EFFECTS} />
       ))}
     </BarChart>
   );

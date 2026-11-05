@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Tooltip, Treemap } from 'recharts';
 
 import type { GalleryChartProps, TreeNode } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { treemapRamp } from '../../shared/treemap';
 
@@ -43,9 +44,9 @@ function Chart({ width, height, data }: GalleryChartProps<'treemap'>) {
         dataKey="value"
         type="flat"
         content={content}
-        isAnimationActive={false}
+        isAnimationActive={EFFECTS}
       >
-        <Tooltip isAnimationActive={false} />
+        <Tooltip isAnimationActive={EFFECTS} />
       </Treemap>
     </div>
   );

@@ -2,6 +2,7 @@ import { Radar } from '@nivo/radar';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   RADAR_FILL_OPACITY,
@@ -43,7 +44,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
       fillOpacity={RADAR_FILL_OPACITY}
       borderWidth={RADAR_STROKE_WIDTH}
       theme={theme}
-      animate={false}
+      animate={EFFECTS}
       colors={({ key }) => colorById.get(key) ?? 'black'}
     />
   );

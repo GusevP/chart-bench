@@ -5,7 +5,7 @@ Each library gets one file, `src/arms/<arm>/charts.tsx`, exporting `arm: Arm` (s
 ## Both charts
 
 - The chart is exactly `width × height` (900 × 600). Use `MARGIN` from `src/data/spec.ts` for the plot area, or the library's closest equivalent.
-- **Animation off.** Turn off every transition and animation the library has, including any initial "grow in" effect.
+- **Animation and hover effects follow `EFFECTS`** from `src/data/effects.ts`. Off, turn off every transition and animation the library has, including any initial "grow in" effect. On, use what the library has built in, including its own dim-the-others option; write no effect by hand. Timed pages always run with it off.
 - Draw axes with ticks and labels, plus horizontal grid lines.
 - Show a tooltip on hover. Use whatever the library offers natively; build a custom one only if it has none.
 - Take colours from `series[i].color`.

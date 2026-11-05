@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { CANDLE_DOWN, CANDLE_RATIO, CANDLE_STROKE_WIDTH, CANDLE_UP, candleScale } from '../../shared/candles';
 import { thinTicks } from '../../shared/ticks';
@@ -24,7 +25,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
     const { domain, step } = candleScale(data.candles);
     const shown = new Set(thinTicks(data.candles.map(c => c.t)));
     return {
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: {
         type: 'category',
@@ -44,6 +45,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
       series: [
         {
           type: 'candlestick',
+          emphasis: { focus: EFFECTS ? 'self' : 'none' },
           large: false,
           barWidth: `${CANDLE_RATIO * 100}%`,
           itemStyle: {

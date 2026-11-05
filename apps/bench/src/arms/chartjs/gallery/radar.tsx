@@ -13,6 +13,7 @@ import { useMemo } from 'react';
 import { Radar } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   RADAR_FILL_OPACITY,
@@ -38,7 +39,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'radar'>) {
         borderWidth: RADAR_STROKE_WIDTH,
         tension: 0,
         pointRadius: 0,
-        pointHoverRadius: 0,
+        pointHoverRadius: EFFECTS ? 4 : 0,
         pointHitRadius: 8,
         fill: true,
         order: -i,
@@ -50,7 +51,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'radar'>) {
   const options = useMemo<ChartOptions<'radar'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: MARGIN },
       scales: {
         r: {

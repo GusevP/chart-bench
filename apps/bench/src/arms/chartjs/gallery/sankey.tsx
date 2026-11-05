@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { LINK_OPACITY, NODE_GAP, NODE_WIDTH, sankeyColors } from '../../shared/sankey';
 import { useSettlePlugin } from '../shared/chart';
@@ -38,7 +39,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'sankey'>) 
   const options = useMemo<ChartOptions<'sankey'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: { ...MARGIN, right: MARGIN.right + NODE_WIDTH } },
       plugins: { legend: { display: false } },
     }),

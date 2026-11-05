@@ -1,6 +1,6 @@
 import { d3Curve, defineChart, link, rect } from '@tanstack/charts';
 import { sankeyDiagram } from '@tanstack/charts/network/sankey';
-import { Chart as TanChart } from '@tanstack/charts/react';
+import { Chart as TanChart } from '../shared/Chart';
 import { tooltip } from '@tanstack/charts/tooltip';
 import { curveBumpX } from 'd3-shape';
 import { useMemo } from 'react';

@@ -35,6 +35,13 @@ p,
 small {
   color: var(--muted);
 }
+.effects {
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+.effects small {
+  flex-basis: 100%;
+}
 fieldset {
   border: 1px solid var(--line);
   border-radius: 8px;

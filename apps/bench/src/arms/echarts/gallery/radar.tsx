@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   RADAR_FILL_OPACITY,
@@ -27,7 +28,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'radar'>) {
   const option = useMemo((): Option => {
     const max = radarMax(data);
     return {
-      animation: false,
+      animation: EFFECTS,
       tooltip: { trigger: 'item' },
       radar: {
         center: [
@@ -53,7 +54,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'radar'>) {
           symbol: 'none',
           lineStyle: { width: RADAR_STROKE_WIDTH },
           areaStyle: { opacity: RADAR_FILL_OPACITY },
-          emphasis: { disabled: true },
+          emphasis: { disabled: !EFFECTS, focus: EFFECTS ? 'self' : 'none' },
           data: data.series.map(s => ({
             name: s.id,
             value: s.values,

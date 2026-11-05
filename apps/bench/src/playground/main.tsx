@@ -45,12 +45,14 @@ const supported = (library: Library, chart: ChartKind) =>
 function ArmFrame({
   library,
   data,
+  effects,
   result,
   hover,
   onHover,
 }: {
   library: Library;
   data: Parsed;
+  effects?: boolean;
   result?: LibraryResult;
   hover?: number;
   onHover: (library: Library, maxFrameMs: number) => void;
@@ -88,6 +90,7 @@ function ArmFrame({
 
   const src = new URLSearchParams(params);
   src.set('embed', 'display');
+  if (effects) src.set('effects', '1');
 
   if (!supported(library, data.chart))
     return (
@@ -244,7 +247,7 @@ function Lab({
 }: {
   job: Job;
   query: URLSearchParams;
-  onDone: (m: Measurements) => void;
+  onDone: (m: Measurements, period: number) => void;
   onFail: (message: string) => void;
   onCancel: () => void;
 }) {
@@ -261,12 +264,15 @@ function Lab({
       signal: abort.signal,
       onProgress: (done, total, name) => setLibrary({ name, index: done + 1, total }),
       onRun: (n, total) => setRun({ n, total }),
-    }).then(
-      m => !abort.signal.aborted && onDone(m),
-      e => {
-        if (!abort.signal.aborted) onFail(e instanceof Error ? e.message : String(e));
-      },
-    );
+    })
+      // Calibrated before the cards mount: their animation would drop frames and widen the margin.
+      .then(async m => ({ m, period: await framePeriod() }))
+      .then(
+        ({ m, period }) => !abort.signal.aborted && onDone(m, period),
+        e => {
+          if (!abort.signal.aborted) onFail(e instanceof Error ? e.message : String(e));
+        },
+      );
     return () => abort.abort();
   }, []);
 
@@ -297,6 +303,7 @@ function Lab({
 const params = new URLSearchParams(location.search);
 const requested = (params.get('libs') ?? '').split(',').filter((l): l is Library => l in LABELS);
 params.delete('libs');
+params.delete('effects');
 
 function Playground() {
   const [job, setJob] = useState<Job | null>(null);
@@ -306,6 +313,7 @@ function Playground() {
   const [frame, setFrame] = useState(16.7);
   const [runError, setRunError] = useState('');
   const [chart, setChart] = useState<ChartKind>('survival');
+  const [effects, setEffects] = useState(true);
   const [libraries, setLibraries] = useState<Library[]>(
     requested.length ? requested : ['recharts', 'echarts'],
   );
@@ -372,6 +380,19 @@ function Playground() {
           ))}
         </fieldset>
 
+        <label className="effects">
+          <input
+            type="checkbox"
+            checked={effects}
+            onChange={() => {
+              setEffects(on => !on);
+              setHover({});
+            }}
+          />
+          Animation and hover effects
+          <small>Shown on the charts and in the hover column. Mount and update stay static.</small>
+        </label>
+
         <fieldset disabled={!!job}>
           <legend>Chart</legend>
           {kinds.map(kind => (
@@ -422,11 +443,11 @@ function Playground() {
           <Lab
             job={job}
             query={params}
-            onDone={m => {
+            onDone={(m, period) => {
+              setFrame(period);
               setMeasured(m);
               setShown(job);
               setJob(null);
-              void framePeriod().then(setFrame);
             }}
             onFail={message => {
               setRunError(message);
@@ -446,9 +467,10 @@ function Playground() {
         )}
         {shown?.libraries.map(lib => (
           <ArmFrame
-            key={lib}
+            key={`${lib}-${effects}`}
             library={lib}
             data={shown.data}
+            effects={effects}
             result={measured?.results[lib]}
             hover={hover[lib]}
             onHover={(l, ms) => setHover(cur => ({ ...cur, [l]: ms }))}

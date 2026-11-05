@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { HEAT_RANGE, heatmapDomain } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
@@ -26,7 +27,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'heatmap'>)
   const option = useMemo((): Option => {
     const [lo, hi] = heatmapDomain(data.values);
     return {
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: {
         type: 'category',
@@ -47,6 +48,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'heatmap'>)
       series: [
         {
           type: 'heatmap',
+          emphasis: { focus: EFFECTS ? 'self' : 'none' },
           label: { show: false },
           itemStyle: { borderWidth: 0 },
           data: data.ys.flatMap((_, j) => data.xs.map((_, i) => [i, j, data.values[j]![i]!])),

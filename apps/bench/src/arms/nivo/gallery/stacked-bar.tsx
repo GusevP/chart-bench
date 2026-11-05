@@ -2,6 +2,7 @@ import { Bar } from '@nivo/bar';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { thinTicks } from '../../shared/ticks';
 
@@ -23,7 +24,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
       data={rows}
       keys={data.series.map(s => s.id)}
       indexBy="category"
-      animate={false}
+      animate={EFFECTS}
       enableLabel={false}
       colors={({ id }) => colorById.get(String(id)) ?? 'black'}
       axisBottom={{ tickValues: thinTicks(data.categories) }}

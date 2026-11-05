@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { PolarGrid, PolarRadiusAxis, Radar, RadarChart, Tooltip } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   RADAR_FILL_OPACITY,
@@ -44,7 +45,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
         polarRadius={radarRings(max).map(r => (r / max) * radius)}
       />
       <PolarRadiusAxis domain={[0, max]} tick={false} tickLine={false} axisLine={false} />
-      <Tooltip isAnimationActive={false} labelFormatter={i => data.categories[Number(i)]} />
+      <Tooltip isAnimationActive={EFFECTS} labelFormatter={i => data.categories[Number(i)]} />
       {data.series.map((s, j) => (
         <Radar
           key={s.id}
@@ -55,7 +56,7 @@ function Chart({ width, height, data }: GalleryChartProps<'radar'>) {
           fill={s.color}
           fillOpacity={RADAR_FILL_OPACITY}
           dot={false}
-          isAnimationActive={false}
+          isAnimationActive={EFFECTS}
         />
       ))}
     </RadarChart>

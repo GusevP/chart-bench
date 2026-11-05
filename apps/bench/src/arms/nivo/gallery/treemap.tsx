@@ -2,6 +2,7 @@ import { TreeMap } from '@nivo/treemap';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { treemapRamp } from '../../shared/treemap';
 
@@ -21,7 +22,7 @@ function Chart({ width, height, data }: GalleryChartProps<'treemap'>) {
         outerPadding={0}
         borderWidth={0}
         nodeOpacity={1}
-        animate={false}
+        animate={EFFECTS}
         enableLabel={false}
         enableParentLabel={false}
         colors={node => ramp(node.value)}

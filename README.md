@@ -18,6 +18,8 @@ Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is th
 
 Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only.
 
+The "Animation and hover effects" checkbox, on by default, controls the display cards. On, each library runs with its built-in animation and hover behaviour, including its own dim-the-others option where it has one; nothing is hand-written, so visx and the no-library arm stay as they are, and custom marks such as nivo's scatter nodes don't animate. Off keeps the static baseline, which still includes a few built-in hover styles such as nivo's Sankey dimming. Mount, update, blocking and DOM nodes always come from static charts, because a Canvas library reports done after its animation while an SVG chart settles at commit. The hover column measures the state of the checkbox, and changing it clears that column.
+
 Twelve chart types: Survival and Scatter, plus stacked bar, stacked area, donut, radar, bar + line on two axes, heatmap, treemap, Sankey, box plot and candlestick. Each library renders the same pasted JSON.
 
 Run it with `pnpm build && pnpm -F bench preview`, then open `http://localhost:4173/`. `pnpm build` runs `scripts/gallery-bundle.mjs` and a second Vite build (`vite.gallery.config.ts`, entry `gallery.html`) before the main build, so chart code for the ten new types stays out of the arm pages and `bundle.json`. Its specs: `pnpm -F bench test:playground`. `.github/workflows/pages.yml` deploys the same build to GitHub Pages on every push to `main`.
@@ -100,32 +102,33 @@ Implementation burden of these ports under this contract, not a ranking of how s
 
 | Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Survival + Scatter | 1064 | 993 | 1093 | 1206 | 1683 | 679 | 1637 |
-| Box plot | N/A | 1270 | 1246 | 1223 | 1507 | 1157 | N/A |
-| Candlestick | N/A | N/A | 1429 | 1423 | N/A | 1180 | N/A |
-| Bar + line | 352 | N/A | 478 | 449 | 898 | 397 | N/A |
-| Donut | 206 | 198 | 471 | 342 | 439 | 266 | N/A |
-| Heatmap | N/A | 465 | 792 | 853 | 939 | 539 | N/A |
-| Radar | 555 | 442 | 695 | 580 | 936 | 543 | N/A |
-| Sankey | 434 | 229 | 459 | 458 | 673 | 392 | N/A |
-| Stacked area | 288 | 280 | 383 | 366 | 909 | 303 | N/A |
-| Stacked bar | 268 | 255 | 375 | 333 | 846 | 302 | N/A |
-| Treemap | 572 | 428 | 747 | 913 | 740 | 540 | N/A |
+| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 1637 |
+| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | N/A |
+| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | N/A |
+| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | N/A |
+| Donut | 206 | 207 | 479 | 350 | 439 | 307 | N/A |
+| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | N/A |
+| Radar | 555 | 442 | 704 | 588 | 936 | 584 | N/A |
+| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | N/A |
+| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | N/A |
+| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | N/A |
+| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | N/A |
 
 For gallery totals, compare the six types implemented by all six library arms: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
 
 | Common six types | Chart files | Adapter | `arms/shared` | Total | Gallery coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Recharts | 1697 | 36 | 511 | 2244 | 7/10 |
-| nivo | 1192 | 0 | 554 | 1746 | 8/10 |
-| ECharts | 1544 | 172 | 511 | 2227 | 10/10 |
-| Chart.js | 1808 | 105 | 511 | 2424 | 10/10 |
+| Recharts | 1708 | 36 | 511 | 2255 | 7/10 |
+| nivo | 1201 | 0 | 554 | 1755 | 8/10 |
+| ECharts | 1602 | 172 | 511 | 2285 | 10/10 |
+| Chart.js | 1840 | 105 | 511 | 2456 | 10/10 |
 | visx | 3681 | 37 | 554 | 4272 | 9/10 |
-| TanStack | 1706 | 0 | 554 | 2260 | 10/10 |
+| TanStack | 1706 | 41 | 554 | 2301 | 10/10 |
 
 - **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
 - **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.
 - **Whole files:** a chart pays for all of a file it reaches. Chart.js Sankey pays for `fixWidth` and `fixHeight` without using them, and all three candlesticks pay for the box statistics in `boxplot.ts` because `candles.ts` imports `niceScale` from it. Treat small gaps as noise.
+- **Effects are counted.** Counts include the code that switches effects on. Bundles include what it pulls in: TanStack's `motion` renderer adds about 15 KB.
 - **Benchmark plumbing is not removed.** The Chart.js and ECharts adapters hold settle code, and chart files still pass `onSettled`.
 - **Box plot:** the input is raw values, and five ports chose the shared `boxplotStats`. Native or addon alternatives exist, and their equivalence was not evaluated. nivo also hides outliers, as recorded below.
 

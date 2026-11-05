@@ -14,6 +14,7 @@ import {
 import type { DotItemDotProps, ScatterShapeProps } from 'recharts';
 
 import type { Arm, ScatterChartProps, SurvivalChartProps, SurvivalSeries } from '../../data/contract';
+import { EFFECTS } from '../../data/effects';
 import { MARGIN } from '../../data/spec';
 
 const AXIS_LABEL = { fill: '#555', fontSize: 11 };
@@ -74,7 +75,7 @@ function Survival({ width, height, series }: SurvivalChartProps) {
         label={{ value: 'Survival', angle: -90, position: 'insideLeft', ...AXIS_LABEL }}
       />
       <Tooltip
-        isAnimationActive={false}
+        isAnimationActive={EFFECTS}
         labelFormatter={x => `Day ${x}`}
         formatter={v => (typeof v === 'number' ? v.toFixed(3) : v)}
       />
@@ -88,7 +89,7 @@ function Survival({ width, height, series }: SurvivalChartProps) {
           fillOpacity={0.15}
           tooltipType="none"
           activeDot={false}
-          isAnimationActive={false}
+          isAnimationActive={EFFECTS}
         />
       ))}
       {series.map((s, i) => (
@@ -100,7 +101,7 @@ function Survival({ width, height, series }: SurvivalChartProps) {
           stroke={s.color}
           strokeWidth={1.5}
           dot={censorTick(`c${i}`)}
-          isAnimationActive={false}
+          isAnimationActive={EFFECTS}
         />
       ))}
     </ComposedChart>
@@ -130,7 +131,7 @@ function Scatter({ width, height, series }: ScatterChartProps) {
         label={{ value: 'Y', angle: -90, position: 'insideLeft', ...AXIS_LABEL }}
       />
       <Tooltip
-        isAnimationActive={false}
+        isAnimationActive={EFFECTS}
         formatter={v => (typeof v === 'number' ? v.toFixed(1) : v)}
         content={props => <DefaultTooltipContent {...props} label={props.payload[0]?.graphicalItemId} />}
       />
@@ -140,7 +141,7 @@ function Scatter({ width, height, series }: ScatterChartProps) {
           id={s.id}
           data={s.points}
           fill={s.color}
-          isAnimationActive={false}
+          isAnimationActive={EFFECTS}
           shape={({ cx, cy, payload }: ScatterShapeProps) => (
             <circle cx={cx} cy={cy} r={payload.size} fill={s.color} fillOpacity={0.7} />
           )}

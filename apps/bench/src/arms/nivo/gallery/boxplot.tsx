@@ -3,6 +3,7 @@ import type { BoxPlotDatum, BoxPlotTooltipProps } from '@nivo/boxplot';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { BOX_RATIO, BOX_STROKE, BOX_STROKE_WIDTH, boxplotStats, boxScale } from '../../shared/boxplot';
 import { thinTicks } from '../../shared/ticks';
@@ -65,7 +66,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
       whiskerWidth={BOX_STROKE_WIDTH}
       whiskerEndSize={1}
       tooltip={Tooltip}
-      animate={false}
+      animate={EFFECTS}
       axisBottom={{ tickValues: thinTicks(stats.map(s => s.id)) }}
       axisLeft={{ tickValues: ticks }}
       gridYValues={ticks}

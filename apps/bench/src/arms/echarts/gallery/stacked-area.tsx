@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { EChart } from '../shared/EChart';
 
@@ -18,13 +19,14 @@ type Option = ComposeOption<LineSeriesOption | GridComponentOption | TooltipComp
 function Chart({ width, height, data, onSettled }: GalleryChartProps<'stacked-area'>) {
   const option = useMemo(
     (): Option => ({
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: { type: 'category', data: data.categories, boundaryGap: false, axisLabel: { hideOverlap: true } },
       yAxis: { type: 'value', axisLine: { show: true }, axisTick: { show: true } },
       tooltip: { trigger: 'axis' },
       series: data.series.map((s): LineSeriesOption => ({
         type: 'line',
+        emphasis: { focus: EFFECTS ? 'series' : 'none' },
         name: s.id,
         stack: 'total',
         data: s.values,

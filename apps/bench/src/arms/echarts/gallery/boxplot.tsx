@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import {
   BOX_OUTLIER_COLOR,
@@ -32,7 +33,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'boxplot'>)
     const { domain, step } = boxScale(stats);
     const boxWidth = `${BOX_RATIO * 100}%`;
     return {
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: {
         type: 'category',
@@ -52,6 +53,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'boxplot'>)
       series: [
         {
           type: 'boxplot',
+          emphasis: { focus: EFFECTS ? 'self' : 'none' },
           boxWidth: [boxWidth, boxWidth],
           itemStyle: { borderColor: BOX_STROKE, borderWidth: BOX_STROKE_WIDTH },
           data: stats.map(s => ({

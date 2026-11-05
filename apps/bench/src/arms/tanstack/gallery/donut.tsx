@@ -1,6 +1,6 @@
 import { defineChart } from '@tanstack/charts';
 import { pie, polar, radialArc } from '@tanstack/charts/polar';
-import { Chart as TanChart } from '@tanstack/charts/react';
+import { Chart as TanChart } from '../shared/Chart';
 import { tooltip } from '@tanstack/charts/tooltip';
 import { useMemo } from 'react';
 

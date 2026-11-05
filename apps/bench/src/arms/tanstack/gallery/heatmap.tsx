@@ -1,5 +1,5 @@
 import { cell, defineChart } from '@tanstack/charts';
-import { Chart as TanChart } from '@tanstack/charts/react';
+import { Chart as TanChart } from '../shared/Chart';
 import { scaleBand } from '@tanstack/charts/scales/band';
 import { tooltip } from '@tanstack/charts/tooltip';
 import { scaleLinear } from 'd3-scale';

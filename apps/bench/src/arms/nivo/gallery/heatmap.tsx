@@ -2,6 +2,7 @@ import { HeatMap } from '@nivo/heatmap';
 import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { heatmapRamp } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
@@ -24,11 +25,11 @@ function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
         height={height}
         margin={MARGIN}
         data={rows}
-        animate={false}
+        animate={EFFECTS}
         enableLabels={false}
         colors={cell => ramp(cell.value ?? 0)}
-        hoverTarget="cell"
-        inactiveOpacity={1}
+        hoverTarget={EFFECTS ? 'rowColumn' : 'cell'}
+        inactiveOpacity={EFFECTS ? 0.15 : 1}
         axisTop={null}
         axisBottom={{ tickValues: thinTicks(data.xs) }}
         axisLeft={{ tickValues: thinTicks(data.ys) }}

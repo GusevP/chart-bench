@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { COMBO_LINE_WIDTH } from '../../shared/combo';
 import { fixHeight, fixWidth, useSettlePlugin } from '../shared/chart';
@@ -44,7 +45,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'combo'>) {
           backgroundColor: data.line.color,
           borderWidth: COMBO_LINE_WIDTH,
           pointRadius: 0,
-          pointHoverRadius: 0,
+          pointHoverRadius: EFFECTS ? 4 : 0,
           order: 0,
         },
         {
@@ -62,7 +63,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'combo'>) {
   const options = useMemo<ChartOptions<'bar' | 'line'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: { top: MARGIN.top } },
       interaction: { mode: 'index', intersect: false },
       scales: {

@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps, TreeNode } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { treemapRamp } from '../../shared/treemap';
 import { useSettlePlugin } from '../shared/chart';
@@ -65,7 +66,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'treemap'>)
   const options = useMemo<ChartOptions<'treemap'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: MARGIN },
       plugins: {
         legend: { display: false },

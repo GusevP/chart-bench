@@ -8,6 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { useEffect, useMemo, useRef } from 'react';
 
 import type { Arm, ScatterChartProps, SurvivalChartProps, SurvivalPoint } from '../../data/contract';
+import { EFFECTS } from '../../data/effects';
 import { MARGIN } from '../../data/spec';
 
 use([LineChart, ScatterChart, GridComponent, TooltipComponent, CanvasRenderer]);
@@ -65,7 +66,7 @@ function Survival({ width, height, series, onSettled }: SurvivalChartProps) {
   const option = useMemo((): Option => {
     const lastX = Math.max(...series.map(s => s.points.at(-1)?.x ?? 0));
     return {
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: {
         ...axisCommon,
@@ -114,6 +115,7 @@ function Survival({ width, height, series, onSettled }: SurvivalChartProps) {
         },
         {
           type: 'line',
+          emphasis: { focus: EFFECTS ? 'series' : 'none' },
           name: s.id,
           step: 'end',
           data: s.points.map(p => [p.x, p.y]),
@@ -139,7 +141,7 @@ function Survival({ width, height, series, onSettled }: SurvivalChartProps) {
 function Scatter({ width, height, series, onSettled }: ScatterChartProps) {
   const option = useMemo(
     (): Option => ({
-      animation: false,
+      animation: EFFECTS,
       grid: { ...MARGIN, outerBoundsMode: 'none' },
       xAxis: { ...axisCommon, scale: true, name: 'X', nameGap: 28, splitLine: { show: false } },
       yAxis: { ...axisCommon, scale: true, name: 'Y', nameGap: 38 },
@@ -153,6 +155,7 @@ function Scatter({ width, height, series, onSettled }: ScatterChartProps) {
       },
       series: series.map((s): ScatterSeriesOption => ({
         type: 'scatter',
+        emphasis: { focus: EFFECTS ? 'series' : 'none' },
         name: s.id,
         data: s.points.map(p => [p.x, p.y, p.size]),
         // symbolSize is a diameter; point.size is a radius.

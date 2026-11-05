@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Chart as ReactChart } from 'react-chartjs-2';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { heatmapRamp } from '../../shared/colorRamp';
 import { thinTicks } from '../../shared/ticks';
@@ -40,7 +41,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'heatmap'>)
   const options = useMemo<ChartOptions<'matrix'>>(
     () => ({
       responsive: false,
-      animation: false,
+      animation: EFFECTS ? undefined : false,
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },
       plugins: {
         legend: { display: false },

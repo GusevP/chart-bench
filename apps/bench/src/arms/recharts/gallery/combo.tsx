@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Bar, CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { GalleryChartProps } from '../../../data/contract';
+import { EFFECTS } from '../../../data/effects';
 import { MARGIN } from '../../../data/spec';
 import { COMBO_LINE_WIDTH } from '../../shared/combo';
 import { CHART_MARGIN, TICK } from '../shared/style';
@@ -22,8 +23,8 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
       <XAxis dataKey="category" height={MARGIN.bottom} tick={TICK} />
       <YAxis yAxisId="bars" width={MARGIN.left} tick={TICK} domain={[0, 'auto']} />
       <YAxis yAxisId="line" orientation="right" width={MARGIN.left} tick={TICK} domain={[0, 'auto']} />
-      <Tooltip isAnimationActive={false} />
-      <Bar yAxisId="bars" name={data.bars.id} dataKey="bar" fill={data.bars.color} isAnimationActive={false} />
+      <Tooltip isAnimationActive={EFFECTS} />
+      <Bar yAxisId="bars" name={data.bars.id} dataKey="bar" fill={data.bars.color} activeBar={EFFECTS && { fillOpacity: 0.7 }} isAnimationActive={EFFECTS} />
       <Line
         yAxisId="line"
         name={data.line.id}
@@ -32,8 +33,8 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
         stroke={data.line.color}
         strokeWidth={COMBO_LINE_WIDTH}
         dot={false}
-        activeDot={false}
-        isAnimationActive={false}
+        activeDot={EFFECTS}
+        isAnimationActive={EFFECTS}
       />
     </ComposedChart>
   );

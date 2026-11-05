@@ -1,89 +1,89 @@
 {
   "chartjs": {
     "boxplot": {
-      "libraryKb": 56.4
+      "libraryKb": 56.5
     },
     "candlestick": {
-      "libraryKb": 74.2
+      "libraryKb": 74.3
     },
     "combo": {
-      "libraryKb": 55.6
+      "libraryKb": 55.7
     },
     "donut": {
-      "libraryKb": 50.7
+      "libraryKb": 50.8
     },
     "heatmap": {
-      "libraryKb": 48.9
+      "libraryKb": 49
     },
     "radar": {
       "libraryKb": 53.8
     },
     "sankey": {
-      "libraryKb": 53.5
+      "libraryKb": 53.6
     },
     "stacked-area": {
-      "libraryKb": 54.7
+      "libraryKb": 54.8
     },
     "stacked-bar": {
-      "libraryKb": 51
+      "libraryKb": 51.1
     },
     "treemap": {
-      "libraryKb": 53
+      "libraryKb": 53.1
     }
   },
   "echarts": {
     "boxplot": {
-      "libraryKb": 159.5
+      "libraryKb": 159.6
     },
     "candlestick": {
-      "libraryKb": 153.9
+      "libraryKb": 154
     },
     "combo": {
-      "libraryKb": 169.1
+      "libraryKb": 169.2
     },
     "donut": {
       "libraryKb": 139.1
     },
     "heatmap": {
-      "libraryKb": 162.9
+      "libraryKb": 163
     },
     "radar": {
-      "libraryKb": 143.1
+      "libraryKb": 143.2
     },
     "sankey": {
-      "libraryKb": 145
+      "libraryKb": 145.1
     },
     "stacked-area": {
-      "libraryKb": 161.6
+      "libraryKb": 161.7
     },
     "stacked-bar": {
-      "libraryKb": 159.5
+      "libraryKb": 159.6
     },
     "treemap": {
-      "libraryKb": 145.7
+      "libraryKb": 145.8
     }
   },
   "nivo": {
     "boxplot": {
-      "libraryKb": 82.8
+      "libraryKb": 82.9
     },
     "donut": {
-      "libraryKb": 67.6
+      "libraryKb": 67.7
     },
     "heatmap": {
-      "libraryKb": 76.6
+      "libraryKb": 76.7
     },
     "radar": {
       "libraryKb": 65.8
     },
     "sankey": {
-      "libraryKb": 64.5
+      "libraryKb": 64.6
     },
     "stacked-area": {
       "libraryKb": 92.7
     },
     "stacked-bar": {
-      "libraryKb": 86.7
+      "libraryKb": 86.8
     },
     "treemap": {
       "libraryKb": 66.4
@@ -94,54 +94,54 @@
       "libraryKb": 101.7
     },
     "donut": {
-      "libraryKb": 88.2
+      "libraryKb": 88.3
     },
     "radar": {
       "libraryKb": 90
     },
     "sankey": {
-      "libraryKb": 80.6
+      "libraryKb": 80.7
     },
     "stacked-area": {
-      "libraryKb": 97.4
+      "libraryKb": 97.5
     },
     "stacked-bar": {
       "libraryKb": 98
     },
     "treemap": {
-      "libraryKb": 82.7
+      "libraryKb": 82.8
     }
   },
   "tanstack": {
     "boxplot": {
-      "libraryKb": 41.8
+      "libraryKb": 56.5
     },
     "candlestick": {
-      "libraryKb": 40.6
+      "libraryKb": 55.3
     },
     "combo": {
-      "libraryKb": 39.9
+      "libraryKb": 54.6
     },
     "donut": {
-      "libraryKb": 38.7
+      "libraryKb": 53.2
     },
     "heatmap": {
-      "libraryKb": 41.8
+      "libraryKb": 56.8
     },
     "radar": {
-      "libraryKb": 40.9
+      "libraryKb": 55.4
     },
     "sankey": {
-      "libraryKb": 41.7
+      "libraryKb": 56.6
     },
     "stacked-area": {
-      "libraryKb": 36.8
+      "libraryKb": 51.3
     },
     "stacked-bar": {
-      "libraryKb": 39.3
+      "libraryKb": 54
     },
     "treemap": {
-      "libraryKb": 38
+      "libraryKb": 52.5
     }
   },
   "visx": {
