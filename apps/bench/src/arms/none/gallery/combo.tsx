@@ -28,7 +28,6 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
       <svg width={width} height={height} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
         <YAxis y={barY} x={x.range[0]} grid={x.range[1] - x.range[0]} />
         <YAxis y={lineY} x={x.range[1]} right />
-        <CategoryAxis categories={data.categories} at={x.center} x={x.range} y={yRange[0]} />
         <g fill={data.bars.color}>
           {data.bars.values.map((v, i) => (
             <rect key={i} x={x.start(i)} y={barY(v)} width={x.width} height={yRange[0] - barY(v)} />
@@ -40,6 +39,7 @@ function Chart({ width, height, data }: GalleryChartProps<'combo'>) {
           stroke={data.line.color}
           strokeWidth={COMBO_LINE_WIDTH}
         />
+        <CategoryAxis categories={data.categories} at={x.center} x={x.range} y={yRange[0]} />
       </svg>
       {hover && (
         <Tooltip left={hover.left} top={hover.top} width={width} height={height}>

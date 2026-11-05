@@ -38,7 +38,6 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
     <div style={{ position: 'relative', width, height }}>
       <svg width={width} height={height} onMouseMove={onMove} onMouseLeave={() => setTip(null)}>
         <YAxis y={y} x={x.range[0]} grid={x.range[1] - x.range[0]} />
-        <CategoryAxis categories={data.categories} at={x.center} x={x.range} y={y.range[0]} />
         {data.series.map((s, j) => (
           <g key={s.id} fill={s.color}>
             {layers[j]!.map((top, i) => (
@@ -52,6 +51,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-bar'>) {
             ))}
           </g>
         ))}
+        <CategoryAxis categories={data.categories} at={x.center} x={x.range} y={y.range[0]} />
       </svg>
       {tip && (
         <Tooltip left={tip.left} top={tip.top} width={width} height={height}>

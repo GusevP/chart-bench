@@ -126,6 +126,7 @@ Reuse:
 - Create: `apps/bench/src/arms/none/shared/polar.ts`
 - Create: `apps/bench/src/arms/none/gallery/donut.tsx`
 - Create: `apps/bench/src/arms/none/gallery/radar.tsx`
+- Modify: `apps/bench/tests/playground.spec.ts`
 
 - [ ] implement both from `donutRadius`, `INNER_RATIO`, `radarRings`, `radarMax` and the radar constants
 - [ ] hit-test by angle and radius, one handler on the `<svg>`
@@ -139,6 +140,7 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/heatmap.tsx`
 - Create: `apps/bench/src/arms/none/gallery/boxplot.tsx`
 - Create: `apps/bench/src/arms/none/gallery/candlestick.tsx`
+- Modify: `apps/bench/tests/playground.spec.ts`
 
 - [ ] heatmap with `heatmapRamp` and `thinTicks`
 - [ ] box plot with `boxplotStats`, `boxScale` and the box constants, including outliers

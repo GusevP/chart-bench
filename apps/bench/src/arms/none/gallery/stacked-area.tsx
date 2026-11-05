@@ -26,7 +26,6 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-area'>) {
     <div style={{ position: 'relative', width, height }}>
       <svg width={width} height={height} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
         <YAxis y={y} x={x.range[0]} grid={x.range[1] - x.range[0]} />
-        <CategoryAxis categories={data.categories} at={x} x={x.range} y={y.range[0]} />
         {data.series.map((s, j) => {
           const top = layers[j]!;
           const below = layers[j - 1] ?? top.map(() => 0);
@@ -39,6 +38,7 @@ function Chart({ width, height, data }: GalleryChartProps<'stacked-area'>) {
             />
           );
         })}
+        <CategoryAxis categories={data.categories} at={x} x={x.range} y={y.range[0]} />
       </svg>
       {hover && (
         <Tooltip left={hover.left} top={hover.top} width={width} height={height}>
