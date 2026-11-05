@@ -130,7 +130,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [x] `gallery.tsx` awaits `arms/<lib>/gallery/<type>.tsx` before mounting, and posts `bench:error` with `runId: null` for an unknown pair, a failed import or a throw during module evaluation
 - [x] regenerate `bundle.json` once, with `libraryKb` within 0.1 of the committed values
 - [x] spec: `gallery.html` for an unknown pair reports `bench:error`; `dist` holds both builds
-- [ ] run the per-task gate and the harness command
+- [x] run the per-task gate and the harness command
 
 ### Task 2: Playground chart picker over all kinds
 
@@ -145,7 +145,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [x] chart picker lists all kinds; a kind is reachable only once it has a table entry
 - [x] add one spec that first compares the pairs in `gallery-bundle.json` to a literal expected list in the spec, then iterates them with the typical sample, asserting stats and no `bench:error`, and every other pair shows Not supported. Each type's task adds its pairs to that list from the matrix, so an omitted wrapper fails instead of reading as unsupported. Runtime lookups still use the JSON
 - [x] existing 24 specs pass, one of them edited. 81488d3 moved the playground's one-column breakpoint from 900px to 1400px (`style.css`), a layout change this plan did not list. The specs run at 1000px wide, so the page is now one column there, and 90d69e1 changed `a lab scrolled out of view mid-run repeats the run and still yields every sample` to bring the lab back with `scrollIntoView` instead of `scrollTo(0, 0)`
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 3: Stacked bar
 **Files:** `apps/bench/src/arms/{recharts,nivo,echarts,chartjs,visx,tanstack}/gallery/stacked-bar.tsx`, data and spec files from Task 2, `apps/bench/package.json`, `apps/bench/results/gallery-bundle.json`
@@ -153,52 +153,52 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [x] add the `Categories` shape, sample, parser entry and `nudge`
 - [x] add the wrappers from the matrix, installing `@nivo/bar`
 - [x] spec: the chart chunk's `responseEnd` comes before `bench:ready` arrives; malformed JSON is rejected; `nudge` changes proportions
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 4: Stacked area
 - [x] sample, parser entry, `nudge`, wrappers per the matrix
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 5: Donut
 - [x] `Donut` shape, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/pie`
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 6: Radar
 - [x] sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/radar`
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 7: Bar + line on two axes
 - [x] `Combo` shape, sample, parser entry, `nudge`, wrappers per the matrix
 - [x] settle the TanStack cell: yes only if it has a second y scale without custom marks, and update the matrix
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 8: Heatmap
 - [x] `Heatmap` shape, sample, parser entry (rectangular `values`), `nudge`, wrappers per the matrix, installing `@nivo/heatmap`, `chartjs-chart-matrix`, `@visx/heatmap`
 - [x] spec: a non-rectangular `values` rejected
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 9: Treemap
 - [x] `TreeNode` shape, sample, parser entry (leaves need a positive `value`), `nudge`, wrappers per the matrix, installing `@nivo/treemap`, `chartjs-chart-treemap`, `@visx/hierarchy`
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 10: Sankey
 - [x] `Sankey` shape, sample, parser entry (links name known nodes, no cycles), `nudge`, wrappers per the matrix, installing `@nivo/sankey`, `chartjs-chart-sankey`, `@visx/sankey`
 - [x] spec: a link to an unknown node and a cycle rejected
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 11: Box plot
 - [x] `BoxGroups` shape, shared statistics helper, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/boxplot`, `@sgratzl/chartjs-chart-boxplot`, `@visx/stats`
 - [x] spec: the helper against a hand-computed quartile case
-- [ ] run the per-task gate
+- [x] run the per-task gate
 
 ### Task 12: Candlestick
 - [x] `Candles` shape, sample, parser entry (low ≤ open, close ≤ high), `nudge`, wrappers per the matrix, installing `chartjs-chart-financial`, `chartjs-adapter-luxon` and `luxon` (its documented setup, so they count toward KB)
 - [x] spec: an impossible bar rejected
-- [ ] run the per-task gate and the harness command
+- [x] run the per-task gate and the harness command
 
 ### Task 13: Verify acceptance criteria
-- [ ] `pnpm typecheck` and `pnpm build` pass
-- [ ] `pnpm -F bench exec playwright test tests/playground.spec.ts` passes
+- [x] `pnpm typecheck` and `pnpm build` pass
+- [x] `pnpm -F bench exec playwright test tests/playground.spec.ts` passes
 - [x] open every type in a real browser with `agent-browser` at both sample sizes, and compare the cards by eye for the same data, legend and axes
 - [x] record in the plan any library that cannot finish a heavy sample
 
@@ -270,7 +270,7 @@ Slowest: nivo heatmap (mount 5.7 s, blocking 5.6 s) and nivo treemap (mount 2.0 
 ### Task 14: [Final] Update documentation
 - [x] update the Playground section of `README.md`: chart types, the support rule, the matrix, how to paste each shape, and the Chart.js treemap ratio-1 outlier
 - [x] add the support matrix to `ARTICLE.md` only if it already discusses chart coverage
-- [ ] move this plan to `docs/plans/completed/`
+- [x] move this plan to `docs/plans/completed/`
 
 ## Post-Completion
 *Items requiring manual intervention or external systems. No checkboxes, informational only.*
