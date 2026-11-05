@@ -1,3 +1,4 @@
+import { boxStats } from '../arms/shared/boxplot';
 import { treeLeaves } from '../arms/shared/treemap';
 import type { ChartKind, GalleryKind, Payload, Sankey, TreeNode } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
@@ -416,24 +417,23 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   },
   boxplot: {
     label: 'Box plot',
-    hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box. Points beyond are outliers and are not drawn.',
+    hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box. Points beyond are outliers, drawn as dots in every library except nivo, which has no outlier layer.',
     parse: raw => ({ chart: 'boxplot', data: parseBoxplot(raw) }),
     nudge: parsed => {
       if (parsed.chart !== 'boxplot') return parsed;
-      const flat = parsed.data.groups.flatMap(g => g.values);
-      const constant = flat.every(v => v === flat[0]);
-      const shift = Math.max(1, Math.floor(flat.length / parsed.data.groups.length / 2));
-      let k = 0;
       return {
         chart: 'boxplot',
         data: {
-          groups: parsed.data.groups.map(g => ({
-            ...g,
-            values: g.values.map(() => {
-              const i = k++;
-              return constant ? flat[i]! + (i % 2) : flat[(i + shift) % flat.length]!;
-            }),
-          })),
+          groups: parsed.data.groups.map((g, k) => {
+            const { min, max, median } = boxStats(g.values);
+            return {
+              ...g,
+              values: g.values.map((v, i) => {
+                if (min === max) return v + ((i + k) % 2);
+                return v > min && v >= median ? v + (max - min) * 0.1 : v;
+              }),
+            };
+          }),
         },
       };
     },

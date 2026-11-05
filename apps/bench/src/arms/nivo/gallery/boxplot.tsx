@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import { BOX_RATIO, BOX_STROKE, BOX_STROKE_WIDTH, boxDomain, boxplotStats } from '../../shared/boxplot';
+import { BOX_RATIO, BOX_STROKE, BOX_STROKE_WIDTH, boxplotStats, boxScale } from '../../shared/boxplot';
 import { thinTicks } from '../../shared/ticks';
 
 const tooltipStyle = {
@@ -41,7 +41,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
     [stats],
   );
   const colorById = useMemo(() => new Map(stats.map(s => [s.id, s.color])), [stats]);
-  const [minValue, maxValue] = useMemo(() => boxDomain(stats), [stats]);
+  const { domain, ticks } = useMemo(() => boxScale(stats), [stats]);
   const padding = ((1 - BOX_RATIO) * stats.length) / (stats.length + BOX_RATIO);
   return (
     <BoxPlot
@@ -52,8 +52,9 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
       groupBy="group"
       colorBy="group"
       colors={(d: { group: string }) => colorById.get(d.group) ?? 'black'}
-      minValue={minValue}
-      maxValue={maxValue}
+      minValue={domain[0]}
+      maxValue={domain[1]}
+      valueScale={{ type: 'linear', nice: false }}
       padding={padding}
       indexScale={{ type: 'band', round: false }}
       borderWidth={BOX_STROKE_WIDTH}
@@ -66,6 +67,8 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
       tooltip={Tooltip}
       animate={false}
       axisBottom={{ tickValues: thinTicks(stats.map(s => s.id)) }}
+      axisLeft={{ tickValues: ticks }}
+      gridYValues={ticks}
     />
   );
 }

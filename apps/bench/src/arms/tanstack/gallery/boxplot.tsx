@@ -1,4 +1,4 @@
-import { barY, defineChart, link, tickY } from '@tanstack/charts';
+import { barY, defineChart, dot, link, tickY } from '@tanstack/charts';
 import { Chart as TanChart } from '@tanstack/charts/react';
 import { scaleBand } from '@tanstack/charts/scales/band';
 import { scaleLinear } from '@tanstack/charts/scales/linear';
@@ -8,12 +8,14 @@ import { useMemo } from 'react';
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
 import {
+  BOX_OUTLIER_COLOR,
+  BOX_OUTLIER_RADIUS,
   BOX_STROKE,
   BOX_STROKE_WIDTH,
-  boxDomain,
   boxPaddingInner,
   boxPaddingOuter,
   boxplotStats,
+  boxScale,
 } from '../../shared/boxplot';
 import { thinTicks } from '../../shared/ticks';
 
@@ -21,6 +23,8 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
   const definition = useMemo(() => {
     const stats = boxplotStats(data);
     const ids = stats.map(s => s.id);
+    const { domain, ticks } = boxScale(stats);
+    const outliers = stats.flatMap(s => s.outliers.map((value, i) => ({ id: s.id, value, key: `${s.id}:${i}` })));
     const stroke = { stroke: BOX_STROKE, strokeWidth: BOX_STROKE_WIDTH };
     return defineChart({
       marks: [
@@ -29,6 +33,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
         tickY(stats, { x: 'id', y: 'whiskerLow', ...stroke }),
         tickY(stats, { x: 'id', y: 'whiskerHigh', ...stroke }),
         tickY(stats, { x: 'id', y: 'median', ...stroke }),
+        dot(outliers, { x: 'id', y: 'value', key: 'key', r: BOX_OUTLIER_RADIUS, fill: BOX_OUTLIER_COLOR }),
       ],
       scales: {
         x: {
@@ -36,7 +41,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
             scaleBand<string>().domain(ids).paddingInner(boxPaddingInner).paddingOuter(boxPaddingOuter),
           axis: { ticks: { values: thinTicks(ids) } },
         },
-        y: { scale: scaleLinear().domain(boxDomain(stats)), grid: true },
+        y: { scale: scaleLinear().domain(domain), grid: true, axis: { ticks: { values: ticks } } },
       },
       margin: MARGIN,
       tooltip,

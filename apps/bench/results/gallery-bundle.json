@@ -1,7 +1,7 @@
 {
   "chartjs": {
     "boxplot": {
-      "libraryKb": 56.2
+      "libraryKb": 56.3
     },
     "combo": {
       "libraryKb": 55.6
@@ -30,7 +30,7 @@
   },
   "echarts": {
     "boxplot": {
-      "libraryKb": 153.1
+      "libraryKb": 159.4
     },
     "combo": {
       "libraryKb": 169.1
@@ -59,7 +59,7 @@
   },
   "nivo": {
     "boxplot": {
-      "libraryKb": 82.7
+      "libraryKb": 82.8
     },
     "donut": {
       "libraryKb": 67.6
@@ -108,7 +108,7 @@
   },
   "tanstack": {
     "boxplot": {
-      "libraryKb": 40.6
+      "libraryKb": 41.7
     },
     "combo": {
       "libraryKb": 39.9
@@ -137,7 +137,7 @@
   },
   "visx": {
     "boxplot": {
-      "libraryKb": 22.7
+      "libraryKb": 22.8
     },
     "combo": {
       "libraryKb": 23.1

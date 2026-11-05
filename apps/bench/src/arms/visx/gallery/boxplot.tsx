@@ -12,15 +12,19 @@ import type { BoxStats } from '../../shared/boxplot';
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
 import {
+  BOX_OUTLIER_COLOR,
+  BOX_OUTLIER_RADIUS,
   BOX_STROKE,
   BOX_STROKE_WIDTH,
-  boxDomain,
   boxPaddingInner,
   boxPaddingOuter,
   boxplotStats,
+  boxScale,
 } from '../../shared/boxplot';
 import { thinTicks } from '../../shared/ticks';
 import { AXIS_COLOR, tickLabel, tooltipStyle } from '../shared/style';
+
+const outlierProps = { r: BOX_OUTLIER_RADIUS, fill: BOX_OUTLIER_COLOR, stroke: 'none' };
 
 function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
   const innerW = width - MARGIN.left - MARGIN.right;
@@ -37,10 +41,8 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
       }),
     [ids, innerW],
   );
-  const yScale = useMemo(
-    () => scaleLinear<number>({ domain: boxDomain(stats), range: [innerH, 0] }),
-    [stats, innerH],
-  );
+  const { domain, ticks } = useMemo(() => boxScale(stats), [stats]);
+  const yScale = useMemo(() => scaleLinear<number>({ domain, range: [innerH, 0] }), [domain, innerH]);
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } = useTooltip<BoxStats>();
 
   const onMove = (tip: BoxStats) => (event: MouseEvent<SVGGElement>) => {
@@ -53,7 +55,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
     <div style={{ position: 'relative', width, height }}>
       <svg width={width} height={height}>
         <Group left={MARGIN.left} top={MARGIN.top}>
-          <GridRows scale={yScale} width={innerW} stroke="#eee" numTicks={6} />
+          <GridRows scale={yScale} width={innerW} stroke="#eee" tickValues={ticks} />
           {stats.map(s => {
             const left = xScale(s.id)!;
             const cap = { x1: left, x2: left + boxWidth };
@@ -75,6 +77,8 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
                   ry={0}
                   minProps={cap}
                   maxProps={cap}
+                  outliers={s.outliers}
+                  outlierProps={outlierProps}
                 />
               </g>
             );
@@ -89,7 +93,7 @@ function Chart({ width, height, data }: GalleryChartProps<'boxplot'>) {
           />
           <AxisLeft
             scale={yScale}
-            numTicks={6}
+            tickValues={ticks}
             stroke={AXIS_COLOR}
             tickStroke={AXIS_COLOR}
             tickLabelProps={tickLabel}
