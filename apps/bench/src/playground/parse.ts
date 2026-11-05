@@ -39,6 +39,21 @@ const num = (v: unknown, where: string) => {
   return v;
 };
 
+const colorOf = (raw: unknown, index: number) =>
+  typeof raw === 'string' ? raw : PALETTE[index % PALETTE.length]!;
+
+function assertUnique(items: string[], message: (quoted: string) => string, reserved?: string) {
+  const dup = items.find((x, i) => x === reserved || items.indexOf(x) !== i);
+  if (dup !== undefined) throw new Error(message(JSON.stringify(dup)));
+}
+
+function parseNames(raw: unknown, name: string, noun: string) {
+  if (!Array.isArray(raw) || raw.length === 0) throw new Error(`Expected a non-empty "${name}" array.`);
+  const names = raw.map(String);
+  assertUnique(names, dup => `Duplicate ${noun} ${dup}.`);
+  return names;
+}
+
 function parsePoints(chart: 'survival' | 'scatter', raw: unknown) {
   if (!Array.isArray(raw) || raw.length === 0) throw new Error('Expected a non-empty array of series.');
   return raw.map((s: any, i) => {
@@ -46,7 +61,7 @@ function parsePoints(chart: 'survival' | 'scatter', raw: unknown) {
     if (!s || !Array.isArray(s.points) || s.points.length === 0)
       throw new Error(`${where}: needs a non-empty "points" array.`);
     const id = s.id == null ? `Series ${i + 1}` : String(s.id);
-    const color = typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!;
+    const color = colorOf(s.color, i);
     const points = s.points.map((p: any, j: number) => {
       const at = `${where}.points[${j}]`;
       const x = num(p?.x, `${at}.x`);
@@ -77,21 +92,12 @@ export function formatSeries(series: { id: string; color: string; points: object
 
 const idOf = (raw: unknown, fallback: string) => (raw == null || raw === '' ? fallback : String(raw));
 
-function parseCategoryNames(raw: any) {
-  if (!Array.isArray(raw?.categories) || raw.categories.length === 0)
-    throw new Error('Expected a non-empty "categories" array.');
-  const categories = raw.categories.map(String);
-  const dupCategory = categories.find((c: string, i: number) => categories.indexOf(c) !== i);
-  if (dupCategory !== undefined) throw new Error(`Duplicate category ${JSON.stringify(dupCategory)}.`);
-  return categories as string[];
-}
-
 function parseValues(s: any, where: string, count: number, index: number) {
   if (!Array.isArray(s?.values) || s.values.length !== count)
     throw new Error(`${where}: needs "values" with one number per category (${count}).`);
   return {
     id: idOf(s.id, `Series ${index + 1}`),
-    color: typeof s.color === 'string' ? s.color : PALETTE[index % PALETTE.length]!,
+    color: colorOf(s.color, index),
     values: s.values.map((v: unknown, j: number) => {
       const n = num(v, `${where}.values[${j}]`);
       if (n < 0) throw new Error(`${where}.values[${j}]: expected a non-negative number, got ${n}`);
@@ -101,18 +107,20 @@ function parseValues(s: any, where: string, count: number, index: number) {
 }
 
 function parseCategories(raw: any) {
-  const categories = parseCategoryNames(raw);
+  const categories = parseNames(raw?.categories, 'categories', 'category');
   if (!Array.isArray(raw.series) || raw.series.length === 0)
     throw new Error('Expected a non-empty "series" array.');
   const series = raw.series.map((s: any, i: number) => parseValues(s, `series[${i}]`, categories.length, i));
-  const ids = series.map((s: { id: string }) => s.id);
-  const dupId = ids.find((id: string, i: number) => id === 'category' || ids.indexOf(id) !== i);
-  if (dupId !== undefined) throw new Error(`Series id ${JSON.stringify(dupId)} is duplicated or reserved.`);
+  assertUnique(
+    series.map((s: { id: string }) => s.id),
+    dup => `Series id ${dup} is duplicated or reserved.`,
+    'category',
+  );
   return { categories, series };
 }
 
 function parseCombo(raw: any) {
-  const categories = parseCategoryNames(raw);
+  const categories = parseNames(raw?.categories, 'categories', 'category');
   const bars = parseValues(raw.bars, 'bars', categories.length, 0);
   const line = parseValues(raw.line, 'line', categories.length, 1);
   if (bars.id === line.id) throw new Error(`"bars" and "line" share the id ${JSON.stringify(bars.id)}.`);
@@ -160,29 +168,22 @@ function parseDonut(raw: any) {
     if (value < 0) throw new Error(`${where}.value: expected a non-negative number, got ${value}`);
     return {
       id: idOf(s.id, `Slice ${i + 1}`),
-      color: typeof s.color === 'string' ? s.color : PALETTE[i % PALETTE.length]!,
+      color: colorOf(s.color, i),
       value,
     };
   });
-  const ids = slices.map((s: { id: string }) => s.id);
-  const dupId = ids.find((id: string, i: number) => ids.indexOf(id) !== i);
-  if (dupId !== undefined) throw new Error(`Duplicate slice id ${JSON.stringify(dupId)}.`);
+  assertUnique(
+    slices.map((s: { id: string }) => s.id),
+    dup => `Duplicate slice id ${dup}.`,
+  );
   if (!slices.some((s: { value: number }) => s.value > 0))
     throw new Error('Slice values must not all be zero.');
   return { slices };
 }
 
-function parseLabels(raw: unknown, name: 'xs' | 'ys') {
-  if (!Array.isArray(raw) || raw.length === 0) throw new Error(`Expected a non-empty "${name}" array.`);
-  const labels = raw.map(String);
-  const dup = labels.find((l, i) => labels.indexOf(l) !== i);
-  if (dup !== undefined) throw new Error(`Duplicate ${name} label ${JSON.stringify(dup)}.`);
-  return labels;
-}
-
 function parseHeatmap(raw: any) {
-  const xs = parseLabels(raw?.xs, 'xs');
-  const ys = parseLabels(raw?.ys, 'ys');
+  const xs = parseNames(raw?.xs, 'xs', 'xs label');
+  const ys = parseNames(raw?.ys, 'ys', 'ys label');
   if (!Array.isArray(raw.values) || raw.values.length !== ys.length)
     throw new Error(`"values" needs one row per "ys" entry (${ys.length}).`);
   const values = raw.values.map((row: unknown, y: number) => {
@@ -227,13 +228,14 @@ function parseBoxplot(raw: any) {
     if (!Array.isArray(g?.values) || g.values.length === 0) throw new Error(`${where}: needs a non-empty "values" array.`);
     return {
       id: idOf(g.id, `Group ${i + 1}`),
-      color: typeof g.color === 'string' ? g.color : PALETTE[i % PALETTE.length]!,
+      color: colorOf(g.color, i),
       values: g.values.map((v: unknown, j: number) => num(v, `${where}.values[${j}]`)),
     };
   });
-  const ids = groups.map((g: { id: string }) => g.id);
-  const dupId = ids.find((id: string, i: number) => ids.indexOf(id) !== i);
-  if (dupId !== undefined) throw new Error(`Duplicate group id ${JSON.stringify(dupId)}.`);
+  assertUnique(
+    groups.map((g: { id: string }) => g.id),
+    dup => `Duplicate group id ${dup}.`,
+  );
   return { groups };
 }
 
