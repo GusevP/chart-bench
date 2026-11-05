@@ -205,10 +205,10 @@ Reuse:
 - [ ] `pnpm -F bench test:playground`
 
 ### Task 10: Refresh published numbers (about 560 page loads across both regimes)
-- [ ] run the bench once per regime on the final code, with nothing else running. Both use fresh output files, never appending to `results/run-*` or `raw.jsonl`, because `report.mjs` does not split by throttle: `BENCH_CPU_THROTTLE=1 BENCH_OUT=results/<fresh>-1x.jsonl pnpm bench`, and the same with `4` and `-4x`
-- [ ] run `pnpm -F bench report <file>` for each output; it writes `<file>.md`, so reconcile `report.md` and `ARTICLE.md` by hand
-- [ ] update `ARTICLE.md`: arm description, numbers, "lines of code", ranking claims and conclusions, the "animation off" wording, and TanStack's bundle
-- [ ] update the regenerated README token tables
+- [x] run the bench once per regime on the final code, with nothing else running. Both use fresh output files, never appending to `results/run-*` or `raw.jsonl`, because `report.mjs` does not split by throttle: `BENCH_CPU_THROTTLE=1 BENCH_OUT=results/<fresh>-1x.jsonl pnpm bench`, and the same with `4` and `-4x`
+- [x] run `pnpm -F bench report <file>` for each output; it writes `<file>.md`, so reconcile `report.md` and `ARTICLE.md` by hand
+- [x] update `ARTICLE.md`: arm description, numbers, "lines of code", ranking claims and conclusions, the "animation off" wording, and TanStack's bundle
+- [x] update the regenerated README token tables
 
 ### Task 11: [Final] Update documentation
 - [ ] check README text against the final numbers
