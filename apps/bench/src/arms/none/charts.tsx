@@ -20,14 +20,10 @@ const extent = (pts: ScatterPoint[], f: (p: ScatterPoint) => number): [number, n
 
 function Survival({ width, height, series }: SurvivalChartProps) {
   const [hoverX, setHoverX] = useState<number | null>(null);
-  const x = useMemo(
-    () =>
-      linear(
-        [0, series.reduce((m, s) => Math.max(m, s.points.at(-1)?.x ?? m), 0) || 1],
-        [MARGIN.left, width - MARGIN.right],
-      ),
-    [series, width],
-  );
+  const x = useMemo(() => {
+    const lasts = series.flatMap(s => s.points.slice(-1).map(p => p.x));
+    return linear([0, lasts.length ? Math.max(...lasts) : 1], [MARGIN.left, width - MARGIN.right]);
+  }, [series, width]);
   const y = useMemo(() => linear([0, 1], [height - MARGIN.bottom, MARGIN.top]), [height]);
   const onMove = (e: MouseEvent<SVGSVGElement>) => setHoverX(x.invert(pointer(e)[0]));
   const hovered = hoverX === null ? [] : series.map(s => ({ s, p: s.points[stepIndex(s.points, hoverX)]! }));

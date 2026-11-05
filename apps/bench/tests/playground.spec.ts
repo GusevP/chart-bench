@@ -941,6 +941,7 @@ test('none helpers: linear scale matches d3-scale', async () => {
     [0.0001, 0.0009],
     [0, 1e9],
     [3, 3.0000001],
+    [14.53, 14.530000000000003],
   ];
   for (const [a, b] of cases) {
     const mine = linear([a, b], [40, 960]);

@@ -826,10 +826,10 @@
     },
     "none": {
       "survival+scatter": {
-        "chart": 1220,
-        "adapter": 1350,
+        "chart": 1231,
+        "adapter": 1352,
         "shared": 0,
-        "total": 2570,
+        "total": 2583,
         "files": [
           "src/arms/none/charts.tsx",
           "src/arms/none/shared/Chart.tsx",

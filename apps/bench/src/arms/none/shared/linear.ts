@@ -43,12 +43,13 @@ function ticks(start: number, stop: number, count: number) {
   return Array.from({ length: i2 - i1 + 1 }, (_, i) => (inc < 0 ? (i1 + i) / -inc : (i1 + i) * inc));
 }
 
-function niceDomain([start, stop]: [number, number], count = 10): [number, number] {
-  if (start === stop) return [start, stop];
+function niceDomain(domain: [number, number], count = 10): [number, number] {
+  let [start, stop] = domain;
+  if (start === stop) return domain;
   let prev: number | undefined;
   for (let i = 0; i < 10; i++) {
     const inc = tickSpec(start, stop, count)[2];
-    if (inc === prev) break;
+    if (inc === prev) return [start, stop];
     if (inc > 0) {
       start = Math.floor(start / inc) * inc;
       stop = Math.ceil(stop / inc) * inc;
@@ -58,7 +59,7 @@ function niceDomain([start, stop]: [number, number], count = 10): [number, numbe
     } else break;
     prev = inc;
   }
-  return [start, stop];
+  return domain;
 }
 
 export function linear(domain: [number, number], range: [number, number]): Linear {
