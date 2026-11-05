@@ -36,8 +36,9 @@ function tickSpec(start: number, stop: number, count: number): [number, number, 
   return [i1, i2, inc];
 }
 
-function ticks(start: number, stop: number, count: number) {
+function ticks(start: number, stop: number, count: number): number[] {
   if (start === stop) return [start];
+  if (stop < start) return ticks(stop, start, count).reverse();
   const [i1, i2, inc] = tickSpec(start, stop, count);
   if (!(i2 >= i1)) return [];
   return Array.from({ length: i2 - i1 + 1 }, (_, i) => (inc < 0 ? (i1 + i) / -inc : (i1 + i) * inc));

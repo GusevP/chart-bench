@@ -938,6 +938,7 @@ test('none helpers: linear scale matches d3-scale', async () => {
     [0, 100],
     [-3.7, 12.2],
     [-50, -2],
+    [0, -5],
     [0.0001, 0.0009],
     [0, 1e9],
     [3, 3.0000001],
