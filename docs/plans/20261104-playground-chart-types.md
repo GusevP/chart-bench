@@ -266,8 +266,8 @@ Built site, 1440 × 900, all libraries selected, 5 runs after 1 warm-up (median 
 Slowest: nivo heatmap (mount 5.7 s, blocking 5.6 s) and nivo treemap (mount 2.0 s, update 5.7 s).
 
 ### Task 14: [Final] Update documentation
-- [ ] update the Playground section of `README.md`: chart types, the support rule, the matrix, how to paste each shape, and the Chart.js treemap ratio-1 outlier
-- [ ] add the support matrix to `ARTICLE.md` only if it already discusses chart coverage
+- [x] update the Playground section of `README.md`: chart types, the support rule, the matrix, how to paste each shape, and the Chart.js treemap ratio-1 outlier
+- [x] add the support matrix to `ARTICLE.md` only if it already discusses chart coverage
 - [ ] move this plan to `docs/plans/completed/`
 
 ## Post-Completion
