@@ -4,11 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist && node scripts/gallery-bundle.mjs && vite build -c vite.gallery.config.ts && vite build && node scripts/bundle-size.mjs",
+    "build": "rm -rf dist && node scripts/code-tokens.mjs && node scripts/gallery-bundle.mjs && vite build -c vite.gallery.config.ts && vite build && node scripts/bundle-size.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "bench": "playwright test tests/bench.spec.ts",
     "test:playground": "playwright test tests/playground.spec.ts",
-    "report": "node scripts/report.mjs"
+    "report": "node scripts/report.mjs",
+    "tokens": "node scripts/code-tokens.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

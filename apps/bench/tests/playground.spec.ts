@@ -387,6 +387,11 @@ test('a tab hidden during the final LoAF drain repeats that run', async ({ page 
   );
 });
 
+const codeTokens = () =>
+  (JSON.parse(readFileSync(new URL('../results/code-tokens.json', import.meta.url), 'utf8')) as {
+    perChart: Record<string, Record<string, { total: number }>>;
+  }).perChart;
+
 test('render shows a results table, then display cards', async ({ page }) => {
   const bundle = JSON.parse(
     readFileSync(new URL('../results/bundle.json', import.meta.url), 'utf8'),
@@ -405,6 +410,10 @@ test('render shows a results table, then display cards', async ({ page }) => {
     bundle.recharts!.libraryKb.toFixed(1),
   );
   await expect(page.locator('tr[data-lib="shell (floor)"] td').nth(4)).toHaveText('0.0');
+  await expect(page.locator('tr[data-lib="recharts"] td').nth(5)).toHaveText(
+    String(codeTokens()['recharts']!['survival+scatter']!.total),
+  );
+  await expect(page.locator('tr[data-lib="shell (floor)"] td').nth(5)).toHaveText('n/a');
   await expect(page.locator('[data-summaries] td.noise').first()).toBeVisible();
   await expect(page.locator('.card iframe')).toHaveCount(2);
   await expect(page.locator('.card [data-card-stats]').first()).toContainText(
@@ -589,6 +598,9 @@ test('gallery-bundle.json matches the expected pairs; supported pairs measure an
     if (libs.length) {
       await expect(page.locator('.card [data-card-stats]')).toHaveCount(libs.length);
       for (const lib of libs) {
+        await expect(page.locator(`tr[data-lib="${lib}"] td`).nth(5)).toHaveText(
+          String(codeTokens()[lib]![kind]!.total),
+        );
         const card = page.locator(`.card iframe[src*="lib=${lib}&"]`);
         await card.scrollIntoViewIfNeeded();
         await expect

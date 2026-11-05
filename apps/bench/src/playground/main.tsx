@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import bundle from '../../results/bundle.json';
+import codeTokens from '../../results/code-tokens.json';
 import galleryBundle from '../../results/gallery-bundle.json';
 import type { DataMessage, ResultMessage } from '../EmbeddedArmPage';
 import { ARMS } from '../data/arms';
@@ -32,6 +33,10 @@ const galleryKb: Record<string, Record<string, { libraryKb: number } | undefined
 
 const libraryKb = (library: string, chart: ChartKind) =>
   isGallery(chart) ? galleryKb[library]?.[chart]?.libraryKb : bundleKb[library]?.libraryKb;
+const tokensByChart: Record<string, Record<string, { total: number } | undefined> | undefined> =
+  codeTokens.perChart;
+const tokenCount = (library: string, chart: ChartKind) =>
+  tokensByChart[library]?.[isGallery(chart) ? chart : 'survival+scatter']?.total;
 const supported = (library: Library, chart: ChartKind) =>
   isGallery(chart) ? libraryKb(library, chart) !== undefined : true;
 
@@ -100,7 +105,9 @@ function ArmFrame({
           <small data-card-stats>
             mount {fmt(result.mount)} ms · update {fmt(result.update)} ms · blocking{' '}
             {result.blocking ? `${fmt(result.blocking)} ms` : 'n/a'} · {result.domNodes} nodes ·{' '}
-            {libraryKb(library, data.chart)?.toFixed(1) ?? 'n/a'} KB
+            {libraryKb(library, data.chart)?.toFixed(1) ?? 'n/a'} KB ·{' '}
+            {tokenCount(library, data.chart) ?? 'n/a'} tokens
+            {!isGallery(data.chart) && ' (survival + scatter)'}
             {hover !== undefined && ` · hover ${hover.toFixed(1)} ms`}
           </small>
         )}
@@ -146,6 +153,7 @@ function Summaries({
       <table className="summaries" data-summaries>
         <caption>
           Median ± half the IQR, {RUNS} runs after {WARMUP} warm-up.
+          {!isGallery(chart) && ' Survival and Scatter share one token count.'}
         </caption>
         <thead>
           <tr>
@@ -155,6 +163,7 @@ function Summaries({
             <th scope="col">Blocking (ms)</th>
             <th scope="col">DOM nodes</th>
             <th scope="col">Bundle (KB gz)</th>
+            <th scope="col">Code (tokens)</th>
             <th scope="col">Hover max frame (ms)</th>
           </tr>
         </thead>
@@ -178,6 +187,7 @@ function Summaries({
                 <Cell s={r.blocking} frame={frame} />
                 <td>{r.domNodes}</td>
                 <td>{kb?.toFixed(1) ?? 'n/a'}</td>
+                <td>{tokenCount(lib, chart) ?? 'n/a'}</td>
                 <td data-hover={hover[lib] ?? ''}>
                   {isFloor ? '' : hover[lib] === undefined ? 'hover a chart' : hover[lib].toFixed(1)}
                 </td>

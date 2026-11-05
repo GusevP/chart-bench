@@ -33,7 +33,7 @@ Each library gets one file, `src/arms/<arm>/charts.tsx`, exporting `arm: Arm` (s
 ## NOTES.md (one per arm) — feeds the article
 
 - Version used.
-- For each requirement above: **native** (a documented feature), **composed** (built from the library's own primitives), or **hand-drawn** (bypassed the library: custom layer, raw SVG/canvas, or plugin code you wrote). Add one line saying how.
+- For each requirement above: **native** (a documented feature), **composed** (built from the library's own primitives or documented extension points, such as a custom layer, render prop or plugin), or **hand-drawn** (bypassed the library: raw SVG/canvas outside those extension points). Composed may still include authored drawing or interaction code; these labels describe integration, not effort. Add one line saying how.
 - Every bare `as` cast you needed, and why.
 - Gotchas, defaults that hurt performance, silent failures, and data-shape mismatches (for example, the library wants wide data and we have long data).
 - Settle mode, and the evidence for it.

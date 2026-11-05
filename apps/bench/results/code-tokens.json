@@ -1,0 +1,827 @@
+{
+  "commonTypes": [
+    "donut",
+    "radar",
+    "sankey",
+    "stacked-area",
+    "stacked-bar",
+    "treemap"
+  ],
+  "totals": {
+    "recharts": {
+      "coverage": 7,
+      "common": {
+        "chart": 1697,
+        "adapter": 36,
+        "shared": 511,
+        "total": 2244,
+        "files": [
+          "src/arms/recharts/gallery/donut.tsx",
+          "src/arms/recharts/gallery/radar.tsx",
+          "src/arms/recharts/gallery/sankey.tsx",
+          "src/arms/recharts/gallery/stacked-area.tsx",
+          "src/arms/recharts/gallery/stacked-bar.tsx",
+          "src/arms/recharts/gallery/treemap.tsx",
+          "src/arms/recharts/shared/style.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "nivo": {
+      "coverage": 8,
+      "common": {
+        "chart": 1192,
+        "adapter": 0,
+        "shared": 554,
+        "total": 1746,
+        "files": [
+          "src/arms/nivo/gallery/donut.tsx",
+          "src/arms/nivo/gallery/radar.tsx",
+          "src/arms/nivo/gallery/sankey.tsx",
+          "src/arms/nivo/gallery/stacked-area.tsx",
+          "src/arms/nivo/gallery/stacked-bar.tsx",
+          "src/arms/nivo/gallery/treemap.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "echarts": {
+      "coverage": 10,
+      "common": {
+        "chart": 1544,
+        "adapter": 172,
+        "shared": 511,
+        "total": 2227,
+        "files": [
+          "src/arms/echarts/gallery/donut.tsx",
+          "src/arms/echarts/gallery/radar.tsx",
+          "src/arms/echarts/gallery/sankey.tsx",
+          "src/arms/echarts/gallery/stacked-area.tsx",
+          "src/arms/echarts/gallery/stacked-bar.tsx",
+          "src/arms/echarts/gallery/treemap.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "chartjs": {
+      "coverage": 10,
+      "common": {
+        "chart": 1808,
+        "adapter": 105,
+        "shared": 511,
+        "total": 2424,
+        "files": [
+          "src/arms/chartjs/gallery/donut.tsx",
+          "src/arms/chartjs/gallery/radar.tsx",
+          "src/arms/chartjs/gallery/sankey.tsx",
+          "src/arms/chartjs/gallery/stacked-area.tsx",
+          "src/arms/chartjs/gallery/stacked-bar.tsx",
+          "src/arms/chartjs/gallery/treemap.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "visx": {
+      "coverage": 9,
+      "common": {
+        "chart": 3681,
+        "adapter": 37,
+        "shared": 554,
+        "total": 4272,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/shared/treemap.ts",
+          "src/arms/visx/gallery/donut.tsx",
+          "src/arms/visx/gallery/radar.tsx",
+          "src/arms/visx/gallery/sankey.tsx",
+          "src/arms/visx/gallery/stacked-area.tsx",
+          "src/arms/visx/gallery/stacked-bar.tsx",
+          "src/arms/visx/gallery/treemap.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      }
+    },
+    "tanstack": {
+      "coverage": 10,
+      "common": {
+        "chart": 1706,
+        "adapter": 0,
+        "shared": 554,
+        "total": 2260,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/shared/treemap.ts",
+          "src/arms/tanstack/gallery/donut.tsx",
+          "src/arms/tanstack/gallery/radar.tsx",
+          "src/arms/tanstack/gallery/sankey.tsx",
+          "src/arms/tanstack/gallery/stacked-area.tsx",
+          "src/arms/tanstack/gallery/stacked-bar.tsx",
+          "src/arms/tanstack/gallery/treemap.tsx"
+        ]
+      }
+    },
+    "none": {
+      "coverage": 0
+    }
+  },
+  "perChart": {
+    "recharts": {
+      "survival+scatter": {
+        "chart": 1064,
+        "adapter": 0,
+        "shared": 0,
+        "total": 1064,
+        "files": [
+          "src/arms/recharts/charts.tsx"
+        ]
+      },
+      "combo": {
+        "chart": 302,
+        "adapter": 36,
+        "shared": 14,
+        "total": 352,
+        "files": [
+          "src/arms/recharts/gallery/combo.tsx",
+          "src/arms/recharts/shared/style.ts",
+          "src/arms/shared/combo.ts"
+        ]
+      },
+      "donut": {
+        "chart": 163,
+        "adapter": 0,
+        "shared": 43,
+        "total": 206,
+        "files": [
+          "src/arms/recharts/gallery/donut.tsx",
+          "src/arms/shared/donut.ts"
+        ]
+      },
+      "radar": {
+        "chart": 396,
+        "adapter": 0,
+        "shared": 159,
+        "total": 555,
+        "files": [
+          "src/arms/recharts/gallery/radar.tsx",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts"
+        ]
+      },
+      "sankey": {
+        "chart": 370,
+        "adapter": 0,
+        "shared": 64,
+        "total": 434,
+        "files": [
+          "src/arms/recharts/gallery/sankey.tsx",
+          "src/arms/shared/sankey.ts"
+        ]
+      },
+      "stacked-area": {
+        "chart": 252,
+        "adapter": 36,
+        "shared": 0,
+        "total": 288,
+        "files": [
+          "src/arms/recharts/gallery/stacked-area.tsx",
+          "src/arms/recharts/shared/style.ts"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 232,
+        "adapter": 36,
+        "shared": 0,
+        "total": 268,
+        "files": [
+          "src/arms/recharts/gallery/stacked-bar.tsx",
+          "src/arms/recharts/shared/style.ts"
+        ]
+      },
+      "treemap": {
+        "chart": 284,
+        "adapter": 0,
+        "shared": 288,
+        "total": 572,
+        "files": [
+          "src/arms/recharts/gallery/treemap.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "nivo": {
+      "survival+scatter": {
+        "chart": 993,
+        "adapter": 0,
+        "shared": 0,
+        "total": 993,
+        "files": [
+          "src/arms/nivo/charts.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 503,
+        "adapter": 0,
+        "shared": 767,
+        "total": 1270,
+        "files": [
+          "src/arms/nivo/gallery/boxplot.tsx",
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "donut": {
+        "chart": 155,
+        "adapter": 0,
+        "shared": 43,
+        "total": 198,
+        "files": [
+          "src/arms/nivo/gallery/donut.tsx",
+          "src/arms/shared/donut.ts"
+        ]
+      },
+      "heatmap": {
+        "chart": 222,
+        "adapter": 0,
+        "shared": 243,
+        "total": 465,
+        "files": [
+          "src/arms/nivo/gallery/heatmap.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "radar": {
+        "chart": 283,
+        "adapter": 0,
+        "shared": 159,
+        "total": 442,
+        "files": [
+          "src/arms/nivo/gallery/radar.tsx",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts"
+        ]
+      },
+      "sankey": {
+        "chart": 165,
+        "adapter": 0,
+        "shared": 64,
+        "total": 229,
+        "files": [
+          "src/arms/nivo/gallery/sankey.tsx",
+          "src/arms/shared/sankey.ts"
+        ]
+      },
+      "stacked-area": {
+        "chart": 237,
+        "adapter": 0,
+        "shared": 43,
+        "total": 280,
+        "files": [
+          "src/arms/nivo/gallery/stacked-area.tsx",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 212,
+        "adapter": 0,
+        "shared": 43,
+        "total": 255,
+        "files": [
+          "src/arms/nivo/gallery/stacked-bar.tsx",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "treemap": {
+        "chart": 140,
+        "adapter": 0,
+        "shared": 288,
+        "total": 428,
+        "files": [
+          "src/arms/nivo/gallery/treemap.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "echarts": {
+      "survival+scatter": {
+        "chart": 1093,
+        "adapter": 0,
+        "shared": 0,
+        "total": 1093,
+        "files": [
+          "src/arms/echarts/charts.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 350,
+        "adapter": 172,
+        "shared": 724,
+        "total": 1246,
+        "files": [
+          "src/arms/echarts/gallery/boxplot.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/boxplot.ts"
+        ]
+      },
+      "candlestick": {
+        "chart": 370,
+        "adapter": 172,
+        "shared": 887,
+        "total": 1429,
+        "files": [
+          "src/arms/echarts/gallery/candlestick.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/candles.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "combo": {
+        "chart": 292,
+        "adapter": 172,
+        "shared": 14,
+        "total": 478,
+        "files": [
+          "src/arms/echarts/gallery/combo.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/combo.ts"
+        ]
+      },
+      "donut": {
+        "chart": 256,
+        "adapter": 172,
+        "shared": 43,
+        "total": 471,
+        "files": [
+          "src/arms/echarts/gallery/donut.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/donut.ts"
+        ]
+      },
+      "heatmap": {
+        "chart": 377,
+        "adapter": 172,
+        "shared": 243,
+        "total": 792,
+        "files": [
+          "src/arms/echarts/gallery/heatmap.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "radar": {
+        "chart": 364,
+        "adapter": 172,
+        "shared": 159,
+        "total": 695,
+        "files": [
+          "src/arms/echarts/gallery/radar.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts"
+        ]
+      },
+      "sankey": {
+        "chart": 223,
+        "adapter": 172,
+        "shared": 64,
+        "total": 459,
+        "files": [
+          "src/arms/echarts/gallery/sankey.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/sankey.ts"
+        ]
+      },
+      "stacked-area": {
+        "chart": 211,
+        "adapter": 172,
+        "shared": 0,
+        "total": 383,
+        "files": [
+          "src/arms/echarts/gallery/stacked-area.tsx",
+          "src/arms/echarts/shared/EChart.tsx"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 203,
+        "adapter": 172,
+        "shared": 0,
+        "total": 375,
+        "files": [
+          "src/arms/echarts/gallery/stacked-bar.tsx",
+          "src/arms/echarts/shared/EChart.tsx"
+        ]
+      },
+      "treemap": {
+        "chart": 287,
+        "adapter": 172,
+        "shared": 288,
+        "total": 747,
+        "files": [
+          "src/arms/echarts/gallery/treemap.tsx",
+          "src/arms/echarts/shared/EChart.tsx",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "chartjs": {
+      "survival+scatter": {
+        "chart": 1206,
+        "adapter": 0,
+        "shared": 0,
+        "total": 1206,
+        "files": [
+          "src/arms/chartjs/charts.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 394,
+        "adapter": 105,
+        "shared": 724,
+        "total": 1223,
+        "files": [
+          "src/arms/chartjs/gallery/boxplot.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/boxplot.ts"
+        ]
+      },
+      "candlestick": {
+        "chart": 431,
+        "adapter": 105,
+        "shared": 887,
+        "total": 1423,
+        "files": [
+          "src/arms/chartjs/gallery/candlestick.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/candles.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "combo": {
+        "chart": 330,
+        "adapter": 105,
+        "shared": 14,
+        "total": 449,
+        "files": [
+          "src/arms/chartjs/gallery/combo.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/combo.ts"
+        ]
+      },
+      "donut": {
+        "chart": 194,
+        "adapter": 105,
+        "shared": 43,
+        "total": 342,
+        "files": [
+          "src/arms/chartjs/gallery/donut.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/donut.ts"
+        ]
+      },
+      "heatmap": {
+        "chart": 505,
+        "adapter": 105,
+        "shared": 243,
+        "total": 853,
+        "files": [
+          "src/arms/chartjs/gallery/heatmap.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "radar": {
+        "chart": 316,
+        "adapter": 105,
+        "shared": 159,
+        "total": 580,
+        "files": [
+          "src/arms/chartjs/gallery/radar.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts"
+        ]
+      },
+      "sankey": {
+        "chart": 289,
+        "adapter": 105,
+        "shared": 64,
+        "total": 458,
+        "files": [
+          "src/arms/chartjs/gallery/sankey.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/sankey.ts"
+        ]
+      },
+      "stacked-area": {
+        "chart": 261,
+        "adapter": 105,
+        "shared": 0,
+        "total": 366,
+        "files": [
+          "src/arms/chartjs/gallery/stacked-area.tsx",
+          "src/arms/chartjs/shared/chart.ts"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 228,
+        "adapter": 105,
+        "shared": 0,
+        "total": 333,
+        "files": [
+          "src/arms/chartjs/gallery/stacked-bar.tsx",
+          "src/arms/chartjs/shared/chart.ts"
+        ]
+      },
+      "treemap": {
+        "chart": 520,
+        "adapter": 105,
+        "shared": 288,
+        "total": 913,
+        "files": [
+          "src/arms/chartjs/gallery/treemap.tsx",
+          "src/arms/chartjs/shared/chart.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "visx": {
+      "survival+scatter": {
+        "chart": 1683,
+        "adapter": 0,
+        "shared": 0,
+        "total": 1683,
+        "files": [
+          "src/arms/visx/charts.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 703,
+        "adapter": 37,
+        "shared": 767,
+        "total": 1507,
+        "files": [
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/visx/gallery/boxplot.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "combo": {
+        "chart": 804,
+        "adapter": 37,
+        "shared": 57,
+        "total": 898,
+        "files": [
+          "src/arms/shared/combo.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/visx/gallery/combo.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "donut": {
+        "chart": 359,
+        "adapter": 37,
+        "shared": 43,
+        "total": 439,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/visx/gallery/donut.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "heatmap": {
+        "chart": 659,
+        "adapter": 37,
+        "shared": 243,
+        "total": 939,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/visx/gallery/heatmap.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "radar": {
+        "chart": 740,
+        "adapter": 37,
+        "shared": 159,
+        "total": 936,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/visx/gallery/radar.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "sankey": {
+        "chart": 572,
+        "adapter": 37,
+        "shared": 64,
+        "total": 673,
+        "files": [
+          "src/arms/shared/sankey.ts",
+          "src/arms/visx/gallery/sankey.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "stacked-area": {
+        "chart": 829,
+        "adapter": 37,
+        "shared": 43,
+        "total": 909,
+        "files": [
+          "src/arms/shared/ticks.ts",
+          "src/arms/visx/gallery/stacked-area.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 766,
+        "adapter": 37,
+        "shared": 43,
+        "total": 846,
+        "files": [
+          "src/arms/shared/ticks.ts",
+          "src/arms/visx/gallery/stacked-bar.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      },
+      "treemap": {
+        "chart": 415,
+        "adapter": 37,
+        "shared": 288,
+        "total": 740,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts",
+          "src/arms/visx/gallery/treemap.tsx",
+          "src/arms/visx/shared/style.ts"
+        ]
+      }
+    },
+    "tanstack": {
+      "survival+scatter": {
+        "chart": 679,
+        "adapter": 0,
+        "shared": 0,
+        "total": 679,
+        "files": [
+          "src/arms/tanstack/charts.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 390,
+        "adapter": 0,
+        "shared": 767,
+        "total": 1157,
+        "files": [
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/boxplot.tsx"
+        ]
+      },
+      "candlestick": {
+        "chart": 293,
+        "adapter": 0,
+        "shared": 887,
+        "total": 1180,
+        "files": [
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/candles.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/candlestick.tsx"
+        ]
+      },
+      "combo": {
+        "chart": 340,
+        "adapter": 0,
+        "shared": 57,
+        "total": 397,
+        "files": [
+          "src/arms/shared/combo.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/combo.tsx"
+        ]
+      },
+      "donut": {
+        "chart": 223,
+        "adapter": 0,
+        "shared": 43,
+        "total": 266,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/tanstack/gallery/donut.tsx"
+        ]
+      },
+      "heatmap": {
+        "chart": 296,
+        "adapter": 0,
+        "shared": 243,
+        "total": 539,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/heatmap.tsx"
+        ]
+      },
+      "radar": {
+        "chart": 384,
+        "adapter": 0,
+        "shared": 159,
+        "total": 543,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/tanstack/gallery/radar.tsx"
+        ]
+      },
+      "sankey": {
+        "chart": 328,
+        "adapter": 0,
+        "shared": 64,
+        "total": 392,
+        "files": [
+          "src/arms/shared/sankey.ts",
+          "src/arms/tanstack/gallery/sankey.tsx"
+        ]
+      },
+      "stacked-area": {
+        "chart": 260,
+        "adapter": 0,
+        "shared": 43,
+        "total": 303,
+        "files": [
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/stacked-area.tsx"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 259,
+        "adapter": 0,
+        "shared": 43,
+        "total": 302,
+        "files": [
+          "src/arms/shared/ticks.ts",
+          "src/arms/tanstack/gallery/stacked-bar.tsx"
+        ]
+      },
+      "treemap": {
+        "chart": 252,
+        "adapter": 0,
+        "shared": 288,
+        "total": 540,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/treemap.ts",
+          "src/arms/tanstack/gallery/treemap.tsx"
+        ]
+      }
+    },
+    "none": {
+      "survival+scatter": {
+        "chart": 1637,
+        "adapter": 0,
+        "shared": 0,
+        "total": 1637,
+        "files": [
+          "src/arms/none/charts.tsx"
+        ]
+      }
+    }
+  }
+}

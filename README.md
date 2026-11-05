@@ -16,7 +16,7 @@ Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is th
 
 ## Playground
 
-Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only.
+Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only.
 
 Twelve chart types: Survival and Scatter, plus stacked bar, stacked area, donut, radar, bar + line on two axes, heatmap, treemap, Sankey, box plot and candlestick. Each library renders the same pasted JSON.
 
@@ -93,6 +93,41 @@ Candlestick needs at least two candles, `t` as `YYYY-MM-DD` and unique, and `low
 ```json
 {"candles": [{"t": "2024-01-02", "open": 10, "high": 12, "low": 9, "close": 11}, {"t": "2024-01-03", "open": 11, "high": 13, "low": 10, "close": 12}]}
 ```
+
+### Code size
+
+Implementation burden of these ports under this contract, not a ranking of how simple each library is. Each cell is the token count of that chart's code after TypeScript normalizes it to JS/JSX, excluding imports, comments and whitespace. N/A is not zero. `pnpm -F bench tokens` prints these tables and writes `apps/bench/results/code-tokens.json`, which lists the counted files for each cell. The playground shows each pair's count on its card and in the results table; Survival and Scatter share one count because both live in `charts.tsx`.
+
+| Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Survival + Scatter | 1064 | 993 | 1093 | 1206 | 1683 | 679 | 1637 |
+| Box plot | N/A | 1270 | 1246 | 1223 | 1507 | 1157 | N/A |
+| Candlestick | N/A | N/A | 1429 | 1423 | N/A | 1180 | N/A |
+| Bar + line | 352 | N/A | 478 | 449 | 898 | 397 | N/A |
+| Donut | 206 | 198 | 471 | 342 | 439 | 266 | N/A |
+| Heatmap | N/A | 465 | 792 | 853 | 939 | 539 | N/A |
+| Radar | 555 | 442 | 695 | 580 | 936 | 543 | N/A |
+| Sankey | 434 | 229 | 459 | 458 | 673 | 392 | N/A |
+| Stacked area | 288 | 280 | 383 | 366 | 909 | 303 | N/A |
+| Stacked bar | 268 | 255 | 375 | 333 | 846 | 302 | N/A |
+| Treemap | 572 | 428 | 747 | 913 | 740 | 540 | N/A |
+
+For gallery totals, compare the six types implemented by all six library arms: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
+
+| Common six types | Chart files | Adapter | `arms/shared` | Total | Gallery coverage |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Recharts | 1697 | 36 | 511 | 2244 | 7/10 |
+| nivo | 1192 | 0 | 554 | 1746 | 8/10 |
+| ECharts | 1544 | 172 | 511 | 2227 | 10/10 |
+| Chart.js | 1808 | 105 | 511 | 2424 | 10/10 |
+| visx | 3681 | 37 | 554 | 4272 | 9/10 |
+| TanStack | 1706 | 0 | 554 | 2260 | 10/10 |
+
+- **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
+- **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.
+- **Whole files:** a chart pays for all of a file it reaches. Chart.js Sankey pays for `fixWidth` and `fixHeight` without using them, and all three candlesticks pay for the box statistics in `boxplot.ts` because `candles.ts` imports `niceScale` from it. Treat small gaps as noise.
+- **Benchmark plumbing is not removed.** The Chart.js and ECharts adapters hold settle code, and chart files still pass `onSettled`.
+- **Box plot:** the input is raw values, and five ports chose the shared `boxplotStats`. Native or addon alternatives exist, and their equivalence was not evaluated. nivo also hides outliers, as recorded below.
 
 ### Recorded differences
 
