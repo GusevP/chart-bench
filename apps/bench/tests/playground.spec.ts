@@ -14,7 +14,7 @@ import { band } from '../src/arms/none/shared/band';
 import { linear } from '../src/arms/none/shared/linear';
 import { TAU, arcPath, polar, polygonPoints } from '../src/arms/none/shared/polar';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
-import { boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
+import { boxPaddingInner, boxPaddingOuter, boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
 import { treeLeaves } from '../src/arms/shared/treemap';
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
@@ -721,6 +721,9 @@ const EXPECTED_PAIRS = [
   'none/combo',
   'none/donut',
   'none/radar',
+  'none/heatmap',
+  'none/boxplot',
+  'none/candlestick',
   ...['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
     `${lib}/stacked-bar`,
     `${lib}/stacked-area`,
@@ -1086,6 +1089,18 @@ test('none helpers: band matches d3 scaleBand and every bar sits in its hover sl
       expect(mine.index(mine.start(i) + mine.width - 1e-6)).toBe(i);
     }
     expect(mine.index(900)).toBe(n - 1);
+
+    const box = band(n, [56, 900], boxPaddingInner, boxPaddingOuter);
+    const boxRef = scaleBand<number>()
+      .domain(domain)
+      .range([56, 900])
+      .paddingInner(boxPaddingInner)
+      .paddingOuter(boxPaddingOuter);
+    expect(box.width).toBeCloseTo(boxRef.bandwidth(), 9);
+    for (const i of domain) {
+      expect(box.start(i)).toBeCloseTo(boxRef(i)!, 9);
+      expect(box.index(box.center(i))).toBe(i);
+    }
   }
 });
 

@@ -1,8 +1,8 @@
-export function band(count: number, range: [number, number], padding: number) {
+export function band(count: number, range: [number, number], padding: number, outer = padding) {
   const [r0, r1] = range;
-  const step = (r1 - r0) / (count + padding);
+  const step = (r1 - r0) / (count - padding + 2 * outer);
   const width = step * (1 - padding);
-  const start = (i: number) => r0 + step * (i + padding);
+  const start = (i: number) => r0 + step * (i + outer);
   return {
     range,
     width,

@@ -140,14 +140,16 @@ Reuse:
 - Create: `apps/bench/src/arms/none/gallery/heatmap.tsx`
 - Create: `apps/bench/src/arms/none/gallery/boxplot.tsx`
 - Create: `apps/bench/src/arms/none/gallery/candlestick.tsx`
+- Modify: `apps/bench/src/arms/none/shared/band.ts`
+- Modify: `apps/bench/src/arms/none/shared/Chart.tsx`
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] heatmap with `heatmapRamp` and `thinTicks`
-- [ ] box plot with `boxplotStats`, `boxScale` and the box constants, including outliers
-- [ ] candlestick with `candleScale`, `candleColor` and `thinTicks`
-- [ ] tooltip content for candlestick follows ECharts
-- [ ] add the three pairs to `EXPECTED_PAIRS`
-- [ ] check each with heavy data in the browser
+- [x] heatmap with `heatmapRamp` and `thinTicks`
+- [x] box plot with `boxplotStats`, `boxScale` and the box constants, including outliers
+- [x] candlestick with `candleScale`, `candleColor` and `thinTicks`
+- [x] tooltip content for candlestick follows ECharts
+- [x] add the three pairs to `EXPECTED_PAIRS`
+- [x] check each with heavy data in the browser
 - [ ] build and run specs
 
 ### Task 6: Squarified treemap

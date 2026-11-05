@@ -43,23 +43,72 @@ function XAxis({
   );
 }
 
-export function YAxis({ y, x, grid, right }: { y: Linear; x: number; grid?: number; right?: boolean }) {
-  const [y0, y1] = y.range;
+function VerticalAxis({
+  x,
+  y: [y0, y1],
+  ticks,
+  grid,
+  right,
+}: {
+  x: number;
+  y: [number, number];
+  ticks: { at: number; label: number | string }[];
+  grid?: number;
+  right?: boolean;
+}) {
   const side = right ? 1 : -1;
   return (
     <g {...AXIS_TEXT}>
       <line x1={x} x2={x} y1={y0} y2={y1} stroke="#999" />
-      {y.ticks(6).map(t => (
-        <g key={t} transform={`translate(${x},${y(t)})`}>
+      {ticks.map(t => (
+        <g key={t.at} transform={`translate(${x},${t.at})`}>
           <line x2={5 * side} stroke="#999" />
           {grid !== undefined && <line x2={grid} stroke="#eee" />}
           <text x={8 * side} dy="0.32em" textAnchor={right ? 'start' : 'end'}>
-            {t}
+            {t.label}
           </text>
         </g>
       ))}
     </g>
   );
+}
+
+export function YAxis({
+  y,
+  x,
+  grid,
+  right,
+  ticks = y.ticks(6),
+}: {
+  y: Linear;
+  x: number;
+  grid?: number;
+  right?: boolean;
+  ticks?: number[];
+}) {
+  return (
+    <VerticalAxis
+      x={x}
+      y={y.range}
+      grid={grid}
+      right={right}
+      ticks={ticks.map(t => ({ at: y(t), label: t }))}
+    />
+  );
+}
+
+export function CategoryYAxis({
+  categories,
+  at,
+  x,
+  y,
+}: {
+  categories: string[];
+  at: (i: number) => number;
+  x: number;
+  y: [number, number];
+}) {
+  return <VerticalAxis x={x} y={y} ticks={thinTicks(categories.map((label, i) => ({ at: at(i), label })))} />;
 }
 
 export function CategoryAxis({

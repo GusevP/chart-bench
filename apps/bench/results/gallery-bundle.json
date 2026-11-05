@@ -90,11 +90,20 @@
     }
   },
   "none": {
+    "boxplot": {
+      "libraryKb": 2.5
+    },
+    "candlestick": {
+      "libraryKb": 2.1
+    },
     "combo": {
       "libraryKb": 1.8
     },
     "donut": {
       "libraryKb": 1
+    },
+    "heatmap": {
+      "libraryKb": 1.4
     },
     "radar": {
       "libraryKb": 1

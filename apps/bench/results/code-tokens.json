@@ -149,7 +149,7 @@
       }
     },
     "none": {
-      "coverage": 5
+      "coverage": 8
     }
   },
   "perChart": {
@@ -827,9 +827,9 @@
     "none": {
       "survival+scatter": {
         "chart": 1231,
-        "adapter": 1724,
+        "adapter": 1863,
         "shared": 43,
-        "total": 2998,
+        "total": 3137,
         "files": [
           "src/arms/none/charts.tsx",
           "src/arms/none/shared/Chart.tsx",
@@ -838,11 +838,40 @@
           "src/arms/shared/ticks.ts"
         ]
       },
+      "boxplot": {
+        "chart": 947,
+        "adapter": 1772,
+        "shared": 767,
+        "total": 3486,
+        "files": [
+          "src/arms/none/gallery/boxplot.tsx",
+          "src/arms/none/shared/Chart.tsx",
+          "src/arms/none/shared/band.ts",
+          "src/arms/none/shared/linear.ts",
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
+      "candlestick": {
+        "chart": 628,
+        "adapter": 1772,
+        "shared": 887,
+        "total": 3287,
+        "files": [
+          "src/arms/none/gallery/candlestick.tsx",
+          "src/arms/none/shared/Chart.tsx",
+          "src/arms/none/shared/band.ts",
+          "src/arms/none/shared/linear.ts",
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/candles.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
       "combo": {
         "chart": 647,
-        "adapter": 1625,
+        "adapter": 1772,
         "shared": 57,
-        "total": 2329,
+        "total": 2476,
         "files": [
           "src/arms/none/gallery/combo.tsx",
           "src/arms/none/shared/Chart.tsx",
@@ -854,9 +883,9 @@
       },
       "donut": {
         "chart": 439,
-        "adapter": 1083,
+        "adapter": 1222,
         "shared": 86,
-        "total": 1608,
+        "total": 1747,
         "files": [
           "src/arms/none/gallery/donut.tsx",
           "src/arms/none/shared/Chart.tsx",
@@ -865,11 +894,24 @@
           "src/arms/shared/ticks.ts"
         ]
       },
+      "heatmap": {
+        "chart": 535,
+        "adapter": 1074,
+        "shared": 243,
+        "total": 1852,
+        "files": [
+          "src/arms/none/gallery/heatmap.tsx",
+          "src/arms/none/shared/Chart.tsx",
+          "src/arms/none/shared/band.ts",
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/shared/ticks.ts"
+        ]
+      },
       "radar": {
         "chart": 528,
-        "adapter": 1083,
+        "adapter": 1222,
         "shared": 202,
-        "total": 1813,
+        "total": 1952,
         "files": [
           "src/arms/none/gallery/radar.tsx",
           "src/arms/none/shared/Chart.tsx",
@@ -881,9 +923,9 @@
       },
       "stacked-area": {
         "chart": 569,
-        "adapter": 1565,
+        "adapter": 1704,
         "shared": 43,
-        "total": 2177,
+        "total": 2316,
         "files": [
           "src/arms/none/gallery/stacked-area.tsx",
           "src/arms/none/shared/Chart.tsx",
@@ -894,9 +936,9 @@
       },
       "stacked-bar": {
         "chart": 622,
-        "adapter": 1697,
+        "adapter": 1844,
         "shared": 43,
-        "total": 2362,
+        "total": 2509,
         "files": [
           "src/arms/none/gallery/stacked-bar.tsx",
           "src/arms/none/shared/Chart.tsx",
