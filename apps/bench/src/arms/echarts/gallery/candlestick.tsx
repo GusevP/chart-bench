@@ -29,6 +29,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
       xAxis: {
         type: 'category',
         data: data.candles.map(c => c.t),
+        axisLine: { onZero: false },
         axisLabel: { interval: (_: number, t: string) => shown.has(t) },
       },
       yAxis: {

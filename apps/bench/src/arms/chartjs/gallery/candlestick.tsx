@@ -45,13 +45,13 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
     return {
       responsive: false,
       animation: false,
-      adapters: { date: { zone: 'utc' } },
       layout: { padding: { top: MARGIN.top, right: MARGIN.right } },
       scales: {
         x: {
+          adapters: { date: { zone: 'utc' } },
           grid: { drawOnChartArea: false },
           time: { unit: 'day', tooltipFormat: 'yyyy-MM-dd', displayFormats: { day: 'yyyy-MM-dd' } },
-          ticks: { autoSkip: false, maxRotation: 0 },
+          ticks: { autoSkip: false, maxRotation: 0, major: { enabled: false } },
           afterBuildTicks: scale => {
             scale.ticks = scale.ticks.filter(t => shown.has(t.value));
           },

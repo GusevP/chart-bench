@@ -243,7 +243,8 @@ function parseCandles(raw: any) {
   const candles = raw.candles.map((c: any, i: number) => {
     const where = `candles[${i}]`;
     const t = c?.t;
-    if (typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(t) || new Date(`${t}T00:00:00Z`).toISOString().slice(0, 10) !== t)
+    const ms = Date.parse(`${t}T00:00:00Z`);
+    if (typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(t) || Number.isNaN(ms) || new Date(ms).toISOString().slice(0, 10) !== t)
       throw new Error(`${where}.t: expected a date as YYYY-MM-DD, got ${JSON.stringify(t)}`);
     const [open, high, low, close] = (['open', 'high', 'low', 'close'] as const).map(k => num(c[k], `${where}.${k}`));
     if (low! > Math.min(open!, close!) || high! < Math.max(open!, close!))
@@ -253,6 +254,7 @@ function parseCandles(raw: any) {
   candles.sort((a: { t: string }, b: { t: string }) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
   const dup = candles.find((c: { t: string }, i: number) => i > 0 && candles[i - 1].t === c.t);
   if (dup) throw new Error(`Duplicate date ${dup.t}.`);
+  if (candles.length < 2) throw new Error('Expected at least two candles.');
   return { candles };
 }
 
@@ -462,12 +464,12 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   },
   candlestick: {
     label: 'Candlestick',
-    hint: '{ candles: [{ t, open, high, low, close }] }. t is YYYY-MM-DD and unique; candles are sorted by date and drawn one per slot, with no gaps for missing days. Each needs low <= open, close <= high. Close at or above open is up.',
+    hint: '{ candles: [{ t, open, high, low, close }] }. At least two candles. t is YYYY-MM-DD and unique; candles are sorted by date and drawn one per slot, with no gaps for missing days. Each needs low <= open, close <= high. Close at or above open is up.',
     parse: raw => ({ chart: 'candlestick', data: parseCandles(raw) }),
     nudge: parsed => {
       if (parsed.chart !== 'candlestick') return parsed;
       const { candles } = parsed.data;
-      const lift = (Math.max(...candles.map(c => c.high)) - Math.min(...candles.map(c => c.low))) * 0.02;
+      const lift = (Math.max(...candles.map(c => c.high)) - Math.min(...candles.map(c => c.low)) || 1) * 0.02;
       return {
         chart: 'candlestick',
         data: {

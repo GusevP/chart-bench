@@ -1,4 +1,4 @@
-import { barY, defineChart, link } from '@tanstack/charts';
+import { barY, defineChart, link, tickY } from '@tanstack/charts';
 import { Chart as TanChart } from '@tanstack/charts/react';
 import { scaleBand } from '@tanstack/charts/scales/band';
 import { scaleLinear } from '@tanstack/charts/scales/linear';
@@ -32,6 +32,10 @@ function Chart({ width, height, data }: GalleryChartProps<'candlestick'>) {
           stroke: candleColor,
           strokeWidth: CANDLE_STROKE_WIDTH,
         }),
+        tickY(
+          candles.filter(c => c.open === c.close),
+          { x: 't', y: 'open', stroke: candleColor, strokeWidth: CANDLE_STROKE_WIDTH },
+        ),
       ],
       scales: {
         x: {

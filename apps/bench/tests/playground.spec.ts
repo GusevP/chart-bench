@@ -790,7 +790,9 @@ test('candlestick: an impossible bar is rejected, nudge flips alternate candles 
   expect(() => parseSeries('candlestick', bar({ low: 5.5 }))).toThrow(/low <= open/);
   expect(() => parseSeries('candlestick', bar({ high: 5.5 }))).toThrow(/low <= open/);
   expect(() => parseSeries('candlestick', bar({ t: '2024-02-30' }))).toThrow(/YYYY-MM-DD/);
+  expect(() => parseSeries('candlestick', bar({ t: '2024-13-01' }))).toThrow(/candles\[0\]\.t/);
   expect(() => parseSeries('candlestick', bar({ close: null }))).toThrow(/number/);
+  expect(() => parseSeries('candlestick', bar({}))).toThrow(/two candles/);
   expect(() => parseSeries('candlestick', JSON.stringify({ candles: [] }))).toThrow(/candles/);
   const twice = JSON.stringify({ candles: [JSON.parse(bar({})).candles[0], JSON.parse(bar({})).candles[0]] });
   expect(() => parseSeries('candlestick', twice)).toThrow(/Duplicate/);
@@ -804,6 +806,13 @@ test('candlestick: an impossible bar is rejected, nudge flips alternate candles 
   const parsed = parseSeries('candlestick', two);
   if (parsed.chart !== 'candlestick') throw new Error('wrong kind');
   expect(parsed.data.candles.map(c => c.t)).toEqual(['2024-01-02', '2024-01-03']);
+  const same = parseSeries(
+    'candlestick',
+    JSON.stringify({
+      candles: ['2024-01-02', '2024-01-03'].map(t => ({ t, open: 5, high: 5, low: 5, close: 5 })),
+    }),
+  );
+  expect(nudge(same)).not.toEqual(same);
 
   const body = (parsed: Parsed) => {
     if (parsed.chart !== 'candlestick') throw new Error('wrong kind');
