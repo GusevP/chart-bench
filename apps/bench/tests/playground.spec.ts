@@ -550,6 +550,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   ...(lib === 'nivo' ? [] : [`${lib}/combo`]),
   ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
   `${lib}/treemap`,
+  `${lib}/sankey`,
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
@@ -679,4 +680,26 @@ test('treemap: invalid trees are rejected, parent values are ignored, nudge chan
   const moved = shares(after);
   expect(Object.keys(moved)).toEqual(Object.keys(before));
   expect(Object.keys(before).every(id => moved[id] !== before[id])).toBe(true);
+});
+
+test('sankey: unknown nodes and cycles are rejected, nudge changes link shares', () => {
+  const graph = (links: unknown[], ids = ['a', 'b', 'c']) =>
+    JSON.stringify({ nodes: ids.map(id => ({ id })), links });
+  const link = (source: string, target: string, value = 1) => ({ source, target, value });
+  expect(() => parseSeries('sankey', graph([link('a', 'z')]))).toThrow(/unknown node/);
+  expect(() => parseSeries('sankey', graph([link('a', 'b'), link('b', 'c'), link('c', 'a')]))).toThrow(/cycle/);
+  expect(() => parseSeries('sankey', graph([link('a', 'a')]))).toThrow(/itself/);
+
+  const parsed = parseSeries('sankey', graph([link('a', 'b', 1), link('a', 'c', 2), link('b', 'c', 4)]));
+  if (parsed.chart !== 'sankey') throw new Error('wrong kind');
+  const after = nudge(parsed);
+  if (after.chart !== 'sankey') throw new Error('wrong kind');
+  const shares = (links: { value: number }[]) => {
+    const total = links.reduce((sum, l) => sum + l.value, 0);
+    return links.map(l => l.value / total);
+  };
+  const before = shares(parsed.data.links);
+  const moved = shares(after.data.links);
+  expect(after.data.links.map(l => [l.source, l.target])).toEqual(parsed.data.links.map(l => [l.source, l.target]));
+  expect(before.every((share, i) => moved[i] !== share)).toBe(true);
 });

@@ -54,6 +54,8 @@ This corrects the first table shown to the user: visx `BarStack`, `AreaStack`, `
 
 Treemap: leaf areas match in all six, but Chart.js tiles with squarify ratio 1 and has no option to change it, while the other five default to the golden ratio, so its rectangles land in different places. Chart.js is the one recorded outlier; the other libraries are not aligned.
 
+Sankey: node width, node gap, iteration count, left alignment, link curve (0.5), node and link colours (node colour by id from one palette, link colour from its source at one opacity), no labels, no drag and no animation are aligned from `arms/shared/sankey.ts` wherever the library has the option. Layouts still differ by design: nivo, visx and TanStack all run d3-sankey and draw alike; Recharts and ECharts use their own d3-derived layouts and land close; nivo has no iteration or curve option (fixed 6 and a fixed monotone curve); Chart.js has no alignment, iteration or curve option, takes its node gap in height-scaled units, and lays nodes out in its own order, so it is the visible outlier. Recharts has no per-link colour option, so its `link` render function turns the library's own control points into the path. The heavy sample (150 nodes, 500 links) completes in all six.
+
 `chartjs-chart-financial` 0.2.1 is pre-1.0 and `chartjs-chart-sankey` is 0.x; if either fails on Chart.js 4.6, that cell becomes `no` with a deviation.
 
 ### Separate build
@@ -178,8 +180,8 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 10: Sankey
-- [ ] `Sankey` shape, sample, parser entry (links name known nodes, no cycles), `nudge`, wrappers per the matrix, installing `@nivo/sankey`, `chartjs-chart-sankey`, `@visx/sankey`
-- [ ] spec: a link to an unknown node and a cycle rejected
+- [x] `Sankey` shape, sample, parser entry (links name known nodes, no cycles), `nudge`, wrappers per the matrix, installing `@nivo/sankey`, `chartjs-chart-sankey`, `@visx/sankey`
+- [x] spec: a link to an unknown node and a cycle rejected
 - [ ] run the per-task gate
 
 ### Task 11: Box plot

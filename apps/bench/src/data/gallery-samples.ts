@@ -1,4 +1,4 @@
-import type { Categories, Combo, Donut, Heatmap, TreeNode } from './contract';
+import type { Categories, Combo, Donut, Heatmap, Sankey, TreeNode } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -25,6 +25,10 @@ export const GALLERY_DATASETS = {
   treemap: {
     typical: { seed: 17, leaves: 50, groups: 5 },
     heavy: { seed: 18, leaves: 5000, groups: 50 },
+  },
+  sankey: {
+    typical: { seed: 19, nodes: 12, links: 20, layers: 4 },
+    heavy: { seed: 20, nodes: 150, links: 500, layers: 6 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -148,3 +152,47 @@ export const formatTreemap = (node: TreeNode, indent = ''): string =>
       node.children.map(c => formatTreemap(c, `${indent}  `)).join(',\n') +
       `\n${indent}]}`
     : `${indent}${JSON.stringify(node)}`;
+
+export function generateSankey({
+  seed,
+  nodes,
+  links,
+  layers,
+}: {
+  seed: number;
+  nodes: number;
+  links: number;
+  layers: number;
+}): Sankey {
+  const rand = prng(seed);
+  const perLayer = Math.ceil(nodes / layers);
+  const layerOf = (i: number) => Math.floor(i / perLayer);
+  const pick = (from: number, to: number) => from + Math.floor(rand() * (to - from));
+  const seen = new Set<string>();
+  const out: Sankey['links'] = [];
+  const add = (s: number, t: number) => {
+    const key = `${s}>${t}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    out.push({ source: `Node ${s + 1}`, target: `Node ${t + 1}`, value: Math.round(1 + 19 * rand()) });
+    return true;
+  };
+  const layerStart = (l: number) => Math.min(l * perLayer, nodes);
+  for (let t = perLayer; t < nodes; t++) add(pick(layerStart(layerOf(t) - 1), layerStart(layerOf(t))), t);
+  for (let s = 0; s < nodes; s++)
+    if (!out.some(l => l.source === `Node ${s + 1}`) && layerOf(s) < layerOf(nodes - 1))
+      add(s, pick(layerStart(layerOf(s) + 1), Math.min(layerStart(layerOf(s) + 2), nodes)));
+  for (let guard = 0; out.length < links && guard < links * 20; guard++) {
+    const s = pick(0, nodes - perLayer);
+    add(s, pick(layerStart(layerOf(s) + 1), nodes));
+  }
+  return { nodes: Array.from({ length: nodes }, (_, i) => ({ id: `Node ${i + 1}` })), links: out };
+}
+
+/** One node or link per line: readable as a format example, and still small for heavy samples. */
+export const formatSankey = ({ nodes, links }: Sankey) =>
+  `{\n  "nodes": [\n` +
+  nodes.map(n => `    ${JSON.stringify(n)}`).join(',\n') +
+  `\n  ],\n  "links": [\n` +
+  links.map(l => `    ${JSON.stringify(l)}`).join(',\n') +
+  '\n  ]\n}';

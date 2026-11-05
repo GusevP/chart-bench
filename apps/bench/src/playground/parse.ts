@@ -1,5 +1,5 @@
 import { treeLeaves } from '../arms/shared/treemap';
-import type { ChartKind, GalleryKind, Payload, TreeNode } from '../data/contract';
+import type { ChartKind, GalleryKind, Payload, Sankey, TreeNode } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
 import {
@@ -8,11 +8,13 @@ import {
   formatCombo,
   formatDonut,
   formatHeatmap,
+  formatSankey,
   formatTreemap,
   generateCategories,
   generateCombo,
   generateDonut,
   generateHeatmap,
+  generateSankey,
   generateTreemap,
 } from '../data/gallery-samples';
 
@@ -213,6 +215,57 @@ function parseTreemap(raw: any) {
   return walk(raw, 'root', 0);
 }
 
+function parseSankey(raw: any): Sankey {
+  if (!Array.isArray(raw?.nodes) || raw.nodes.length === 0) throw new Error('Expected a non-empty "nodes" array.');
+  if (!Array.isArray(raw.links) || raw.links.length === 0) throw new Error('Expected a non-empty "links" array.');
+  const index = new Map<string, number>();
+  const nodes = raw.nodes.map((n: any, i: number) => {
+    if (n?.id == null || n.id === '') throw new Error(`nodes[${i}]: needs an "id".`);
+    const id = String(n.id);
+    if (index.has(id)) throw new Error(`Duplicate node id ${JSON.stringify(id)}.`);
+    index.set(id, i);
+    return { id };
+  });
+  const endpoint = (v: unknown, where: string) => {
+    const id = v == null ? '' : String(v);
+    if (!index.has(id)) throw new Error(`${where}: unknown node ${JSON.stringify(id)}.`);
+    return id;
+  };
+  const links = raw.links.map((l: any, i: number) => {
+    const where = `links[${i}]`;
+    const source = endpoint(l?.source, `${where}.source`);
+    const target = endpoint(l?.target, `${where}.target`);
+    if (source === target) throw new Error(`${where}: a node cannot link to itself.`);
+    const value = num(l.value, `${where}.value`);
+    if (value <= 0) throw new Error(`${where}.value: expected a positive number, got ${value}`);
+    return { source, target, value };
+  });
+  const out: number[][] = nodes.map(() => []);
+  for (const l of links) out[index.get(l.source)!]!.push(index.get(l.target)!);
+  const state = new Uint8Array(nodes.length);
+  for (let root = 0; root < nodes.length; root++) {
+    if (state[root]) continue;
+    const stack = [{ node: root, next: 0 }];
+    state[root] = 1;
+    while (stack.length) {
+      const top = stack[stack.length - 1]!;
+      const edges = out[top.node]!;
+      if (top.next === edges.length) {
+        state[top.node] = 2;
+        stack.pop();
+        continue;
+      }
+      const to = edges[top.next++]!;
+      if (state[to] === 1) throw new Error(`The links form a cycle through ${JSON.stringify(nodes[to].id)}.`);
+      if (!state[to]) {
+        state[to] = 1;
+        stack.push({ node: to, next: 0 });
+      }
+    }
+  }
+  return { nodes, links };
+}
+
 const KINDS: { [K in ChartKind]?: Kind } = {
   survival: {
     label: 'Survival curve',
@@ -320,6 +373,27 @@ const KINDS: { [K in ChartKind]?: Kind } = {
             })(treeLeaves(parsed.data).map(l => l.value)),
           },
     sample: size => formatTreemap(generateTreemap(GALLERY_DATASETS.treemap[size])),
+  },
+  sankey: {
+    label: 'Sankey',
+    hint: '{ nodes: [{ id }], links: [{ source, target, value }] }. Unique node ids, links between known nodes with a positive value, no self-links and no cycles.',
+    parse: raw => ({ chart: 'sankey', data: parseSankey(raw) }),
+    nudge: parsed => {
+      if (parsed.chart !== 'sankey') return parsed;
+      const { nodes, links } = parsed.data;
+      const constant = links.every(l => l.value === links[0]!.value);
+      return {
+        chart: 'sankey',
+        data: {
+          nodes,
+          links: links.map((l, k) => ({
+            ...l,
+            value: constant ? l.value * (k % 2 ? 1.5 : 1) : links[(k + 1) % links.length]!.value,
+          })),
+        },
+      };
+    },
+    sample: size => formatSankey(generateSankey(GALLERY_DATASETS.sankey[size])),
   },
   donut: {
     label: 'Donut',

@@ -12,6 +12,9 @@
     "radar": {
       "libraryKb": 53.8
     },
+    "sankey": {
+      "libraryKb": 53.5
+    },
     "stacked-area": {
       "libraryKb": 54.7
     },
@@ -35,6 +38,9 @@
     "radar": {
       "libraryKb": 143.1
     },
+    "sankey": {
+      "libraryKb": 145
+    },
     "stacked-area": {
       "libraryKb": 161.6
     },
@@ -55,6 +61,9 @@
     "radar": {
       "libraryKb": 65.8
     },
+    "sankey": {
+      "libraryKb": 64.5
+    },
     "stacked-area": {
       "libraryKb": 92.7
     },
@@ -74,6 +83,9 @@
     },
     "radar": {
       "libraryKb": 90
+    },
+    "sankey": {
+      "libraryKb": 80.6
     },
     "stacked-area": {
       "libraryKb": 97.4
@@ -98,6 +110,9 @@
     "radar": {
       "libraryKb": 40.8
     },
+    "sankey": {
+      "libraryKb": 41.7
+    },
     "stacked-area": {
       "libraryKb": 36.8
     },
@@ -120,6 +135,9 @@
     },
     "radar": {
       "libraryKb": 16.3
+    },
+    "sankey": {
+      "libraryKb": 5.6
     },
     "stacked-area": {
       "libraryKb": 24.7
