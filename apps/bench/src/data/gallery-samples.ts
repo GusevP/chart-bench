@@ -1,4 +1,4 @@
-import type { BoxGroups, Categories, Combo, Donut, Heatmap, Sankey, TreeNode } from './contract';
+import type { BoxGroups, Candles, Categories, Combo, Donut, Heatmap, Sankey, TreeNode } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -33,6 +33,10 @@ export const GALLERY_DATASETS = {
   boxplot: {
     typical: { seed: 21, groups: 8, values: 200 },
     heavy: { seed: 22, groups: 40, values: 2500 },
+  },
+  candlestick: {
+    typical: { seed: 23, count: 250 },
+    heavy: { seed: 24, count: 5000 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -228,3 +232,26 @@ export function generateBoxplot({
 /** One group per line: readable as a format example, and still small for heavy samples. */
 export const formatBoxplot = ({ groups }: BoxGroups) =>
   `{\n  "groups": [\n${groups.map(g => `    ${JSON.stringify(g)}`).join(',\n')}\n  ]\n}`;
+
+export function generateCandles({ seed, count }: { seed: number; count: number }): Candles {
+  const rand = prng(seed);
+  const round = (v: number) => Math.round(v * 100) / 100;
+  const day = new Date(Date.UTC(2020, 0, 1));
+  let price = 100;
+  const candles = [];
+  while (candles.length < count) {
+    day.setUTCDate(day.getUTCDate() + 1);
+    if (day.getUTCDay() % 6 === 0) continue;
+    const open = round(price);
+    const close = rand() < 0.04 ? open : round(Math.max(1, open + (rand() - 0.5) * 4));
+    const high = round(Math.max(open, close) + rand() * 1.5);
+    const low = round(Math.max(0.5, Math.min(open, close) - rand() * 1.5));
+    candles.push({ t: day.toISOString().slice(0, 10), open, high, low, close });
+    price = close;
+  }
+  return { candles };
+}
+
+/** One candle per line: readable as a format example, and still small for heavy samples. */
+export const formatCandles = ({ candles }: Candles) =>
+  `{\n  "candles": [\n${candles.map(c => `    ${JSON.stringify(c)}`).join(',\n')}\n  ]\n}`;

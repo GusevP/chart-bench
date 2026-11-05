@@ -192,8 +192,8 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 12: Candlestick
-- [ ] `Candles` shape, sample, parser entry (low ≤ open, close ≤ high), `nudge`, wrappers per the matrix, installing `chartjs-chart-financial`, `chartjs-adapter-luxon` and `luxon` (its documented setup, so they count toward KB)
-- [ ] spec: an impossible bar rejected
+- [x] `Candles` shape, sample, parser entry (low ≤ open, close ≤ high), `nudge`, wrappers per the matrix, installing `chartjs-chart-financial`, `chartjs-adapter-luxon` and `luxon` (its documented setup, so they count toward KB)
+- [x] spec: an impossible bar rejected
 - [ ] run the per-task gate and the harness command
 
 ### Task 13: Verify acceptance criteria

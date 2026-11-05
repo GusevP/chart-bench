@@ -553,6 +553,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   `${lib}/treemap`,
   `${lib}/sankey`,
   ...(lib === 'recharts' ? [] : [`${lib}/boxplot`]),
+  ...['chartjs', 'echarts', 'tanstack'].includes(lib) ? [`${lib}/candlestick`] : [],
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
@@ -780,5 +781,51 @@ test('box plot: statistics match a hand-computed case, parsing rejects bad group
     const before = positions(parsed);
     const moved = positions(after);
     expect(before.every((p, i) => moved[i] !== p), text).toBe(true);
+  }
+});
+
+test('candlestick: an impossible bar is rejected, nudge flips alternate candles and keeps low and high', () => {
+  const bar = (b: object) =>
+    JSON.stringify({ candles: [{ t: '2024-01-02', open: 5, high: 8, low: 2, close: 6, ...b }] });
+  expect(() => parseSeries('candlestick', bar({ low: 5.5 }))).toThrow(/low <= open/);
+  expect(() => parseSeries('candlestick', bar({ high: 5.5 }))).toThrow(/low <= open/);
+  expect(() => parseSeries('candlestick', bar({ t: '2024-02-30' }))).toThrow(/YYYY-MM-DD/);
+  expect(() => parseSeries('candlestick', bar({ close: null }))).toThrow(/number/);
+  expect(() => parseSeries('candlestick', JSON.stringify({ candles: [] }))).toThrow(/candles/);
+  const twice = JSON.stringify({ candles: [JSON.parse(bar({})).candles[0], JSON.parse(bar({})).candles[0]] });
+  expect(() => parseSeries('candlestick', twice)).toThrow(/Duplicate/);
+
+  const two = JSON.stringify({
+    candles: [
+      { t: '2024-01-03', open: 5, high: 8, low: 2, close: 6 },
+      { t: '2024-01-02', open: 4, high: 7, low: 1, close: 4 },
+    ],
+  });
+  const parsed = parseSeries('candlestick', two);
+  if (parsed.chart !== 'candlestick') throw new Error('wrong kind');
+  expect(parsed.data.candles.map(c => c.t)).toEqual(['2024-01-02', '2024-01-03']);
+
+  const body = (parsed: Parsed) => {
+    if (parsed.chart !== 'candlestick') throw new Error('wrong kind');
+    const { candles } = parsed.data;
+    const lo = Math.min(...candles.map(c => c.low));
+    const hi = Math.max(...candles.map(c => c.high));
+    return candles.map(c => [(c.open - lo) / (hi - lo), (c.close - lo) / (hi - lo), c.close >= c.open].join());
+  };
+  for (const text of [two, sample('candlestick', 'typical')]) {
+    const before = parseSeries('candlestick', text);
+    const after = nudge(before);
+    if (before.chart !== 'candlestick' || after.chart !== 'candlestick') throw new Error('wrong kind');
+    expect(after.data.candles.map(c => c.t)).toEqual(before.data.candles.map(c => c.t));
+    after.data.candles.forEach((c, i) => {
+      const was = before.data.candles[i]!;
+      expect(c.low).toBe(was.low);
+      expect(Math.min(c.open, c.close)).toBeGreaterThanOrEqual(c.low);
+      expect(Math.max(c.open, c.close)).toBeLessThanOrEqual(c.high);
+    });
+    const moved = body(after);
+    const was = body(before);
+    expect(was.every((p, i) => moved[i] !== p), text.slice(0, 40)).toBe(true);
+    expect(after.data.candles.some((c, i) => c.close >= c.open !== before.data.candles[i]!.close >= before.data.candles[i]!.open)).toBe(true);
   }
 });

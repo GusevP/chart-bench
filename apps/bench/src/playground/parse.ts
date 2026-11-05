@@ -6,6 +6,7 @@ import type { DatasetSize } from '../data/generate';
 import {
   GALLERY_DATASETS,
   formatBoxplot,
+  formatCandles,
   formatCategories,
   formatCombo,
   formatDonut,
@@ -13,6 +14,7 @@ import {
   formatSankey,
   formatTreemap,
   generateBoxplot,
+  generateCandles,
   generateCategories,
   generateCombo,
   generateDonut,
@@ -235,6 +237,25 @@ function parseBoxplot(raw: any) {
   return { groups };
 }
 
+function parseCandles(raw: any) {
+  if (!Array.isArray(raw?.candles) || raw.candles.length === 0)
+    throw new Error('Expected a non-empty "candles" array.');
+  const candles = raw.candles.map((c: any, i: number) => {
+    const where = `candles[${i}]`;
+    const t = c?.t;
+    if (typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(t) || new Date(`${t}T00:00:00Z`).toISOString().slice(0, 10) !== t)
+      throw new Error(`${where}.t: expected a date as YYYY-MM-DD, got ${JSON.stringify(t)}`);
+    const [open, high, low, close] = (['open', 'high', 'low', 'close'] as const).map(k => num(c[k], `${where}.${k}`));
+    if (low! > Math.min(open!, close!) || high! < Math.max(open!, close!))
+      throw new Error(`${where}: needs low <= open, close <= high.`);
+    return { t, open: open!, high: high!, low: low!, close: close! };
+  });
+  candles.sort((a: { t: string }, b: { t: string }) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
+  const dup = candles.find((c: { t: string }, i: number) => i > 0 && candles[i - 1].t === c.t);
+  if (dup) throw new Error(`Duplicate date ${dup.t}.`);
+  return { candles };
+}
+
 function parseSankey(raw: any): Sankey {
   if (!Array.isArray(raw?.nodes) || raw.nodes.length === 0) throw new Error('Expected a non-empty "nodes" array.');
   if (!Array.isArray(raw.links) || raw.links.length === 0) throw new Error('Expected a non-empty "links" array.');
@@ -438,6 +459,28 @@ const KINDS: { [K in ChartKind]?: Kind } = {
       };
     },
     sample: size => formatBoxplot(generateBoxplot(GALLERY_DATASETS.boxplot[size])),
+  },
+  candlestick: {
+    label: 'Candlestick',
+    hint: '{ candles: [{ t, open, high, low, close }] }. t is YYYY-MM-DD and unique; candles are sorted by date and drawn one per slot, with no gaps for missing days. Each needs low <= open, close <= high. Close at or above open is up.',
+    parse: raw => ({ chart: 'candlestick', data: parseCandles(raw) }),
+    nudge: parsed => {
+      if (parsed.chart !== 'candlestick') return parsed;
+      const { candles } = parsed.data;
+      const lift = (Math.max(...candles.map(c => c.high)) - Math.min(...candles.map(c => c.low))) * 0.02;
+      return {
+        chart: 'candlestick',
+        data: {
+          candles: candles.map((c, i) => {
+            const high = c.high + lift;
+            if (i % 2 === 0) return { ...c, high };
+            if (c.open === c.close) return { ...c, open: c.high, high };
+            return { ...c, open: c.close, close: c.open, high };
+          }),
+        },
+      };
+    },
+    sample: size => formatCandles(generateCandles(GALLERY_DATASETS.candlestick[size])),
   },
   donut: {
     label: 'Donut',

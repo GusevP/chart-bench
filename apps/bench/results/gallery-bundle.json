@@ -3,6 +3,9 @@
     "boxplot": {
       "libraryKb": 56.4
     },
+    "candlestick": {
+      "libraryKb": 74.2
+    },
     "combo": {
       "libraryKb": 55.6
     },
@@ -31,6 +34,9 @@
   "echarts": {
     "boxplot": {
       "libraryKb": 159.5
+    },
+    "candlestick": {
+      "libraryKb": 153.9
     },
     "combo": {
       "libraryKb": 169.1
@@ -109,6 +115,9 @@
   "tanstack": {
     "boxplot": {
       "libraryKb": 41.8
+    },
+    "candlestick": {
+      "libraryKb": 40
     },
     "combo": {
       "libraryKb": 39.9

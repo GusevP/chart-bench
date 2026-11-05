@@ -64,9 +64,7 @@ const niceStep = (span: number) => {
   return fix((f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * pow);
 };
 
-export function boxScale(stats: BoxStats[]) {
-  const lo = Math.min(...stats.map(s => s.min));
-  const hi = Math.max(...stats.map(s => s.max));
+export function niceScale(lo: number, hi: number) {
   const step = lo === hi ? 1 : niceStep(hi - lo);
   const domain: [number, number] =
     lo === hi
@@ -76,6 +74,9 @@ export function boxScale(stats: BoxStats[]) {
   const ticks = Array.from({ length: count + 1 }, (_, i) => snap(domain[0] + i * step, step));
   return { domain, step, ticks: [...new Set(ticks)].filter(t => t >= domain[0] && t <= domain[1]) };
 }
+
+export const boxScale = (stats: BoxStats[]) =>
+  niceScale(Math.min(...stats.map(s => s.min)), Math.max(...stats.map(s => s.max)));
 
 export const boxPaddingInner = 1 - BOX_RATIO;
 export const boxPaddingOuter = boxPaddingInner / 2;
