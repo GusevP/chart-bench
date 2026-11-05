@@ -3,7 +3,7 @@
 ## Overview
 - Add ten chart types to the playground, beside Survival and Scatter: stacked bar, stacked area, donut, radar, bar + line on two axes, heatmap, treemap, sankey, box plot, candlestick.
 - Each library renders a type from the same pasted JSON, with the same measurements as today. A library that has no such chart shows a "Not supported" card, because that is a finding for someone choosing a library.
-- Playground only: the benchmark harness, `results/bundle.json` numbers, `tests/bench.spec.ts` and the Survival/Scatter wrappers keep their behaviour.
+- Playground only: the benchmark harness, `results/bundle.json` `libraryKb` numbers, `tests/bench.spec.ts` and the Survival/Scatter wrappers keep their behaviour. `libraryKb` stayed unchanged; `totalKb` moved by at most 0.1 against `main`.
 
 ## Context (from discovery)
 - `apps/bench/src/ArmPage.tsx`, `EmbeddedArmPage.tsx`: arm page and embedded protocol, `Payload`, `fromUrl`.
@@ -111,7 +111,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - `settleMode` comes from the chart module, so ECharts stays `signal` and the rest stay as their arm. `nudge` keeps ids and shape, so update reconciles rather than remounts, and it must change rendered geometry. A uniform scale leaves donut, treemap and sankey proportions as they were, so alternating elements move in opposite directions.
 - `MARGIN`, 900 × 600 and hover tracking are shared with the existing types.
 - `shell` always loads its own page, whatever the chart: it is the floor, ignores its props and reads `bundle.json`. Only frame `src` depends on the chart kind. `calibrate` keys its cost on `series`, so it stays on Survival and Scatter: it is absent from `gallery-bundle.json` and shows Not supported for new kinds.
-- `bundle.json`: `EmbeddedArmPage` changes may shift totals by a byte through chunk hashes. This one-time tolerance is the only exception to unchanged numbers. Regenerate `bundle.json` once in Task 1 and hand-edit any moved bundle row in `report.md` (`pnpm report` writes `raw.md`, not that file), require `libraryKb` within 0.1 of the committed values, and use exact `git diff --exit-code` afterwards. Task 2 also regenerated it once (nivo `totalKb` 172 to 172.1, `libraryKb` unchanged, shared `ArmPage` code grew by bytes).
+- `bundle.json`: `libraryKb` is what stayed unchanged; `totalKb` moved by at most 0.1 against `main`, because `EmbeddedArmPage` and `ArmPage` changes shift totals by a few bytes. The planned one-time tolerance in Task 1 became three moves, each regenerated with the moved rows hand-edited in `report.md` (`pnpm report` writes `raw.md`, not that file), and exact `git diff --exit-code` between them. Task 1: echarts 232.8 to 232.9, shell 68.8 to 68.9. Task 2: nivo 172 to 172.1, shared `ArmPage` code grew by bytes. Final review: chartjs 124.3 to 124.4, none 80.4 to 80.5, recharts 175 to 175.1, tanstack 111 to 111.1, visx 94 to 94.1, for the catch on the embedded chunk import in `ArmPage`.
 
 ## What Goes Where
 - **Implementation Steps**: code, tests and docs in this repo.
@@ -144,7 +144,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [x] cards show `libraryKb` from `gallery-bundle.json` for gallery kinds; a pair absent from it renders a Not supported card, runs no lab and has no table row values. Selected and measured stay two lists, and nothing starts when nothing is measurable
 - [x] chart picker lists all kinds; a kind is reachable only once it has a table entry
 - [x] add one spec that first compares the pairs in `gallery-bundle.json` to a literal expected list in the spec, then iterates them with the typical sample, asserting stats and no `bench:error`, and every other pair shows Not supported. Each type's task adds its pairs to that list from the matrix, so an omitted wrapper fails instead of reading as unsupported. Runtime lookups still use the JSON
-- [x] existing 24 specs pass unchanged
+- [x] existing 24 specs pass, one of them edited. 81488d3 moved the playground's one-column breakpoint from 900px to 1400px (`style.css`), a layout change this plan did not list. The specs run at 1000px wide, so the page is now one column there, and 90d69e1 changed `a lab scrolled out of view mid-run repeats the run and still yields every` to bring the lab back with `scrollIntoView` instead of `scrollTo(0, 0)`
 - [ ] run the per-task gate
 
 ### Task 3: Stacked bar
@@ -230,7 +230,7 @@ Built site, 1440 × 900, all libraries selected, 5 runs after 1 warm-up (median 
 | Radar | recharts | 31.3 ± 0.4 | 32.9 ± 0.1 | 0.0 ± 0.0 | 80 | 90.0 |
 | Radar | echarts | 20.7 ± 1.1 | 33.0 ± 0.1 | 0.0 ± 0.0 | 5 | 143.1 |
 | Radar | visx | 19.0 ± 0.5 | 33.0 ± 0.2 | 0.0 ± 0.0 | 43 | 16.3 |
-| Radar | tanstack | 21.3 ± 0.5 | 32.8 ± 0.1 | 0.0 ± 0.0 | 47 | 40.8 |
+| Radar | tanstack | 21.3 ± 0.5 | 32.8 ± 0.1 | 0.0 ± 0.0 | 47 | 40.9 |
 | Radar | chartjs | 21.5 ± 1.5 | 32.8 ± 0.1 | 0.0 ± 0.0 | 2 | 53.8 |
 | Bar + line | recharts | 38.8 ± 0.6 | 43.3 ± 0.4 | 0.0 ± 0.0 | 1726 | 101.7 |
 | Bar + line | echarts | 18.7 ± 0.1 | 34.6 ± 0.5 | 0.0 ± 0.0 | 5 | 169.1 |
