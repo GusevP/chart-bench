@@ -27,6 +27,8 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'sankey'>) 
           alpha: LINK_OPACITY,
           nodeWidth: NODE_WIDTH,
           nodePadding: NODE_GAP,
+          nodePaddingMode: 'even',
+          modeX: 'even',
           borderWidth: 0,
           nodeLabels: { display: false },
         },
