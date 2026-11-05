@@ -56,6 +56,8 @@ Treemap: leaf areas match in all six, but Chart.js tiles with squarify ratio 1 a
 
 Sankey: node width, node gap, iteration count, left alignment, link curve (0.5), node and link colours (node colour by id from one palette, link colour from its source at one opacity), no labels, no drag and no animation are aligned from `arms/shared/sankey.ts` wherever the library has the option. Layouts still differ by design: nivo, visx and TanStack all run d3-sankey and draw alike; Recharts and ECharts use their own d3-derived layouts and land close; nivo has no iteration or curve option (fixed 6 and a fixed monotone curve); Chart.js has no iteration or curve option and takes its node gap in height-scaled units; it gets `modeX: 'even'` (sinks stay in their own column, as in the others) and `nodePaddingMode: 'even'` (uniform gaps). Its node order comes from its own layout (`priority` only sets it by hand, and the others derive theirs by relaxation), so it stays the visible outlier. Recharts has no per-link colour option, so its `link` render function turns the library's own control points into the path. The heavy sample (150 nodes, 500 links) completes in all six.
 
+Box plot: one statistics helper (`arms/shared/boxplot.ts`: linear-interpolation quartiles, which is also what d3, TanStack and Chart.js default to; Tukey whiskers at 1.5 IQR clamped to the most extreme value inside the fence) feeds computed boxes to nivo (it accepts pre-summarised rows), ECharts, Chart.js (stat objects) and visx; TanStack's `boxY` takes only raw values, so its wrapper draws the helper's boxes with TanStack's own `link`, `barY` and `tickY` marks. Outliers are hidden in all five: nivo has no outlier layer and `boxY` cannot hide them, so showing them would need our own geometry. That also bounds the heavy sample (40 groups by 2500 values) to 260 to 420 DOM nodes in the SVG libraries. The y domain is the whisker extent rounded outward to a 1-2-5 step, shared by all five, and is not forced to zero. Box width is 0.6 of the slot, caps are the full box width, strokes are one colour and width; nivo, visx and TanStack get caps through options, marks or props, ECharts and Chart.js draw them that way themselves. Nivo's band scale has one padding for both ends, so its boxes have the same width but sit up to 16px nearer the middle than the other four. Tick spacing on y stays each library's own, and x labels are thinned to every fourth in all five.
+
 `chartjs-chart-financial` 0.2.1 is pre-1.0 and `chartjs-chart-sankey` is 0.x; if either fails on Chart.js 4.6, that cell becomes `no` with a deviation.
 
 ### Separate build
@@ -185,8 +187,8 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] run the per-task gate
 
 ### Task 11: Box plot
-- [ ] `BoxGroups` shape, shared statistics helper, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/boxplot`, `@sgratzl/chartjs-chart-boxplot`, `@visx/stats`
-- [ ] spec: the helper against a hand-computed quartile case
+- [x] `BoxGroups` shape, shared statistics helper, sample, parser entry, `nudge`, wrappers per the matrix, installing `@nivo/boxplot`, `@sgratzl/chartjs-chart-boxplot`, `@visx/stats`
+- [x] spec: the helper against a hand-computed quartile case
 - [ ] run the per-task gate
 
 ### Task 12: Candlestick

@@ -1,4 +1,4 @@
-import type { Categories, Combo, Donut, Heatmap, Sankey, TreeNode } from './contract';
+import type { BoxGroups, Categories, Combo, Donut, Heatmap, Sankey, TreeNode } from './contract';
 import { PALETTE, prng } from './generate';
 
 export const GALLERY_DATASETS = {
@@ -29,6 +29,10 @@ export const GALLERY_DATASETS = {
   sankey: {
     typical: { seed: 19, nodes: 12, links: 20, layers: 4 },
     heavy: { seed: 20, nodes: 150, links: 500, layers: 6 },
+  },
+  boxplot: {
+    typical: { seed: 21, groups: 8, values: 200 },
+    heavy: { seed: 22, groups: 40, values: 2500 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },
@@ -196,3 +200,31 @@ export const formatSankey = ({ nodes, links }: Sankey) =>
   `\n  ],\n  "links": [\n` +
   links.map(l => `    ${JSON.stringify(l)}`).join(',\n') +
   '\n  ]\n}';
+
+export function generateBoxplot({
+  seed,
+  groups,
+  values,
+}: {
+  seed: number;
+  groups: number;
+  values: number;
+}): BoxGroups {
+  const rand = prng(seed);
+  const normal = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+  return {
+    groups: Array.from({ length: groups }, (_, g) => {
+      const center = 40 + 30 * rand();
+      const spread = 4 + 10 * rand();
+      return {
+        id: `Group ${g + 1}`,
+        color: PALETTE[g % PALETTE.length]!,
+        values: Array.from({ length: values }, () => Math.round((center + spread * normal()) * 10) / 10),
+      };
+    }),
+  };
+}
+
+/** One group per line: readable as a format example, and still small for heavy samples. */
+export const formatBoxplot = ({ groups }: BoxGroups) =>
+  `{\n  "groups": [\n${groups.map(g => `    ${JSON.stringify(g)}`).join(',\n')}\n  ]\n}`;

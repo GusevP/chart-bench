@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
 
+import { boxStats } from '../src/arms/shared/boxplot';
 import { treeLeaves } from '../src/arms/shared/treemap';
 import type { SurvivalSeries } from '../src/data/contract';
 import { DATASETS, generateSurvival } from '../src/data/generate';
@@ -551,6 +552,7 @@ const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'v
   ...(lib === 'recharts' ? [] : [`${lib}/heatmap`]),
   `${lib}/treemap`,
   `${lib}/sankey`,
+  ...(lib === 'recharts' ? [] : [`${lib}/boxplot`]),
 ]);
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
@@ -702,4 +704,41 @@ test('sankey: unknown nodes and cycles are rejected, nudge changes link shares',
   const moved = shares(after.data.links);
   expect(after.data.links.map(l => [l.source, l.target])).toEqual(parsed.data.links.map(l => [l.source, l.target]));
   expect(before.every((share, i) => moved[i] !== share)).toBe(true);
+});
+
+test('box plot: statistics match a hand-computed case, parsing rejects bad groups, nudge moves every median', () => {
+  expect(boxStats([1, 2, 3, 4, 5, 6, 100])).toMatchObject({
+    q1: 2.5,
+    median: 4,
+    q3: 5.5,
+    whiskerLow: 1,
+    whiskerHigh: 6,
+    min: 1,
+    max: 100,
+  });
+  expect(boxStats([7])).toMatchObject({ q1: 7, median: 7, q3: 7, whiskerLow: 7, whiskerHigh: 7 });
+
+  const groups = (g: unknown[]) => JSON.stringify({ groups: g });
+  expect(() => parseSeries('boxplot', groups([]))).toThrow(/groups/);
+  expect(() => parseSeries('boxplot', groups([{ id: 'a', values: [] }]))).toThrow(/values/);
+  expect(() => parseSeries('boxplot', groups([{ id: 'a', values: [1, null] }]))).toThrow(/number/);
+  expect(() =>
+    parseSeries('boxplot', groups([{ id: 'a', values: [1] }, { id: 'a', values: [2] }])),
+  ).toThrow(/Duplicate/);
+
+  const medians = (parsed: Parsed) => {
+    if (parsed.chart !== 'boxplot') throw new Error('wrong kind');
+    return parsed.data.groups.map(g => boxStats(g.values).median);
+  };
+  for (const text of [sample('boxplot', 'typical'), groups([{ id: 'a', values: [5, 5] }, { id: 'b', values: [5, 5, 5, 5] }])]) {
+    const parsed = parseSeries('boxplot', text);
+    const after = nudge(parsed);
+    if (parsed.chart !== 'boxplot' || after.chart !== 'boxplot') throw new Error('wrong kind');
+    expect(after.data.groups.map(g => [g.id, g.values.length])).toEqual(
+      parsed.data.groups.map(g => [g.id, g.values.length]),
+    );
+    const before = medians(parsed);
+    const moved = medians(after);
+    expect(before.every((m, i) => moved[i] !== m)).toBe(true);
+  }
 });

@@ -20,6 +20,9 @@ importers:
       '@nivo/bar':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/boxplot':
+        specifier: ^0.99.0
+        version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@nivo/core':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -44,6 +47,9 @@ importers:
       '@nivo/treemap':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@sgratzl/chartjs-chart-boxplot':
+        specifier: ^4.4.5
+        version: 4.4.5(chart.js@4.6.1)
       '@tanstack/charts':
         specifier: 1.2.0
         version: 1.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -75,6 +81,9 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       '@visx/shape':
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.3.0)(react@19.3.1)
+      '@visx/stats':
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.3.0)(react@19.3.1)
       '@visx/tooltip':
@@ -185,6 +194,11 @@ packages:
 
   '@nivo/bar@0.99.0':
     resolution: {integrity: sha512-9yfMn7H6UF/TqtCwVZ/vihVAXUff9wWvSaeF2Z1DCfgr5S07qs31Qb2p0LZA+YgCWpaU7zqkeb3VZ4WCpZbrDA==}
+    peerDependencies:
+      react: ^16.14 || ^17.0 || ^18.0 || ^19.0
+
+  '@nivo/boxplot@0.99.0':
+    resolution: {integrity: sha512-1XD5ILCBbmA8ghtUBg0gMaXNQGJgky0yLrcjGCfq6yqNLwscsn2rSKKbCtH9HMUTRrkb0iqkhoAzbX1cvsTe+Q==}
     peerDependencies:
       react: ^16.14 || ^17.0 || ^18.0 || ^19.0
 
@@ -408,6 +422,14 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@sgratzl/boxplots@2.0.0':
+    resolution: {integrity: sha512-XHQTNTk0OtDEZyT7v+BKNKt4OEXYhn4GtfI+iQ1eFiFsx8Aq/csz+mOJYbfpkiP8Popd/8Nky8vLh1zzkYn0gw==}
+
+  '@sgratzl/chartjs-chart-boxplot@4.4.5':
+    resolution: {integrity: sha512-hvHcUIPIyzNPRmvPNIbA/R68zZKv7XHUcNrYJZTB8QsVE0KKuuGuEK98yCeCy32vZXQBl/PrHGOYMXeuqZrU0w==}
+    peerDependencies:
+      chart.js: ^4.1.1
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -662,6 +684,15 @@ packages:
 
   '@visx/shape@4.0.0':
     resolution: {integrity: sha512-X0FP3OFjQhc5/6Vj2aY7cK2JwKYI0H0hQM7cdNRWy/ZMMlrh5KpEdqx0HVo0KoTeTlkUvO+kydMLnAuuCRFIFw==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@visx/stats@4.0.0':
+    resolution: {integrity: sha512-ynHDVmZPRE3RSN/fsuvtEQ5/k4eqpGsCdT8PTsYVVeKY1ze9oIlSM0b0uD4lUH2Pify7+5T3aoa2xJUvqz22xQ==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -1275,6 +1306,26 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
+  '@nivo/boxplot@0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@nivo/annotations': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/axes': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/colors': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/core': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/legends': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@nivo/scales': 0.99.0
+      '@nivo/theming': 0.99.0(react@19.3.1)
+      '@nivo/tooltip': 0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@react-spring/web': 10.1.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/d3-scale': 4.0.9
+      '@types/d3-shape': 3.2.0
+      d3-scale: 4.0.2
+      d3-shape: 3.2.0
+      lodash: 4.18.1
+      react: 19.3.1
+    transitivePeerDependencies:
+      - react-dom
+
   '@nivo/canvas@0.99.0': {}
 
   '@nivo/colors@0.99.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
@@ -1593,6 +1644,13 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@sgratzl/boxplots@2.0.0': {}
+
+  '@sgratzl/chartjs-chart-boxplot@4.4.5(chart.js@4.6.1)':
+    dependencies:
+      '@sgratzl/boxplots': 2.0.0
+      chart.js: 4.6.1
+
   '@standard-schema/spec@1.1.0': {}
 
   '@standard-schema/utils@0.3.0': {}
@@ -1814,6 +1872,16 @@ snapshots:
   '@visx/shape@4.0.0(@types/react@19.3.0)(react@19.3.1)':
     dependencies:
       '@visx/curve': 4.0.0
+      '@visx/group': 4.0.0(@types/react@19.3.0)(react@19.3.1)
+      '@visx/scale': 4.0.0
+      '@visx/vendor': 4.0.0
+      classnames: 2.5.1
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
+
+  '@visx/stats@4.0.0(@types/react@19.3.0)(react@19.3.1)':
+    dependencies:
       '@visx/group': 4.0.0(@types/react@19.3.0)(react@19.3.1)
       '@visx/scale': 4.0.0
       '@visx/vendor': 4.0.0

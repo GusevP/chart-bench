@@ -4,12 +4,14 @@ import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/ge
 import type { DatasetSize } from '../data/generate';
 import {
   GALLERY_DATASETS,
+  formatBoxplot,
   formatCategories,
   formatCombo,
   formatDonut,
   formatHeatmap,
   formatSankey,
   formatTreemap,
+  generateBoxplot,
   generateCategories,
   generateCombo,
   generateDonut,
@@ -215,6 +217,23 @@ function parseTreemap(raw: any) {
   return walk(raw, 'root', 0);
 }
 
+function parseBoxplot(raw: any) {
+  if (!Array.isArray(raw?.groups) || raw.groups.length === 0) throw new Error('Expected a non-empty "groups" array.');
+  const groups = raw.groups.map((g: any, i: number) => {
+    const where = `groups[${i}]`;
+    if (!Array.isArray(g?.values) || g.values.length === 0) throw new Error(`${where}: needs a non-empty "values" array.`);
+    return {
+      id: idOf(g.id, `Group ${i + 1}`),
+      color: typeof g.color === 'string' ? g.color : PALETTE[i % PALETTE.length]!,
+      values: g.values.map((v: unknown, j: number) => num(v, `${where}.values[${j}]`)),
+    };
+  });
+  const ids = groups.map((g: { id: string }) => g.id);
+  const dupId = ids.find((id: string, i: number) => ids.indexOf(id) !== i);
+  if (dupId !== undefined) throw new Error(`Duplicate group id ${JSON.stringify(dupId)}.`);
+  return { groups };
+}
+
 function parseSankey(raw: any): Sankey {
   if (!Array.isArray(raw?.nodes) || raw.nodes.length === 0) throw new Error('Expected a non-empty "nodes" array.');
   if (!Array.isArray(raw.links) || raw.links.length === 0) throw new Error('Expected a non-empty "links" array.');
@@ -394,6 +413,31 @@ const KINDS: { [K in ChartKind]?: Kind } = {
       };
     },
     sample: size => formatSankey(generateSankey(GALLERY_DATASETS.sankey[size])),
+  },
+  boxplot: {
+    label: 'Box plot',
+    hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box. Points beyond are outliers and are not drawn.',
+    parse: raw => ({ chart: 'boxplot', data: parseBoxplot(raw) }),
+    nudge: parsed => {
+      if (parsed.chart !== 'boxplot') return parsed;
+      const flat = parsed.data.groups.flatMap(g => g.values);
+      const constant = flat.every(v => v === flat[0]);
+      const shift = Math.max(1, Math.floor(flat.length / parsed.data.groups.length / 2));
+      let k = 0;
+      return {
+        chart: 'boxplot',
+        data: {
+          groups: parsed.data.groups.map(g => ({
+            ...g,
+            values: g.values.map(() => {
+              const i = k++;
+              return constant ? flat[i]! + (i % 2) : flat[(i + shift) % flat.length]!;
+            }),
+          })),
+        },
+      };
+    },
+    sample: size => formatBoxplot(generateBoxplot(GALLERY_DATASETS.boxplot[size])),
   },
   donut: {
     label: 'Donut',
