@@ -30,6 +30,8 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'treemap'>)
       series: [
         {
           type: 'treemap',
+          // TreemapSeries defaults `animation` on, which outranks the top-level `animation: false`.
+          animation: false,
           ...MARGIN,
           roam: false,
           nodeClick: false,

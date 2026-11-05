@@ -107,6 +107,7 @@ Candlestick needs at least two candles, `t` as `YYYY-MM-DD` and unique, and `low
 - The per-type KB comes from `results/gallery-bundle.json`: an isolated build per library and type pair, minus an empty stub, gzipped. It is not comparable with `bundle.json`, which measures the arm pages. Plugin packages and their setup (Chart.js financial needs `chartjs-adapter-luxon` and `luxon`) count.
 - Below 1400px wide the page is one column. A run pauses while the measuring panel is scrolled offscreen, because the browser throttles an offscreen frame.
 - The known-cost test page stays on Survival and Scatter and shows Not supported for the new types.
+- ECharts' Survival and Scatter updates still rebuild the chart, because their wrapper is shared with the benchmark harness and stays frozen; its ten gallery types update the existing chart.
 
 ## Method
 
