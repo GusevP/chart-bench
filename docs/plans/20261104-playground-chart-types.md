@@ -52,6 +52,8 @@ Writing our own path, cell or custom-shape code means Not supported. So Recharts
 
 This corrects the first table shown to the user: visx `BarStack`, `AreaStack`, `Pie`, `LineRadial` and `@visx/stats`, and TanStack candlestick, exist. `none` stays at two types and is Not supported for all ten. Implementers do not change a cell on their own. If a cell turns out false, record a `[deviation]` and leave the type unsupported.
 
+Treemap: leaf areas match in all six, but Chart.js tiles with squarify ratio 1 and has no option to change it, while the other five default to the golden ratio, so its rectangles land in different places. Chart.js is the one recorded outlier; the other libraries are not aligned.
+
 `chartjs-chart-financial` 0.2.1 is pre-1.0 and `chartjs-chart-sankey` is 0.x; if either fails on Chart.js 4.6, that cell becomes `no` with a deviation.
 
 ### Separate build
@@ -197,7 +199,7 @@ Box plot statistics come from one shared helper (quartiles, Tukey whiskers), for
 - [ ] record in the plan any library that cannot finish a heavy sample
 
 ### Task 14: [Final] Update documentation
-- [ ] update the Playground section of `README.md`: chart types, the support rule, the matrix and how to paste each shape
+- [ ] update the Playground section of `README.md`: chart types, the support rule, the matrix, how to paste each shape, and the Chart.js treemap ratio-1 outlier
 - [ ] add the support matrix to `ARTICLE.md` only if it already discusses chart coverage
 - [ ] move this plan to `docs/plans/completed/`
 

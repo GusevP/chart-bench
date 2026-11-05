@@ -70,6 +70,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'treemap'>)
       plugins: {
         legend: { display: false },
         tooltip: {
+          filter: ctx => (ctx.raw as TreemapDataPoint).isLeaf !== false,
           callbacks: {
             title: () => '',
             label: ctx => {
