@@ -11,14 +11,14 @@ Reconciled by hand from `loaded-20261106-1x.md` and `loaded-20261106-4x.md`.
 
 `pnpm report` and the drift script also overlapped the start of the 4× run. The logs have no per-test timestamps, so the number of cells touched is unknown.
 
-**Drift.** Median mount time, against the quieter 2026-11-03 runs (`run-1x.md`, `run-4x.md`), for the six arms whose timed code did not change:
+**Drift.** Median mount time, against the quieter 2026-11-03 runs (`run-1x.md`, `run-4x.md`), for the six arms that draw the same charts in both runs, with identical DOM node counts. Their timed pages did change: all of them go through a reworked `ArmPage.tsx`, five (all but visx) gained `EFFECTS` flags that are false on these pages, and TanStack renders through `shared/Chart.tsx`, which also loads `motion`:
 
 | cells | native | 4× throttle |
 | --- | ---: | ---: |
 | heavy | 0.91–1.17× | 1.00–1.13× |
 | typical | 0.98–1.81× | 0.78–1.51× |
 
-Read a heavy-chart gap under 20%, or any gap under one frame, as a tie, and do not rank the typical columns. `none` was rewritten between the two dates, so the same-code limits don't cover it: heavy scatter went 92.5 → 120.3 ms at 4× (1.30×, past every same-code heavy cell) and 29.6 → 25.6 ms at native speed. That move is unexplained. `none` runs first in the fixed order in `bench.spec.ts`, so its 4× cells ran nearest the 6.48 load reading and the script overlap, while the same-code arms ran later as load fell to 3.66. These runs can't settle whether the rewrite slowed it.
+Read a heavy-chart gap under 20%, or any gap under one frame, as a tie, and do not rank the typical columns. `none` was rewritten between the two dates, so these limits don't cover it: heavy scatter went 92.5 → 120.3 ms at 4× (1.30×, past every heavy cell above) and 29.6 → 25.6 ms at native speed. That move is unexplained. `none` runs first in the fixed order in `bench.spec.ts`, so its 4× cells ran nearest the 6.48 load reading and the script overlap, while the six arms above ran later as load fell to 3.66. These runs can't settle whether the rewrite slowed it.
 
 These runs have no `shell` row: the default arm list omits it, so the empty-page baseline was not re-measured. The last figures are in `run-1x.md` and `run-4x.md`.
 
