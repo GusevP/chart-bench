@@ -152,9 +152,9 @@
       "coverage": 10,
       "common": {
         "chart": 3065,
-        "adapter": 3923,
+        "adapter": 3949,
         "shared": 554,
-        "total": 7542,
+        "total": 7568,
         "files": [
           "src/arms/none/gallery/donut.tsx",
           "src/arms/none/gallery/radar.tsx",
@@ -950,9 +950,9 @@
       },
       "sankey": {
         "chart": 493,
-        "adapter": 2106,
+        "adapter": 2132,
         "shared": 107,
-        "total": 2706,
+        "total": 2732,
         "files": [
           "src/arms/none/gallery/sankey.tsx",
           "src/arms/none/shared/Chart.tsx",

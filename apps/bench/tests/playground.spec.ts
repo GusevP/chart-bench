@@ -1283,6 +1283,14 @@ test('none sankey: the heavy graph is sound, and layering does not walk paths', 
   const { nodes } = sankeyLayout(chain, 0, 0, 800, 296);
   expect(performance.now() - start).toBeLessThan(100);
   expect(Math.max(...nodes.map(n => n.layer))).toBe(120);
+  sankeySound(chain, 800, 296);
+
+  const ids = Array.from({ length: 72 }, (_, i) => `n${i}`);
+  const longChain = sankeyGraph(
+    ids,
+    ids.slice(1).map((id, i) => [ids[i]!, id, 1]),
+  );
+  sankeySound(longChain, 824, 536);
 });
 
 test('none helpers: step paths match d3 curveStepAfter and lookup is right-closed at knots', async () => {

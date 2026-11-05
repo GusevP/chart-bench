@@ -93,7 +93,9 @@ export const sankeyLayout = (data: Sankey, x0: number, y0: number, x1: number, y
   }
 
   const height = y1 - y0;
-  const step = (x1 - x0 - NODE_WIDTH) / Math.max(columns.length - 1, 1);
+  // A fixed width runs links backward once columns sit closer than it, so deep graphs split each step evenly.
+  const nodeWidth = Math.min(NODE_WIDTH, (x1 - x0) / (2 * columns.length - 1));
+  const step = (x1 - x0 - nodeWidth) / Math.max(columns.length - 1, 1);
   const gap = Math.min(NODE_GAP, (MAX_GAP_SHARE * height) / (Math.max(...columns.map(c => c.length)) - 1));
   const k = Math.min(...columns.map(c => (height - (c.length - 1) * gap) / total(c)));
 
@@ -102,7 +104,7 @@ export const sankeyLayout = (data: Sankey, x0: number, y0: number, x1: number, y
     let y = y0 + free;
     for (const node of column) {
       node.x0 = x0 + node.layer * step;
-      node.x1 = node.x0 + NODE_WIDTH;
+      node.x1 = node.x0 + nodeWidth;
       node.y0 = y;
       node.y1 = y + node.value * k;
       y = node.y1 + gap + free;
