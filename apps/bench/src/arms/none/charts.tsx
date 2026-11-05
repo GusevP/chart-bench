@@ -3,7 +3,7 @@ import type { MouseEvent } from 'react';
 
 import type { Arm, ScatterChartProps, ScatterPoint, SurvivalChartProps } from '../../data/contract';
 import { MARGIN } from '../../data/spec';
-import { Axes, Tooltip, pointer } from './shared/Chart';
+import { Axes, Tooltip, plotPointer, pointer } from './shared/Chart';
 import { linear } from './shared/linear';
 import { stepAfterArea, stepAfterLine, stepIndex } from './shared/step';
 
@@ -25,7 +25,10 @@ function Survival({ width, height, series }: SurvivalChartProps) {
     return linear([0, lasts.length ? Math.max(...lasts) : 1], [MARGIN.left, width - MARGIN.right]);
   }, [series, width]);
   const y = useMemo(() => linear([0, 1], [height - MARGIN.bottom, MARGIN.top]), [height]);
-  const onMove = (e: MouseEvent<SVGSVGElement>) => setHoverX(x.invert(pointer(e)[0]));
+  const onMove = (e: MouseEvent<SVGSVGElement>) => {
+    const p = plotPointer(e, x.range, y.range);
+    setHoverX(p && x.invert(p[0]));
+  };
   const hovered = hoverX === null ? [] : series.map(s => ({ s, p: s.points[stepIndex(s.points, hoverX)]! }));
 
   return (
@@ -73,7 +76,7 @@ function Survival({ width, height, series }: SurvivalChartProps) {
         )}
       </svg>
       {hoverX !== null && (
-        <Tooltip left={x(hoverX)} top={MARGIN.top}>
+        <Tooltip left={x(hoverX)} top={MARGIN.top} width={width} height={height}>
           <div>Day {Math.round(hoverX)}</div>
           {hovered.map(({ s, p }) => (
             <div key={s.id} style={{ color: s.color }}>
@@ -132,7 +135,7 @@ function Scatter({ width, height, series }: ScatterChartProps) {
         ))}
       </svg>
       {hovered && (
-        <Tooltip left={x(hovered.p.x)} top={y(hovered.p.y)}>
+        <Tooltip left={x(hovered.p.x)} top={y(hovered.p.y)} width={width} height={height}>
           <span style={{ color: hovered.color }}>{hovered.id}</span>: ({hovered.p.x.toFixed(1)},{' '}
           {hovered.p.y.toFixed(1)})
         </Tooltip>
