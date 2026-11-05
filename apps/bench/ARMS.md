@@ -35,7 +35,7 @@ Each library gets one file, `src/arms/<arm>/charts.tsx`, exporting `arm: Arm` (s
 - `settleMode: 'raf'` is for renderers that output DOM/SVG synchronously when React commits.
 - `settleMode: 'signal'` is for anything that paints after commit (Canvas renderers, async layout). Call `onSettled()` exactly once, when the chart is fully drawn: use the library's "finished"/"rendered" callback, or an effect that runs after its draw. Write in `NOTES.md` which hook you used and how you checked that the canvas really had pixels at that moment.
 
-## NOTES.md (one per arm) — feeds the article
+## NOTES.md (one per library arm) — feeds the article
 
 - Version used.
 - For each requirement above: **native** (a documented feature), **composed** (built from the library's own primitives or documented extension points, such as a custom layer, render prop or plugin), or **hand-drawn** (bypassed the library: raw SVG/canvas outside those extension points). Composed may still include authored drawing or interaction code; these labels describe integration, not effort. Add one line saying how.

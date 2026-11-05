@@ -12,7 +12,7 @@ The same two charts — a survival curve with confidence bands and censoring tic
 | `tanstack` | TanStack Charts |
 | `chartjs` | Chart.js (Canvas) |
 
-Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
+Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each library arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
 
 ## Playground
 
@@ -102,17 +102,17 @@ Implementation burden of these ports under this contract, not a ranking of how s
 
 | Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 1637 |
-| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | N/A |
-| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | N/A |
-| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | N/A |
-| Donut | 206 | 207 | 479 | 350 | 439 | 307 | N/A |
-| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | N/A |
-| Radar | 555 | 442 | 704 | 588 | 936 | 584 | N/A |
-| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | N/A |
-| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | N/A |
-| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | N/A |
-| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | N/A |
+| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3137 |
+| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3489 |
+| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3287 |
+| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2476 |
+| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 1747 |
+| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1852 |
+| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1952 |
+| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 2732 |
+| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2316 |
+| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2509 |
+| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 2298 |
 
 For gallery totals, compare the six types every arm implements: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
 
@@ -124,13 +124,14 @@ For gallery totals, compare the six types every arm implements: donut, radar, Sa
 | Chart.js | 1840 | 105 | 511 | 2456 | 10/10 |
 | visx | 3681 | 37 | 554 | 4272 | 9/10 |
 | TanStack | 1706 | 41 | 554 | 2301 | 10/10 |
+| No library | 3065 | 3949 | 554 | 7568 | 10/10 |
 
 - **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
 - **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.
-- **Whole files:** a chart pays for all of a file it reaches. Chart.js Sankey pays for `fixWidth` and `fixHeight` without using them, and all three candlesticks pay for the box statistics in `boxplot.ts` because `candles.ts` imports `niceScale` from it. Treat small gaps as noise.
+- **Whole files:** a chart pays for all of a file it reaches. Chart.js Sankey pays for `fixWidth` and `fixHeight` without using them, and all four candlesticks pay for the box statistics in `boxplot.ts` because `candles.ts` imports `niceScale` from it. Treat small gaps as noise.
 - **Effects are counted.** Counts include the code that switches effects on. Bundles include what it pulls in: TanStack's `motion` renderer adds about 15 KB.
 - **Benchmark plumbing is not removed.** The Chart.js and ECharts adapters hold settle code, and chart files still pass `onSettled`.
-- **Box plot:** the input is raw values, and five ports chose the shared `boxplotStats`. Native or addon alternatives exist, and their equivalence was not evaluated. nivo also hides outliers, as recorded below.
+- **Box plot:** the input is raw values, and six ports chose the shared `boxplotStats`. Native or addon alternatives exist, and their equivalence was not evaluated. nivo also hides outliers, as recorded below.
 
 ### Recorded differences
 
