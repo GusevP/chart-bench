@@ -62,7 +62,7 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'boxplot'>)
         {
           type: 'scatter',
           symbolSize: BOX_OUTLIER_RADIUS * 2,
-          itemStyle: { color: BOX_OUTLIER_COLOR },
+          itemStyle: { color: BOX_OUTLIER_COLOR, opacity: 1 },
           data: stats.flatMap(s => s.outliers.map(v => [s.id, v])),
         },
       ],

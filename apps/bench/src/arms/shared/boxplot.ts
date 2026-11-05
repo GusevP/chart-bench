@@ -43,8 +43,8 @@ export function boxStats(values: number[]) {
     q1,
     median,
     q3,
-    whiskerLow: inside[0]!,
-    whiskerHigh: inside[inside.length - 1]!,
+    whiskerLow: Math.min(q1, inside[0]!),
+    whiskerHigh: Math.max(q3, inside[inside.length - 1]!),
     outliers: sorted.filter(v => !isInside(v)),
   };
 }

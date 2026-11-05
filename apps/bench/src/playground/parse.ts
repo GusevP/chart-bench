@@ -417,7 +417,7 @@ const KINDS: { [K in ChartKind]?: Kind } = {
   },
   boxplot: {
     label: 'Box plot',
-    hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box. Points beyond are outliers, drawn as dots in every library except nivo, which has no outlier layer.',
+    hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box, or the box edge if that value falls inside the box. Points beyond are outliers, drawn as dots in every library except nivo, which has no outlier layer.',
     parse: raw => ({ chart: 'boxplot', data: parseBoxplot(raw) }),
     nudge: parsed => {
       if (parsed.chart !== 'boxplot') return parsed;

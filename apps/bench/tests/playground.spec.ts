@@ -718,6 +718,20 @@ test('box plot: statistics match a hand-computed case, parsing rejects bad group
     outliers: [100],
   });
   expect(boxStats([7])).toMatchObject({ q1: 7, median: 7, q3: 7, whiskerLow: 7, whiskerHigh: 7 });
+  expect(boxStats([0, 1, 2, 100])).toMatchObject({
+    q1: 0.75,
+    q3: 26.5,
+    whiskerLow: 0,
+    whiskerHigh: 26.5,
+    outliers: [100],
+  });
+  expect(boxStats([-100, 0, 1, 2])).toMatchObject({
+    q1: -25,
+    q3: 1.25,
+    whiskerLow: -25,
+    whiskerHigh: 2,
+    outliers: [-100],
+  });
 
   const groups = (g: unknown[]) => JSON.stringify({ groups: g });
   expect(() => parseSeries('boxplot', groups([]))).toThrow(/groups/);
