@@ -1,6 +1,6 @@
 import { boxStats } from '../arms/shared/boxplot';
 import { treeLeaves } from '../arms/shared/treemap';
-import type { ChartKind, GalleryKind, Payload, Sankey, TreeNode } from '../data/contract';
+import type { Categories, ChartKind, GalleryKind, Payload, Sankey, TreeNode } from '../data/contract';
 import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
 import {
@@ -25,11 +25,13 @@ import {
 
 export type Parsed = Payload;
 
-type Kind = {
+type Payloads = { [K in ChartKind]: Extract<Payload, { chart: K }> };
+
+type Kind<P> = {
   label: string;
   hint: string;
-  parse: (raw: unknown) => Parsed;
-  nudge: (parsed: Parsed) => Parsed;
+  parse: (raw: unknown) => P;
+  nudge: (parsed: P) => P;
   sample: (size: DatasetSize) => string;
 };
 
@@ -127,27 +129,25 @@ function parseCombo(raw: any) {
   return { categories, bars, line };
 }
 
-function categoriesKind(
-  chart: 'stacked-bar' | 'stacked-area' | 'radar',
+function categoriesKind<K extends 'stacked-bar' | 'stacked-area' | 'radar'>(
+  chart: K,
   label: string,
   scaler: () => (value: number, seriesIndex: number) => number,
-): Kind {
+): Kind<{ chart: K; data: Categories }> {
   return {
     label,
     hint: '{ categories: string[], series: [{ id, color?, values: number[] }] }. One non-negative value per category.',
     parse: raw => ({ chart, data: parseCategories(raw) }),
-    nudge: parsed =>
-      parsed.chart !== chart
-        ? parsed
-        : {
-            chart,
-            data: {
-              ...parsed.data,
-              series: (scale => parsed.data.series.map((s, i) => ({ ...s, values: s.values.map(v => scale(v, i)) })))(
-                scaler(),
-              ),
-            },
-          },
+    nudge: parsed => {
+      const scale = scaler();
+      return {
+        chart,
+        data: {
+          ...parsed.data,
+          series: parsed.data.series.map((s, i) => ({ ...s, values: s.values.map(v => scale(v, i)) })),
+        },
+      };
+    },
     sample: size => formatCategories(generateCategories(GALLERY_DATASETS[chart][size])),
   };
 }
@@ -311,39 +311,33 @@ function parseSankey(raw: any): Sankey {
   return { nodes, links };
 }
 
-const KINDS: { [K in ChartKind]?: Kind } = {
+const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
   survival: {
     label: 'Survival curve',
     hint: 'Array of { id, color?, points: [{ x, y, lower?, upper?, censored? }] }. y in 0..1.',
     parse: raw => ({ chart: 'survival', series: parsePoints('survival', raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'survival'
-        ? parsed
-        : {
-            chart: 'survival',
-            series: parsed.series.map(s => ({
-              ...s,
-              points: s.points.map(p => ({
-                ...p,
-                y: p.y * 0.97,
-                lower: p.lower * 0.97,
-                upper: p.upper * 0.97,
-              })),
-            })),
-          },
+    nudge: parsed => ({
+      chart: 'survival',
+      series: parsed.series.map(s => ({
+        ...s,
+        points: s.points.map(p => ({
+          ...p,
+          y: p.y * 0.97,
+          lower: p.lower * 0.97,
+          upper: p.upper * 0.97,
+        })),
+      })),
+    }),
     sample: size => formatSeries(generateSurvival(DATASETS.survival[size])),
   },
   scatter: {
     label: 'Scatter',
     hint: 'Array of { id, color?, points: [{ x, y, size? }] }.',
     parse: raw => ({ chart: 'scatter', series: parsePoints('scatter', raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'scatter'
-        ? parsed
-        : {
-            chart: 'scatter',
-            series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
-          },
+    nudge: parsed => ({
+      chart: 'scatter',
+      series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
+    }),
     sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
   },
   'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', () => (v, i) => v * byParity(1.1, 0.9)(i)),
@@ -353,70 +347,60 @@ const KINDS: { [K in ChartKind]?: Kind } = {
     label: 'Bar + line',
     hint: '{ categories: string[], bars: { id, color?, values }, line: { id, color?, values } }. Bars use the left axis, the line the right. Non-negative values.',
     parse: raw => ({ chart: 'combo', data: parseCombo(raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'combo'
-        ? parsed
-        : {
-            chart: 'combo',
-            data: {
-              ...parsed.data,
-              bars: {
-                ...parsed.data.bars,
-                values: parsed.data.bars.values.map(alternating(1.3, 0.7)),
-              },
-              line: {
-                ...parsed.data.line,
-                values: parsed.data.line.values.map(alternating(0.7, 1.3)),
-              },
-            },
-          },
+    nudge: parsed => ({
+      chart: 'combo',
+      data: {
+        ...parsed.data,
+        bars: {
+          ...parsed.data.bars,
+          values: parsed.data.bars.values.map(alternating(1.3, 0.7)),
+        },
+        line: {
+          ...parsed.data.line,
+          values: parsed.data.line.values.map(alternating(0.7, 1.3)),
+        },
+      },
+    }),
     sample: size => formatCombo(generateCombo(GALLERY_DATASETS.combo[size])),
   },
   heatmap: {
     label: 'Heatmap',
     hint: '{ xs: string[], ys: string[], values: number[][] }. values[y][x]: one row per ys entry, row 0 on top, one number per xs entry.',
     parse: raw => ({ chart: 'heatmap', data: parseHeatmap(raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'heatmap'
-        ? parsed
-        : {
-            chart: 'heatmap',
-            data: {
-              ...parsed.data,
-              values: (flat => {
-                const constant = flat.every(v => v === flat[0]);
-                let i = 0;
-                return parsed.data.values.map(row =>
-                  row.map(() => {
-                    const k = i++;
-                    return constant ? flat[k]! + (k % 2) : flat[(k + 1) % flat.length]!;
-                  }),
-                );
-              })(parsed.data.values.flat()),
-            },
-          },
+    nudge: parsed => {
+      const flat = parsed.data.values.flat();
+      const constant = flat.every(v => v === flat[0]);
+      let i = 0;
+      return {
+        chart: 'heatmap',
+        data: {
+          ...parsed.data,
+          values: parsed.data.values.map(row =>
+            row.map(() => {
+              const k = i++;
+              return constant ? flat[k]! + (k % 2) : flat[(k + 1) % flat.length]!;
+            }),
+          ),
+        },
+      };
+    },
     sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),
   },
   treemap: {
     label: 'Treemap',
     hint: '{ id, children: [...] } nested to any depth up to 8. Every leaf needs a positive "value" and every id must be unique. A parent\'s own "value" is ignored: its size is the sum of its leaves.',
     parse: raw => ({ chart: 'treemap', data: parseTreemap(raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'treemap'
-        ? parsed
-        : {
-            chart: 'treemap',
-            data: (values => {
-              const constant = values.every(v => v === values[0]);
-              let i = 0;
-              const rotate = (node: TreeNode): TreeNode => {
-                if (node.children) return { ...node, children: node.children.map(rotate) };
-                const k = i++;
-                return { ...node, value: constant ? values[k]! * (k % 2 ? 1.5 : 1) : values[(k + 1) % values.length]! };
-              };
-              return rotate(parsed.data);
-            })(treeLeaves(parsed.data).map(l => l.value)),
-          },
+    nudge: parsed => {
+      const values = treeLeaves(parsed.data).map(l => l.value);
+      const constant = values.every(v => v === values[0]);
+      let i = 0;
+      const rotate = (node: TreeNode): TreeNode => {
+        if (node.children) return { ...node, children: node.children.map(rotate) };
+        const k = i++;
+        return { ...node, value: constant ? values[k]! * (k % 2 ? 1.5 : 1) : values[(k + 1) % values.length]! };
+      };
+      return { chart: 'treemap', data: rotate(parsed.data) };
+    },
     sample: size => formatTreemap(generateTreemap(GALLERY_DATASETS.treemap[size])),
   },
   sankey: {
@@ -424,7 +408,6 @@ const KINDS: { [K in ChartKind]?: Kind } = {
     hint: '{ nodes: [{ id }], links: [{ source, target, value }] }. Unique node ids, links between known nodes with a positive value, no self-links and no cycles.',
     parse: raw => ({ chart: 'sankey', data: parseSankey(raw) }),
     nudge: parsed => {
-      if (parsed.chart !== 'sankey') return parsed;
       const { nodes, links } = parsed.data;
       const constant = links.every(l => l.value === links[0]!.value);
       return {
@@ -444,24 +427,21 @@ const KINDS: { [K in ChartKind]?: Kind } = {
     label: 'Box plot',
     hint: '{ groups: [{ id, color?, values: number[] }] }. Raw values: quartiles by linear interpolation, whiskers to the most extreme value within 1.5 IQR of the box, or the box edge if that value falls inside the box. Points beyond are outliers, drawn as dots in every library except nivo, which has no outlier layer.',
     parse: raw => ({ chart: 'boxplot', data: parseBoxplot(raw) }),
-    nudge: parsed => {
-      if (parsed.chart !== 'boxplot') return parsed;
-      return {
-        chart: 'boxplot',
-        data: {
-          groups: parsed.data.groups.map((g, k) => {
-            const { min, max, median } = boxStats(g.values);
-            return {
-              ...g,
-              values: g.values.map((v, i) => {
-                if (min === max) return v + ((i + k) % 2);
-                return v > min && v >= median ? v + (max - min) * 0.1 : v;
-              }),
-            };
-          }),
-        },
-      };
-    },
+    nudge: parsed => ({
+      chart: 'boxplot',
+      data: {
+        groups: parsed.data.groups.map((g, k) => {
+          const { min, max, median } = boxStats(g.values);
+          return {
+            ...g,
+            values: g.values.map((v, i) => {
+              if (min === max) return v + ((i + k) % 2);
+              return v > min && v >= median ? v + (max - min) * 0.1 : v;
+            }),
+          };
+        }),
+      },
+    }),
     sample: size => formatBoxplot(generateBoxplot(GALLERY_DATASETS.boxplot[size])),
   },
   candlestick: {
@@ -469,7 +449,6 @@ const KINDS: { [K in ChartKind]?: Kind } = {
     hint: '{ candles: [{ t, open, high, low, close }] }. At least two candles. t is YYYY-MM-DD and unique; candles are sorted by date and drawn one per slot, with no gaps for missing days. Each needs low <= open, close <= high. Close at or above open is up.',
     parse: raw => ({ chart: 'candlestick', data: parseCandles(raw) }),
     nudge: parsed => {
-      if (parsed.chart !== 'candlestick') return parsed;
       const { candles } = parsed.data;
       const lift = (Math.max(...candles.map(c => c.high)) - Math.min(...candles.map(c => c.low)) || 1) * 0.02;
       return {
@@ -490,28 +469,22 @@ const KINDS: { [K in ChartKind]?: Kind } = {
     label: 'Donut',
     hint: '{ slices: [{ id, color?, value }] }. Non-negative values, at least one above zero.',
     parse: raw => ({ chart: 'donut', data: parseDonut(raw) }),
-    nudge: parsed =>
-      parsed.chart !== 'donut'
-        ? parsed
-        : {
-            chart: 'donut',
-            data: {
-              slices: (scale => parsed.data.slices.map(s => ({ ...s, value: scale(s.value) })))(
-                alternating(1.3, 0.7),
-              ),
-            },
-          },
+    nudge: parsed => {
+      const scale = alternating(1.3, 0.7);
+      return { chart: 'donut', data: { slices: parsed.data.slices.map(s => ({ ...s, value: scale(s.value) })) } };
+    },
     sample: size => formatDonut(generateDonut(GALLERY_DATASETS.donut[size])),
   },
 };
 
 export const kinds = Object.keys(KINDS) as ChartKind[];
-export const kindInfo = (chart: ChartKind) => KINDS[chart]!;
+export const kindInfo = (chart: ChartKind) => KINDS[chart];
 export const isGallery = (chart: ChartKind): chart is GalleryKind =>
   chart !== 'survival' && chart !== 'scatter';
 
 /** Validates pasted JSON against the chart contract and fills optional fields. Throws a readable message. */
-export const parseSeries = (chart: ChartKind, text: string) => KINDS[chart]!.parse(JSON.parse(text));
+export const parseSeries = (chart: ChartKind, text: string): Parsed => KINDS[chart].parse(JSON.parse(text));
+const nudgeAs = <K extends ChartKind>(chart: K, parsed: Payloads[K]) => KINDS[chart].nudge(parsed);
 /** Same shape and ids, shifted values, so SVG libraries reconcile instead of remounting. */
-export const nudge = (parsed: Parsed) => KINDS[parsed.chart]!.nudge(parsed);
-export const sample = (chart: ChartKind, size: DatasetSize) => KINDS[chart]!.sample(size);
+export const nudge = (parsed: Parsed): Parsed => nudgeAs(parsed.chart, parsed);
+export const sample = (chart: ChartKind, size: DatasetSize) => KINDS[chart].sample(size);
