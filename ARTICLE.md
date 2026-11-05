@@ -38,16 +38,16 @@ Every port was written against [one written spec](apps/bench/ARMS.md): exact siz
 
 **Conditions: this was not a quiet machine.** I ran these on 2026-11-06 with other work running. Load averages (1 min) were 4.35 before and 5.45 after the native run, and 6.48 before and 3.66 after the throttled run. The report and drift scripts also overlapped the start of the throttled run; the logs have no per-test timestamps, so I can't say how many cells that touched.
 
-To size the damage I compared them with the quieter 2026-11-03 runs (`apps/bench/results/run-1x.md`, `run-4x.md`). Six arms draw the same charts in both, with identical DOM node counts. Their timed pages did change: all of them go through a reworked `ArmPage.tsx`, five (all but visx) gained effects flags that are off on these pages, and TanStack renders through a wrapper that also loads `motion`. The clock starts after modules evaluate, so I read their movement as noise, not code:
+To see how far the numbers moved I compared them with the quieter 2026-11-03 runs (`apps/bench/results/run-1x.md`, `run-4x.md`). Six arms draw the same charts in both, with identical DOM node counts. Their timed pages did change: all of them go through a reworked `ArmPage.tsx`, five (all but visx) gained effects flags that are off on these pages, and TanStack renders through a wrapper that also loads `motion`. The clock skips module evaluation, but the reworked page, the flag checks and the wrapper all run after it starts. Machine load changed as well. So the table shows how far medians moved between the two dates, and it can't show how much of that came from code and how much from load:
 
 | six arms, median mount time, 2026-11-06 ÷ 2026-11-03 | native | 4× throttle |
 | --- | ---: | ---: |
 | heavy cells | 0.91–1.17× | 1.00–1.13× |
 | typical cells | 0.98–1.81× | 0.78–1.51× |
 
-The worst typical moves are nivo's survival chart at native speed (14.9 → 27.0 ms) and Chart.js's at 4× (23.3 → 35.1 ms). So below, **a gap on a heavy chart under 20%, or any gap under one frame, is a tie**, and the typical columns support bands at most, not a ranking.
+The worst typical moves are nivo's survival chart at native speed (14.9 → 27.0 ms) and Chart.js's at 4× (23.3 → 35.1 ms). The two dates differ in both code and load, so these ranges are not a noise measurement, and I don't have one. For comparing libraries I use an editorial rule instead: **a gap on a heavy chart under 20%, or any gap under one frame, is a tie**, and the typical columns get bands at most, not a ranking. The 20% is my choice, set above the 1.17× heavy high. It is not a measured bound.
 
-The `none` arm was rewritten between the two dates, so this comparison doesn't cover it. On the heavy scatter it went 92.5 → 120.3 ms at 4×, which is 1.30× and past anything those six arms' heavy cells did. At native speed the same cell went 29.6 → 25.6 ms. That move is unexplained: the bench runs `none` first, so its throttled cells ran nearest the 6.48 load reading and the script overlap, while the six arms ran later as load fell to 3.66. The two aren't like for like, so this run can't settle it.
+The table leaves out the `none` arm, which was rewritten between the two dates. On the heavy scatter it went 92.5 → 120.3 ms at 4×, which is 1.30× and past anything those six arms' heavy cells did. At native speed the same cell went 29.6 → 25.6 ms. That move is unexplained for the same reason: code and load both changed. The bench also runs `none` first, so its throttled cells ran nearest the 6.48 load reading and the script overlap, while the six arms ran later as load fell to 3.66. The two aren't like for like, so this run can't settle it.
 
 ## The stopwatch
 
@@ -126,7 +126,7 @@ At native speed on an M3 Pro, the typical charts are almost all ties at 22–30 
 
 Most cells are a clean 16.8 ms (one frame). On the 10,000-point scatter the exceptions are Recharts at **116.8 ms** (7 frames), Chart.js and visx at 50 ms, and no library and TanStack at 33 ms; nivo and ECharts stay at one frame. nivo hit-tests against a precomputed Voronoi mesh, which is its one clear win. Elsewhere, nivo, ECharts, visx and Chart.js take 33 ms on the heavy survival chart. At native speed only Recharts drops a frame (33 ms), on the 10,000-point scatter.
 
-Hover barely moved under load, because it is frame-quantised. Against 2026-11-03, two cells in the six comparison arms flipped by one frame, both Chart.js: its typical scatter at 4× went from 16.8 to 33.3 ms, and its 10,000-point scatter at native speed went from 33.3 to 16.8 ms. Treat a one-frame difference here as noise.
+Hover barely moved between the two dates. Against 2026-11-03, two cells in the six comparison arms flipped by one frame, both Chart.js: its typical scatter at 4× went from 16.8 to 33.3 ms, and its 10,000-point scatter at native speed went from 33.3 to 16.8 ms. Code and load both changed, so those flips have no known cause. Hover is frame-quantised, so read a one-frame difference here as a tie.
 
 ### Weight and code
 
@@ -188,7 +188,7 @@ The bigger lesson is about the stopwatch, not the libraries. **Measure to the pa
 ## Limitations
 
 - One machine, one browser engine (Chromium), headless. Frame-quantised: differences under 16.7 ms are ties.
-- The bench timings come from a machine with other work running, and the empty-page baseline was not re-measured. Cells in the six comparison arms moved up to 1.17× on heavy charts and 1.81× on typical ones against the quieter 2026-11-03 runs.
+- The bench timings come from a machine with other work running, and the empty-page baseline was not re-measured. Cells in the six comparison arms moved up to 1.17× on heavy charts and 1.81× on typical ones against the quieter 2026-11-03 runs, whose timed code also differed, so those figures are not noise bounds.
 - Two chart types. A bar-heavy or dual-axis product could rank differently.
 - "Code tokens" measures what this spec needed, written idiomatically per the docs, plus for no library the shared axis code added for the playground's other charts. A more experienced user of one library might do it in fewer.
 - Hover is a scripted sweep, not real input latency.
