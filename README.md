@@ -4,7 +4,7 @@ The same two charts — a survival curve with confidence bands and censoring tic
 
 | arm | renderer |
 | --- | --- |
-| `none` | React + d3-scale, hand-written SVG (the baseline) |
+| `none` | React and hand-written SVG, no d3 or chart package (the baseline) |
 | `nivo` | nivo (SVG) |
 | `recharts` | Recharts (SVG) |
 | `echarts` | Apache ECharts (Canvas) |
@@ -26,21 +26,21 @@ Run it with `pnpm build && pnpm -F bench preview`, then open `http://localhost:4
 
 ### Which libraries support which type
 
-A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. An unsupported pair shows a "Not supported" card and is not measured.
+A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. The no-library arm is the exception by design: it writes everything by hand, so it draws all twelve types. An unsupported pair shows a "Not supported" card and is not measured.
 
 | Type | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Survival, Scatter | yes | yes | yes | yes | yes | yes | yes |
-| Stacked bar | yes | `@nivo/bar` | yes | yes | `BarStack` | yes | Not supported |
-| Stacked area | yes | `@nivo/line` | yes | yes | `AreaStack` | yes | Not supported |
-| Donut | yes | `@nivo/pie` | yes | yes | `Pie` | yes | Not supported |
-| Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | yes | Not supported |
-| Bar + line | yes | Not supported | yes | yes | yes | yes | Not supported |
-| Heatmap | Not supported | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes | Not supported |
-| Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes | Not supported |
-| Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes | Not supported |
-| Box plot | Not supported | `@nivo/boxplot` | yes | `@sgratzl/chartjs-chart-boxplot` | `@visx/stats` | yes | Not supported |
-| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | Not supported |
+| Stacked bar | yes | `@nivo/bar` | yes | yes | `BarStack` | yes | yes |
+| Stacked area | yes | `@nivo/line` | yes | yes | `AreaStack` | yes | yes |
+| Donut | yes | `@nivo/pie` | yes | yes | `Pie` | yes | yes |
+| Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | yes | yes |
+| Bar + line | yes | Not supported | yes | yes | yes | yes | yes |
+| Heatmap | Not supported | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes | yes |
+| Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes | yes |
+| Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes | yes |
+| Box plot | Not supported | `@nivo/boxplot` | yes | `@sgratzl/chartjs-chart-boxplot` | `@visx/stats` | yes | yes |
+| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | yes |
 
 For the ten gallery types the source of truth is `apps/bench/results/gallery-bundle.json`: a pair with no entry there is not supported. Survival and Scatter are not in it; every library draws them.
 
@@ -114,7 +114,7 @@ Implementation burden of these ports under this contract, not a ranking of how s
 | Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | N/A |
 | Treemap | 572 | 428 | 755 | 917 | 740 | 581 | N/A |
 
-For gallery totals, compare the six types implemented by all six library arms: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
+For gallery totals, compare the six types every arm implements: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
 
 | Common six types | Chart files | Adapter | `arms/shared` | Total | Gallery coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -134,11 +134,15 @@ For gallery totals, compare the six types implemented by all six library arms: d
 
 ### Recorded differences
 
-- **Treemap.** Leaf areas match in all six libraries. Chart.js tiles with squarify ratio 1 and has no option to change it; the other five use the golden ratio, so Chart.js rectangles land in different places.
+- **Treemap.** Leaf areas match in all seven arms. Chart.js tiles with squarify ratio 1 and has no option to change it; the other six use the golden ratio, so Chart.js rectangles land in different places.
 - **Sankey.** Node width, node gap, iterations, alignment, link curve and colours are aligned wherever the library has the option. nivo, visx and TanStack run d3-sankey and draw alike; Recharts and ECharts use their own d3-derived layouts and land close. Chart.js has no iteration or curve option, takes its node gap in height-scaled units and orders nodes with its own layout, so it is the visible outlier. nivo has fixed iterations and a fixed curve.
-- **Box plot.** nivo has no outlier layer and a custom one would be our geometry, so it hides outliers; its node count and timing are not like for like. Its band scale has one padding for both ends, so the outermost boxes sit nearer the middle than in the other four (27.5px at 2 groups, 16px at 8, 3.9px at 40).
+- **No-library treemap.** Same squarify steps and golden ratio as d3, rounded to whole pixels when drawn. The last row takes what is left of its parent, not a computed share, so float drift cannot leave a sub-pixel gap. On both sample sizes its rectangles match d3-hierarchy's.
+- **No-library Sankey.** Its own layout, left-aligned, so node placement differs from d3-sankey: each relaxation pass moves a node all the way to the value-weighted mean of its neighbours' centres.
+  - Gaps are capped at 0.9 of the plot height across the fullest column, where d3-sankey lets them take all of it and nodes collapse to zero height.
+  - Deep graphs get nodes narrower than `NODE_WIDTH`, so links keep running left to right; visx keeps the width fixed.
+- **Box plot.** nivo has no outlier layer and a custom one would be our geometry, so it hides outliers; its node count and timing are not like for like. Its band scale has one padding for both ends, so the outermost boxes sit nearer the middle than in the other five (27.5px at 2 groups, 16px at 8, 3.9px at 40).
 - **TanStack box plot.** `boxY` takes only raw values, so the wrapper draws the shared boxes with `link`, `barY`, `tickY` and `dot`.
-- **Stacked bar, stacked area, bar + line.** Bar width and y domain are each library's own. Bars fill about 0.9 of the slot in nivo (its 0.1 padding default), 0.8 in visx and TanStack (`padding(0.2)`) and in Recharts (its default), 0.72 in Chart.js and about 0.69 in ECharts (their defaults; ECharts leaves a 31% gap around a single stack). The y top is each library's rounding: d3 `nice()` in visx and nivo bar gives 0..130 on the typical stacked bar where ECharts gives 0..150, and nivo stacked area has `max: 'auto'` without `nice`, so its top is the exact maximum. Axes are labelled, and timing and KB do not change.
+- **Stacked bar, stacked area, bar + line.** Bar width and y domain are each library's own. Bars fill about 0.9 of the slot in nivo (its 0.1 padding default), 0.8 in visx, TanStack and the no-library arm (`padding(0.2)`) and in Recharts (its default), 0.72 in Chart.js and about 0.69 in ECharts (their defaults; ECharts leaves a 31% gap around a single stack). The y top is each library's rounding: d3 `nice()` in visx and nivo bar, and the same rounding in the no-library arm, gives 0..130 on the typical stacked bar where ECharts gives 0..150, and nivo stacked area has `max: 'auto'` without `nice`, so its top is the exact maximum. Axes are labelled, and timing and KB do not change.
 
 ### Reading the numbers
 

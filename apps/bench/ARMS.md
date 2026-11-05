@@ -25,6 +25,11 @@ Each library gets one file, `src/arms/<arm>/charts.tsx`, exporting `arm: Arm` (s
 - Linear x and y axes, nicely rounded to cover the data, labelled "X" and "Y".
 - Tooltip: the nearest point's series id and x, y.
 
+## The no-library arm (`none`)
+
+- Runtime imports are `react` and local files only: no d3 and no other chart package, in any file it reaches. `tests/playground.spec.ts` walks the import closure and fails on anything else.
+- It ignores `EFFECTS`: tooltips only, with no animation or dim-the-others, because on-mode effects must never be hand-written.
+
 ## Settle mode
 
 - `settleMode: 'raf'` is for renderers that output DOM/SVG synchronously when React commits.

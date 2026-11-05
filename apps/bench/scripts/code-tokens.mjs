@@ -75,10 +75,9 @@ for (const lib of LIBS) {
     pairs[lib][file.replace(/\.tsx$/, '')] = resolve(dir, file);
 }
 
-const galleryLibs = LIBS.filter(lib => lib !== 'none');
-const types = [...new Set(galleryLibs.flatMap(lib => Object.keys(pairs[lib])))].sort();
+const types = [...new Set(LIBS.flatMap(lib => Object.keys(pairs[lib])))].sort();
 const galleryTypes = types.filter(type => type !== SPEC_CHARTS);
-const common = galleryTypes.filter(type => galleryLibs.every(lib => pairs[lib][type]));
+const common = galleryTypes.filter(type => LIBS.every(lib => pairs[lib][type]));
 
 const perChart = {};
 const totals = {};
@@ -87,10 +86,7 @@ for (const lib of LIBS) {
     Object.entries(pairs[lib]).map(([type, file]) => [type, measure([file])]),
   );
   const implemented = Object.keys(pairs[lib]).filter(type => type !== SPEC_CHARTS);
-  totals[lib] = { coverage: implemented.length };
-  if (common.every(type => pairs[lib][type])) {
-    totals[lib].common = measure(common.map(type => pairs[lib][type]));
-  }
+  totals[lib] = { coverage: implemented.length, common: measure(common.map(type => pairs[lib][type])) };
 }
 
 writeFileSync(
@@ -109,7 +105,7 @@ const lines = [
   '',
   row([`Common ${common.length} types`, 'Chart files', 'Adapter', 'arms/shared', 'Total', 'Coverage']),
   row(['---', '---:', '---:', '---:', '---:', '---:']),
-  ...galleryLibs.map(lib => {
+  ...LIBS.map(lib => {
     const { chart, adapter, shared, total } = totals[lib].common;
     return row([lib, chart, adapter, shared, total, `${totals[lib].coverage}/${galleryTypes.length}`]);
   }),

@@ -189,9 +189,9 @@ Reuse:
 - Modify: `apps/bench/ARMS.md`
 - Modify: `README.md`
 
-- [ ] remove the `none` filter at `code-tokens.mjs:78`, so the common table gains a row; the common set stays six types
-- [ ] update the README arm table, support table and rule text, the "all six library arms" wording, and add Sankey and treemap differences to "Recorded differences"
-- [ ] state the zero-dependency rule in `ARMS.md`, and say `none` ignores `EFFECTS`
+- [x] remove the `none` filter at `code-tokens.mjs:78`, so the common table gains a row; the common set stays six types
+- [x] update the README arm table, support table and rule text, the "all six library arms" wording, and add Sankey and treemap differences to "Recorded differences"
+- [x] state the zero-dependency rule in `ARMS.md`, and say `none` ignores `EFFECTS`
 - [ ] run specs
 
 ### Task 9: Verify acceptance criteria
