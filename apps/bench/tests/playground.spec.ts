@@ -550,7 +550,8 @@ test('a missing embedded chunk reports its error at once instead of the lab time
 });
 
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
-const CANVAS_LIBS = ['echarts', 'chartjs'];
+const MARK_SPREAD = 40;
+const MARK_MIN_PIXELS = 1000;
 const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
   `${lib}/stacked-bar`,
   `${lib}/stacked-area`,
@@ -587,31 +588,31 @@ test('gallery-bundle.json matches the expected pairs; supported pairs measure an
     await expect(page.locator('[data-unsupported]')).toHaveCount(LIBS.length - libs.length);
     if (libs.length) {
       await expect(page.locator('.card [data-card-stats]')).toHaveCount(libs.length);
-      const domNodes = async (lib: string) =>
-        Number(await page.locator(`[data-summaries] tr[data-lib="${lib}"]`).getAttribute('data-dom-nodes'));
-      const floor = await domNodes('shell (floor)');
       for (const lib of libs) {
-        if (!CANVAS_LIBS.includes(lib)) {
-          expect(await domNodes(lib), `${lib}/${kind}`).toBeGreaterThan(floor);
-          continue;
-        }
-        const card = `.card iframe[src*="lib=${lib}&"]`;
-        await page.locator(card).scrollIntoViewIfNeeded();
+        const card = page.locator(`.card iframe[src*="lib=${lib}&"]`);
+        await card.scrollIntoViewIfNeeded();
         await expect
           .poll(
-            () =>
-              page
-                .frameLocator(card)
-                .locator('canvas')
-                .evaluateAll((canvases: HTMLCanvasElement[]) =>
-                  canvases.some(c => {
-                    const { data } = c.getContext('2d')!.getImageData(0, 0, c.width, c.height);
-                    return new Set(new Uint32Array(data.buffer)).size > 1;
-                  }),
-                ),
+            async () => {
+              const png = (await card.screenshot()).toString('base64');
+              return page.evaluate(
+                async ([b64, spread]) => {
+                  const bytes = Uint8Array.from(atob(b64 as string), c => c.charCodeAt(0));
+                  const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+                  const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext('2d')!;
+                  ctx.drawImage(bmp, 0, 0);
+                  const { data } = ctx.getImageData(0, 0, bmp.width, bmp.height);
+                  let n = 0;
+                  for (let i = 0; i < data.length; i += 4)
+                    if (Math.max(data[i]!, data[i + 1]!, data[i + 2]!) - Math.min(data[i]!, data[i + 1]!, data[i + 2]!) > (spread as number)) n++;
+                  return n;
+                },
+                [png, MARK_SPREAD],
+              );
+            },
             { message: `${lib}/${kind}` },
           )
-          .toBe(true);
+          .toBeGreaterThan(MARK_MIN_PIXELS);
       }
       await expect(page.locator('.card .error')).toHaveCount(0);
     }
