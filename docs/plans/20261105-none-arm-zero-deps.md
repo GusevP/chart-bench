@@ -96,9 +96,9 @@ Reuse:
 **Files:**
 - Modify: `apps/bench/tests/playground.spec.ts`
 
-- [ ] add the runtime-closure guard from Testing Strategy
-- [ ] prove it fails by temporarily importing `d3-array` through a relative helper
-- [ ] move the unknown-pair case off `none/treemap` to a pair that stays unsupported, before that file exists
+- [x] add the runtime-closure guard from Testing Strategy
+- [x] prove it fails by temporarily importing `d3-array` through a relative helper
+- [x] move the unknown-pair case off `none/treemap` to a pair that stays unsupported, before that file exists
 - [ ] run specs
 
 ### Task 3: Stacked bar, stacked area, bar + line

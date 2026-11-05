@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, globSync, readFileSync } from 'node:fs';
+import { dirname, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -6,6 +8,7 @@ import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
 import { scaleLinear } from 'd3-scale';
 import { area as d3area, curveStepAfter, line as d3line } from 'd3-shape';
+import ts from 'typescript';
 
 import { linear } from '../src/arms/none/shared/linear';
 import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
@@ -584,6 +587,54 @@ test('playground lab agrees with the harness on mount and dom nodes', async ({ p
   }
 });
 
+function runtimeClosure(entries: string[], root: string) {
+  const src = resolve(root, 'src') + sep;
+  const seen = new Set<string>();
+  const violations: string[] = [];
+  const walk = (file: string) => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    const name = relative(root, file);
+    const visit = (node: ts.Node): void => {
+      if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
+        violations.push(`${name}: re-export from ${node.moduleSpecifier.getText()}`);
+      } else if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly) {
+        const spec = (node.moduleSpecifier as ts.StringLiteral).text;
+        if (spec.startsWith('.')) {
+          const base = resolve(dirname(file), spec);
+          const target = [base, `${base}.ts`, `${base}.tsx`, `${base}/index.ts`, `${base}/index.tsx`].find(
+            f => f.startsWith(src) && /\.tsx?$/.test(f) && existsSync(f),
+          );
+          if (target) walk(target);
+          else violations.push(`${name}: unresolved ${spec}`);
+        } else if (spec !== 'react') {
+          violations.push(`${name}: imports ${spec}`);
+        }
+      } else if (
+        (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) ||
+        (ts.isMetaProperty(node) && node.keywordToken === ts.SyntaxKind.ImportKeyword)
+      ) {
+        violations.push(`${name}: dynamic import ${node.getText()}`);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.ESNext, true));
+  };
+  entries.forEach(walk);
+  return { files: [...seen].map(f => relative(root, f)), violations };
+}
+
+test('none arm: the runtime import closure holds only react and local files', () => {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  // main.tsx is left out: it is the bench harness page, which needs bench-stage and react-dom.
+  const entries = globSync('src/arms/none/{charts,gallery/*}.tsx', { cwd: root }).map(f => resolve(root, f));
+  const { files, violations } = runtimeClosure(entries, root);
+  expect(violations).toEqual([]);
+  expect(files).toEqual(
+    expect.arrayContaining(['src/arms/none/shared/linear.ts', 'src/arms/none/shared/step.ts', 'src/data/spec.ts']),
+  );
+});
+
 test('gallery page reports bench:error for an unknown pair, and dist holds both builds', async ({ page }) => {
   const shell = await page.request.get('/shell.html');
   expect(shell.ok()).toBe(true);
@@ -592,11 +643,11 @@ test('gallery page reports bench:error for an unknown pair, and dist holds both 
     (window as unknown as { inbox: unknown[] }).inbox = [];
     window.addEventListener('message', e => (window as unknown as { inbox: unknown[] }).inbox.push(e.data));
   });
-  await page.goto('/gallery.html?lib=none&chart=nope');
+  await page.goto('/gallery.html?lib=recharts&chart=candlestick');
   const error = await page.waitForFunction(() =>
     (window as unknown as { inbox: Result[] }).inbox.find(m => m.type === 'bench:error'),
   );
-  expect(await error.jsonValue()).toMatchObject({ runId: null, message: expect.stringContaining('none/nope') });
+  expect(await error.jsonValue()).toMatchObject({ runId: null, message: expect.stringContaining('recharts/candlestick') });
 });
 
 test('a missing embedded chunk reports its error at once instead of the lab timeout', async ({ page }) => {
