@@ -1,7 +1,7 @@
 {
   "chartjs": {
     "boxplot": {
-      "libraryKb": 56.3
+      "libraryKb": 56.4
     },
     "combo": {
       "libraryKb": 55.6
@@ -30,7 +30,7 @@
   },
   "echarts": {
     "boxplot": {
-      "libraryKb": 159.4
+      "libraryKb": 159.5
     },
     "combo": {
       "libraryKb": 169.1
@@ -108,7 +108,7 @@
   },
   "tanstack": {
     "boxplot": {
-      "libraryKb": 41.7
+      "libraryKb": 41.8
     },
     "combo": {
       "libraryKb": 39.9
@@ -137,7 +137,7 @@
   },
   "visx": {
     "boxplot": {
-      "libraryKb": 22.8
+      "libraryKb": 22.9
     },
     "combo": {
       "libraryKb": 23.1

@@ -752,6 +752,10 @@ test('box plot: statistics match a hand-computed case, parsing rejects bad group
   expect(scale.domain).toEqual([0, 100]);
   expect(scale.ticks).toEqual([0, 20, 40, 60, 80, 100]);
 
+  const offset = boxScale(boxplotStats({ groups: [{ id: 'a', color: '#000', values: [1e12, 1e12 + 1] }] }));
+  expect(offset.domain).toEqual([1e12, 1e12 + 1]);
+  expect(offset.ticks).toEqual([1e12, 1e12 + 0.2, 1e12 + 0.4, 1e12 + 0.6, 1e12 + 0.8, 1e12 + 1]);
+
   const positions = (parsed: Parsed) => {
     if (parsed.chart !== 'boxplot') throw new Error('wrong kind');
     const stats = boxplotStats(parsed.data);

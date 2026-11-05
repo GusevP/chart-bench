@@ -52,7 +52,10 @@ export function boxStats(values: number[]) {
 export const boxplotStats = (data: BoxGroups): BoxStats[] =>
   data.groups.map(g => ({ id: g.id, color: g.color, ...boxStats(g.values) }));
 
-const fix = (v: number) => Number(v.toPrecision(12));
+const fix = (v: number, digits = 12) => Number(v.toPrecision(digits));
+
+const snap = (v: number, step: number) =>
+  fix(v, Math.min(17, Math.max(12, Math.floor(Math.log10(Math.abs(v) / step)) + 2)));
 
 const niceStep = (span: number) => {
   const raw = span / 5;
@@ -66,9 +69,12 @@ export function boxScale(stats: BoxStats[]) {
   const hi = Math.max(...stats.map(s => s.max));
   const step = lo === hi ? 1 : niceStep(hi - lo);
   const domain: [number, number] =
-    lo === hi ? [lo - 1, hi + 1] : [fix(Math.floor(lo / step) * step), fix(Math.ceil(hi / step) * step)];
+    lo === hi
+      ? [lo - 1, hi + 1]
+      : [Math.min(lo, snap(Math.floor(lo / step) * step, step)), Math.max(hi, snap(Math.ceil(hi / step) * step, step))];
   const count = Math.round((domain[1] - domain[0]) / step);
-  return { domain, step, ticks: Array.from({ length: count + 1 }, (_, i) => fix(domain[0] + i * step)) };
+  const ticks = Array.from({ length: count + 1 }, (_, i) => snap(domain[0] + i * step, step));
+  return { domain, step, ticks: [...new Set(ticks)].filter(t => t >= domain[0] && t <= domain[1]) };
 }
 
 export const boxPaddingInner = 1 - BOX_RATIO;
