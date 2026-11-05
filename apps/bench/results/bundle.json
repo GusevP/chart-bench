@@ -1,6 +1,6 @@
 {
   "chartjs": {
-    "totalKb": 124.3,
+    "totalKb": 124.4,
     "libraryKb": 55.4
   },
   "echarts": {
@@ -12,11 +12,11 @@
     "libraryKb": 103.2
   },
   "none": {
-    "totalKb": 80.4,
+    "totalKb": 80.5,
     "libraryKb": 11.5
   },
   "recharts": {
-    "totalKb": 175,
+    "totalKb": 175.1,
     "libraryKb": 106.1
   },
   "shell": {
@@ -24,11 +24,11 @@
     "libraryKb": 0
   },
   "tanstack": {
-    "totalKb": 111,
+    "totalKb": 111.1,
     "libraryKb": 42.1
   },
   "visx": {
-    "totalKb": 94,
+    "totalKb": 94.1,
     "libraryKb": 25.1
   }
 }

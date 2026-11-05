@@ -42,11 +42,11 @@
 
 | library | total | library cost |
 |---|---:|---:|
-| chartjs | 124.3 | 55.4 |
+| chartjs | 124.4 | 55.4 |
 | echarts | 232.9 | 164 |
 | nivo | 172.1 | 103.2 |
-| none | 80.4 | 11.5 |
-| recharts | 175 | 106.1 |
+| none | 80.5 | 11.5 |
+| recharts | 175.1 | 106.1 |
 | shell | 68.9 | 0 |
-| tanstack | 111 | 42.1 |
-| visx | 94 | 25.1 |
+| tanstack | 111.1 | 42.1 |
+| visx | 94.1 | 25.1 |

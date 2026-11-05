@@ -3,7 +3,7 @@ import { useLayoutEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import type { Arm, Payload } from './data/contract';
-import type { RenderChart } from './EmbeddedArmPage';
+import type { RenderChart, ResultMessage } from './EmbeddedArmPage';
 import { DATASETS, generateScatter, generateSurvival } from './data/generate';
 import type { DatasetSize } from './data/generate';
 
@@ -62,9 +62,21 @@ function ArmPage({ arm }: { arm: Arm }) {
   );
 }
 
+export const fail = (error: unknown) =>
+  window.parent.postMessage(
+    {
+      type: 'bench:error',
+      runId: null,
+      message: error instanceof Error ? error.message : String(error),
+    } satisfies ResultMessage,
+    location.origin,
+  );
+
 export function mountArm(arm: Arm) {
   if (window.parent !== window) {
-    void import('./EmbeddedArmPage').then(m => m.mountEmbedded(arm.settleMode, renderArm(arm)));
+    void import('./EmbeddedArmPage')
+      .then(m => m.mountEmbedded(arm.settleMode, renderArm(arm)))
+      .catch(fail);
     return;
   }
   createRoot(document.getElementById('root')!).render(<ArmPage arm={arm} />);

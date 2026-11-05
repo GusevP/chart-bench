@@ -542,6 +542,13 @@ test('gallery page reports bench:error for an unknown pair, and dist holds both 
   expect(await error.jsonValue()).toMatchObject({ runId: null, message: expect.stringContaining('none/nope') });
 });
 
+test('a missing embedded chunk reports its error at once instead of the lab timeout', async ({ page }) => {
+  await page.route('**/EmbeddedArmPage-*.js', route => route.fulfill({ status: 404 }));
+  await page.goto('/index.html?libs=none');
+  await page.getByRole('button', { name: 'Render' }).click();
+  await expect(page.getByRole('alert')).toContainText('dynamically imported module', { timeout: 10_000 });
+});
+
 const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
 const EXPECTED_PAIRS = ['chartjs', 'echarts', 'nivo', 'recharts', 'tanstack', 'visx'].flatMap(lib => [
   `${lib}/stacked-bar`,

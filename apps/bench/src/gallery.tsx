@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 
-import { HEIGHT, WIDTH } from './ArmPage';
-import { mountEmbedded, toParent } from './EmbeddedArmPage';
+import { HEIGHT, WIDTH, fail } from './ArmPage';
+import { mountEmbedded } from './EmbeddedArmPage';
 
 type GalleryModule = {
   default: {
@@ -11,8 +11,6 @@ type GalleryModule = {
 };
 
 const modules = import.meta.glob<GalleryModule>('./arms/*/gallery/*.tsx');
-
-const fail = (message: string) => toParent({ type: 'bench:error', runId: null, message });
 
 async function main() {
   const params = new URLSearchParams(location.search);
@@ -31,4 +29,4 @@ async function main() {
   ));
 }
 
-main().catch(error => fail(error instanceof Error ? error.message : String(error)));
+main().catch(fail);
