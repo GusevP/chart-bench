@@ -64,7 +64,6 @@ export function generateCategories({
   };
 }
 
-/** One series per line: readable as a format example, and still small for heavy samples. */
 export const formatCategories = ({ categories, series }: Categories) =>
   `{\n  "categories": ${JSON.stringify(categories)},\n  "series": [\n` +
   series.map(s => `    ${JSON.stringify(s)}`).join(',\n') +
@@ -81,7 +80,6 @@ export function generateDonut({ seed, slices }: { seed: number; slices: number }
   };
 }
 
-/** One slice per line: readable as a format example, and still small for heavy samples. */
 export const formatDonut = ({ slices }: Donut) =>
   `{\n  "slices": [\n${slices.map(s => `    ${JSON.stringify(s)}`).join(',\n')}\n  ]\n}`;
 
@@ -102,7 +100,6 @@ export function generateCombo({ seed, categories }: { seed: number; categories: 
   };
 }
 
-/** One series per line: readable as a format example, and still small for heavy samples. */
 export const formatCombo = ({ categories, bars, line }: Combo) =>
   `{\n  "categories": ${JSON.stringify(categories)},\n  "bars": ${JSON.stringify(bars)},\n  "line": ${JSON.stringify(line)}\n}`;
 
@@ -123,7 +120,6 @@ export function generateHeatmap({
   };
 }
 
-/** One row per line: readable as a format example, and still small for heavy samples. */
 export const formatHeatmap = ({ xs, ys, values }: Heatmap) =>
   `{\n  "xs": ${JSON.stringify(xs)},\n  "ys": ${JSON.stringify(ys)},\n  "values": [\n` +
   values.map(row => `    ${JSON.stringify(row)}`).join(',\n') +
@@ -153,7 +149,6 @@ export function generateTreemap({
   };
 }
 
-/** One leaf per line: readable as a format example, and still small for heavy samples. */
 export const formatTreemap = (node: TreeNode, indent = ''): string =>
   node.children
     ? `${indent}{"id": ${JSON.stringify(node.id)}, "children": [\n` +
@@ -197,7 +192,6 @@ export function generateSankey({
   return { nodes: Array.from({ length: nodes }, (_, i) => ({ id: `Node ${i + 1}` })), links: out };
 }
 
-/** One node or link per line: readable as a format example, and still small for heavy samples. */
 export const formatSankey = ({ nodes, links }: Sankey) =>
   `{\n  "nodes": [\n` +
   nodes.map(n => `    ${JSON.stringify(n)}`).join(',\n') +
@@ -229,7 +223,6 @@ export function generateBoxplot({
   };
 }
 
-/** One group per line: readable as a format example, and still small for heavy samples. */
 export const formatBoxplot = ({ groups }: BoxGroups) =>
   `{\n  "groups": [\n${groups.map(g => `    ${JSON.stringify(g)}`).join(',\n')}\n  ]\n}`;
 
@@ -252,6 +245,5 @@ export function generateCandles({ seed, count }: { seed: number; count: number }
   return { candles };
 }
 
-/** One candle per line: readable as a format example, and still small for heavy samples. */
 export const formatCandles = ({ candles }: Candles) =>
   `{\n  "candles": [\n${candles.map(c => `    ${JSON.stringify(c)}`).join(',\n')}\n  ]\n}`;
