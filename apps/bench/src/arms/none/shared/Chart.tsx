@@ -145,14 +145,14 @@ export function Axes({ x, y, xLabel, yLabel }: { x: Linear; y: Linear; xLabel: s
 export function Tooltip({
   left,
   top,
-  width = Infinity,
-  height = Infinity,
+  width,
+  height,
   children,
 }: {
   left: number;
   top: number;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   children: ReactNode;
 }) {
   const flipX = left > width / 2;
