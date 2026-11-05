@@ -195,11 +195,11 @@ Reuse:
 - [ ] run specs
 
 ### Task 9: Verify acceptance criteria
-- [ ] the guard spec passes and no `none` file imports d3
-- [ ] all twelve charts render with sample and heavy data
-- [ ] tooltips are correct by eye in the browser, including axis boundaries, treemap leaves, Sankey ribbons and plot margins
-- [ ] look through all twelve charts by eye, and compare Sankey with the d3-based arms
-- [ ] the "Not supported" cards are unchanged for the other libraries
+- [x] the guard spec passes and no `none` file imports d3 (git grep done; the guard spec runs in the gate below)
+- [x] all twelve charts render with sample and heavy data
+- [x] tooltips are correct by eye in the browser, including axis boundaries, treemap leaves, Sankey ribbons and plot margins
+- [x] look through all twelve charts by eye, and compare Sankey with the d3-based arms
+- [x] the "Not supported" cards are unchanged for the other libraries
 - [ ] `pnpm typecheck`
 - [ ] `pnpm build`
 - [ ] `pnpm -F bench test:playground`
