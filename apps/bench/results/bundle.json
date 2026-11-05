@@ -8,16 +8,16 @@
     "libraryKb": 164.2
   },
   "nivo": {
-    "totalKb": 172.2,
-    "libraryKb": 103.3
+    "totalKb": 172.1,
+    "libraryKb": 103.1
   },
   "none": {
-    "totalKb": 80.5,
-    "libraryKb": 11.5
+    "totalKb": 70.9,
+    "libraryKb": 1.9
   },
   "recharts": {
-    "totalKb": 175.2,
-    "libraryKb": 106.3
+    "totalKb": 175.1,
+    "libraryKb": 106.2
   },
   "shell": {
     "totalKb": 68.9,
@@ -28,7 +28,7 @@
     "libraryKb": 56.8
   },
   "visx": {
-    "totalKb": 94.1,
-    "libraryKb": 25.1
+    "totalKb": 93.9,
+    "libraryKb": 25
   }
 }

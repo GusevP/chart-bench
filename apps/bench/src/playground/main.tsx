@@ -17,7 +17,7 @@ import { rankBy } from './rank';
 import type { Rank } from './rank';
 
 const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
-  none: 'No library (React + d3-scale SVG)',
+  none: 'No library (React SVG)',
   nivo: 'nivo (SVG)',
   recharts: 'Recharts (SVG)',
   echarts: 'Apache ECharts (Canvas)',

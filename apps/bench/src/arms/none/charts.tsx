@@ -1,114 +1,36 @@
-import { bisector, extent, max } from 'd3-array';
-import { scaleLinear } from 'd3-scale';
-import type { ScaleLinear } from 'd3-scale';
-import { area, curveStepAfter, line } from 'd3-shape';
 import { useMemo, useState } from 'react';
 import type { MouseEvent } from 'react';
 
-import type {
-  Arm,
-  ScatterChartProps,
-  ScatterPoint,
-  SurvivalChartProps,
-  SurvivalPoint,
-} from '../../data/contract';
+import type { Arm, ScatterChartProps, ScatterPoint, SurvivalChartProps } from '../../data/contract';
 import { MARGIN } from '../../data/spec';
+import { Axes, Tooltip, pointer } from './shared/Chart';
+import { linear } from './shared/linear';
+import { stepAfterArea, stepAfterLine, stepIndex } from './shared/step';
 
-function Axes({
-  x,
-  y,
-  xLabel,
-  yLabel,
-}: {
-  x: ScaleLinear<number, number>;
-  y: ScaleLinear<number, number>;
-  xLabel: string;
-  yLabel: string;
-}) {
-  const [x0, x1] = x.range() as [number, number];
-  const [y0, y1] = y.range() as [number, number];
-  return (
-    <g fontSize={11} fill="#555">
-      <line x1={x0} x2={x1} y1={y0} y2={y0} stroke="#999" />
-      {x.ticks(8).map(t => (
-        <g key={t} transform={`translate(${x(t)},${y0})`}>
-          <line y2={5} stroke="#999" />
-          <text y={18} textAnchor="middle">
-            {t}
-          </text>
-        </g>
-      ))}
-      <line x1={x0} x2={x0} y1={y0} y2={y1} stroke="#999" />
-      {y.ticks(6).map(t => (
-        <g key={t} transform={`translate(${x0},${y(t)})`}>
-          <line x2={-5} stroke="#999" />
-          <line x2={x1 - x0} stroke="#eee" />
-          <text x={-8} dy="0.32em" textAnchor="end">
-            {t}
-          </text>
-        </g>
-      ))}
-      <text x={(x0 + x1) / 2} y={y0 + 34} textAnchor="middle">
-        {xLabel}
-      </text>
-      <text transform={`translate(${x0 - 38},${(y0 + y1) / 2}) rotate(-90)`} textAnchor="middle">
-        {yLabel}
-      </text>
-    </g>
-  );
-}
-
-function Tooltip({ left, top, children }: { left: number; top: number; children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: left + 12,
-        top: top + 12,
-        pointerEvents: 'none',
-        background: 'white',
-        border: '1px solid #ccc',
-        padding: '4px 8px',
-        fontSize: 12,
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-const byX = bisector<SurvivalPoint, number>(p => p.x).left;
+const extent = (pts: ScatterPoint[], f: (p: ScatterPoint) => number): [number, number] => {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const p of pts) {
+    const v = f(p);
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  return [lo, hi];
+};
 
 function Survival({ width, height, series }: SurvivalChartProps) {
   const [hoverX, setHoverX] = useState<number | null>(null);
   const x = useMemo(
     () =>
-      scaleLinear()
-        .domain([0, max(series, s => s.points.at(-1)?.x) ?? 1])
-        .range([MARGIN.left, width - MARGIN.right]),
+      linear(
+        [0, series.reduce((m, s) => Math.max(m, s.points.at(-1)?.x ?? m), 0) || 1],
+        [MARGIN.left, width - MARGIN.right],
+      ),
     [series, width],
   );
-  const y = useMemo(
-    () =>
-      scaleLinear()
-        .domain([0, 1])
-        .range([height - MARGIN.bottom, MARGIN.top]),
-    [height],
-  );
-  const path = line<SurvivalPoint>()
-    .x(p => x(p.x))
-    .y(p => y(p.y))
-    .curve(curveStepAfter);
-  const band = area<SurvivalPoint>()
-    .x(p => x(p.x))
-    .y0(p => y(p.lower))
-    .y1(p => y(p.upper))
-    .curve(curveStepAfter);
-
-  const onMove = (e: MouseEvent<SVGSVGElement>) => setHoverX(x.invert(e.nativeEvent.offsetX));
-  const hovered =
-    hoverX === null ? [] : series.map(s => ({ s, p: s.points[Math.max(0, byX(s.points, hoverX) - 1)]! }));
+  const y = useMemo(() => linear([0, 1], [height - MARGIN.bottom, MARGIN.top]), [height]);
+  const onMove = (e: MouseEvent<SVGSVGElement>) => setHoverX(x.invert(pointer(e)[0]));
+  const hovered = hoverX === null ? [] : series.map(s => ({ s, p: s.points[stepIndex(s.points, hoverX)]! }));
 
   return (
     <div style={{ position: 'relative' }}>
@@ -116,8 +38,26 @@ function Survival({ width, height, series }: SurvivalChartProps) {
         <Axes x={x} y={y} xLabel="Days" yLabel="Survival" />
         {series.map(s => (
           <g key={s.id}>
-            <path d={band(s.points)!} fill={s.color} fillOpacity={0.15} />
-            <path d={path(s.points)!} fill="none" stroke={s.color} strokeWidth={1.5} />
+            <path
+              d={stepAfterArea(
+                s.points,
+                p => x(p.x),
+                p => y(p.lower),
+                p => y(p.upper),
+              )}
+              fill={s.color}
+              fillOpacity={0.15}
+            />
+            <path
+              d={stepAfterLine(
+                s.points,
+                p => x(p.x),
+                p => y(p.y),
+              )}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={1.5}
+            />
             {s.points
               .filter(p => p.censored)
               .map(p => (
@@ -155,23 +95,23 @@ function Scatter({ width, height, series }: ScatterChartProps) {
   const all = useMemo(() => series.flatMap(s => s.points), [series]);
   const x = useMemo(
     () =>
-      scaleLinear()
-        .domain(extent(all, p => p.x) as [number, number])
-        .nice()
-        .range([MARGIN.left, width - MARGIN.right]),
+      linear(
+        extent(all, p => p.x),
+        [MARGIN.left, width - MARGIN.right],
+      ).nice(),
     [all, width],
   );
   const y = useMemo(
     () =>
-      scaleLinear()
-        .domain(extent(all, p => p.y) as [number, number])
-        .nice()
-        .range([height - MARGIN.bottom, MARGIN.top]),
+      linear(
+        extent(all, p => p.y),
+        [height - MARGIN.bottom, MARGIN.top],
+      ).nice(),
     [all, height],
   );
 
   const onMove = (e: MouseEvent<SVGSVGElement>) => {
-    const { offsetX: mx, offsetY: my } = e.nativeEvent;
+    const [mx, my] = pointer(e);
     let best: typeof hovered = null;
     let bestD = 20 ** 2;
     for (const s of series) {

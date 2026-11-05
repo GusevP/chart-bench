@@ -4,7 +4,11 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { measureMount } from 'bench-stage/playwright';
 import { summarize } from 'bench-stage/stats';
+import { scaleLinear } from 'd3-scale';
+import { area as d3area, curveStepAfter, line as d3line } from 'd3-shape';
 
+import { linear } from '../src/arms/none/shared/linear';
+import { stepAfterArea, stepAfterLine, stepIndex } from '../src/arms/none/shared/step';
 import { boxplotStats, boxScale, boxStats } from '../src/arms/shared/boxplot';
 import { treeLeaves } from '../src/arms/shared/treemap';
 import type { SurvivalSeries } from '../src/data/contract';
@@ -926,4 +930,69 @@ test('candlestick: an impossible bar is rejected, nudge keeps low, stays valid, 
     expect(was.every((p, i) => moved[i] !== p), text.slice(0, 40)).toBe(true);
     expect(after.data.candles.some((c, i) => c.close >= c.open !== before.data.candles[i]!.close >= before.data.candles[i]!.open)).toBe(true);
   }
+});
+
+test('none helpers: linear scale matches d3-scale', async () => {
+  const cases: [number, number][] = [
+    [0, 1],
+    [0, 100],
+    [-3.7, 12.2],
+    [-50, -2],
+    [0.0001, 0.0009],
+    [0, 1e9],
+    [3, 3.0000001],
+  ];
+  for (const [a, b] of cases) {
+    const mine = linear([a, b], [40, 960]);
+    const ref = scaleLinear().domain([a, b]).range([40, 960]);
+    for (const count of [6, 8])
+      expect(mine.ticks(count), `${a},${b} ticks ${count}`).toEqual(ref.ticks(count));
+    for (const v of [a, (a + b) / 2, b]) {
+      expect(mine(v)).toBeCloseTo(ref(v), 9);
+      expect(mine.invert(mine(v))).toBeCloseTo(v, 6);
+    }
+    expect(mine.nice().domain).toEqual(ref.nice().domain() as [number, number]);
+  }
+  const flat = linear([5, 5], [0, 100]);
+  expect(flat(5)).toBe(50);
+  expect(flat.ticks(6)).toEqual([5]);
+  expect(flat.nice().domain).toEqual([5, 5]);
+});
+
+test('none helpers: step paths match d3 curveStepAfter and lookup is right-closed at knots', async () => {
+  type P = { x: number; y: number; lo: number; hi: number };
+  const pts: P[] = [0, 3, 3.5, 7, 10].map((x, i) => ({ x, y: 1 - i * 0.2, lo: 0.8 - i * 0.2, hi: 1.1 - i * 0.2 }));
+  const f = (v: number) => v * 10 + 1;
+  const vertices = (d: string) => {
+    const out: [number, number][] = [];
+    let cur: [number, number] = [0, 0];
+    for (const [, cmd, args] of d.matchAll(/([MLHV])([^MLHVZ]*)/g)) {
+      const n = args!.split(',').map(Number);
+      cur = cmd === 'H' ? [n[0]!, cur[1]] : cmd === 'V' ? [cur[0], n[0]!] : [n[0]!, n[1]!];
+      out.push(cur);
+    }
+    return out;
+  };
+  const same = (mine: string, ref: string) => {
+    const [va, vb] = [vertices(mine), vertices(ref)];
+    expect(va.length).toBe(vb.length);
+    va.forEach(([x, y], i) => {
+      expect(x).toBeCloseTo(vb[i]![0], 9);
+      expect(y).toBeCloseTo(vb[i]![1], 9);
+    });
+  };
+  same(
+    stepAfterLine(pts, p => f(p.x), p => f(p.y)),
+    d3line<P>().x(p => f(p.x)).y(p => f(p.y)).curve(curveStepAfter)(pts)!,
+  );
+  same(
+    stepAfterArea(pts, p => f(p.x), p => f(p.lo), p => f(p.hi)),
+    d3area<P>().x(p => f(p.x)).y0(p => f(p.lo)).y1(p => f(p.hi)).curve(curveStepAfter)(pts)!,
+  );
+
+  expect(stepIndex(pts, 3.5)).toBe(2);
+  expect(stepIndex(pts, 3.4999)).toBe(1);
+  expect(stepIndex(pts, 0)).toBe(0);
+  expect(stepIndex(pts, -5)).toBe(0);
+  expect(stepIndex(pts, 99)).toBe(4);
 });
