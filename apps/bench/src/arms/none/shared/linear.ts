@@ -11,7 +11,7 @@ const E5 = Math.sqrt(10);
 const E2 = Math.sqrt(2);
 
 function tickSpec(start: number, stop: number, count: number): [number, number, number] {
-  const step = (stop - start) / Math.max(0, count);
+  const step = (stop - start) / count;
   const power = Math.floor(Math.log10(step));
   const error = step / 10 ** power;
   const factor = error >= E10 ? 10 : error >= E5 ? 5 : error >= E2 ? 2 : 1;
@@ -32,7 +32,6 @@ function tickSpec(start: number, stop: number, count: number): [number, number, 
     if (i1 * inc < start) ++i1;
     if (i2 * inc > stop) --i2;
   }
-  if (i2 < i1 && count >= 0.5 && count < 2) return tickSpec(start, stop, count * 2);
   return [i1, i2, inc];
 }
 
@@ -44,12 +43,12 @@ function ticks(start: number, stop: number, count: number): number[] {
   return Array.from({ length: i2 - i1 + 1 }, (_, i) => (inc < 0 ? (i1 + i) / -inc : (i1 + i) * inc));
 }
 
-function niceDomain(domain: [number, number], count = 10): [number, number] {
+function niceDomain(domain: [number, number]): [number, number] {
   let [start, stop] = domain;
   if (start === stop) return domain;
   let prev: number | undefined;
   for (let i = 0; i < 10; i++) {
-    const inc = tickSpec(start, stop, count)[2];
+    const inc = tickSpec(start, stop, 10)[2];
     if (inc === prev) return [start, stop];
     if (inc > 0) {
       start = Math.floor(start / inc) * inc;

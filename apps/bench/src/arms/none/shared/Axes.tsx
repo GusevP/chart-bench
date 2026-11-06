@@ -1,0 +1,127 @@
+import { thinTicks } from '../../shared/ticks';
+import type { Linear } from './linear';
+
+const AXIS_TEXT = { fontSize: 11, fill: '#555' };
+
+function XAxis({
+  x: [x0, x1],
+  y,
+  ticks,
+}: {
+  x: [number, number];
+  y: number;
+  ticks: { at: number; label: number | string }[];
+}) {
+  return (
+    <g {...AXIS_TEXT}>
+      <line x1={x0} x2={x1} y1={y} y2={y} stroke="#999" />
+      {ticks.map(t => (
+        <g key={t.at} transform={`translate(${t.at},${y})`}>
+          <line y2={5} stroke="#999" />
+          <text y={18} textAnchor="middle">
+            {t.label}
+          </text>
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function VerticalAxis({
+  x,
+  y: [y0, y1],
+  ticks,
+  grid,
+  right,
+}: {
+  x: number;
+  y: [number, number];
+  ticks: { at: number; label: number | string }[];
+  grid?: number;
+  right?: boolean;
+}) {
+  const side = right ? 1 : -1;
+  return (
+    <g {...AXIS_TEXT}>
+      <line x1={x} x2={x} y1={y0} y2={y1} stroke="#999" />
+      {ticks.map(t => (
+        <g key={t.at} transform={`translate(${x},${t.at})`}>
+          <line x2={5 * side} stroke="#999" />
+          {grid !== undefined && <line x2={grid} stroke="#eee" />}
+          <text x={8 * side} dy="0.32em" textAnchor={right ? 'start' : 'end'}>
+            {t.label}
+          </text>
+        </g>
+      ))}
+    </g>
+  );
+}
+
+export function YAxis({
+  y,
+  x,
+  grid,
+  right,
+  ticks = y.ticks(6),
+}: {
+  y: Linear;
+  x: number;
+  grid?: number;
+  right?: boolean;
+  ticks?: number[];
+}) {
+  return (
+    <VerticalAxis
+      x={x}
+      y={y.range}
+      grid={grid}
+      right={right}
+      ticks={ticks.map(t => ({ at: y(t), label: t }))}
+    />
+  );
+}
+
+export function CategoryYAxis({
+  categories,
+  at,
+  x,
+  y,
+}: {
+  categories: string[];
+  at: (i: number) => number;
+  x: number;
+  y: [number, number];
+}) {
+  return <VerticalAxis x={x} y={y} ticks={thinTicks(categories.map((label, i) => ({ at: at(i), label })))} />;
+}
+
+export function CategoryAxis({
+  categories,
+  at,
+  x,
+  y,
+}: {
+  categories: string[];
+  at: (i: number) => number;
+  x: [number, number];
+  y: number;
+}) {
+  return <XAxis x={x} y={y} ticks={thinTicks(categories.map((label, i) => ({ at: at(i), label })))} />;
+}
+
+export function Axes({ x, y, xLabel, yLabel }: { x: Linear; y: Linear; xLabel: string; yLabel: string }) {
+  const [x0, x1] = x.range;
+  const [y0, y1] = y.range;
+  return (
+    <g {...AXIS_TEXT}>
+      <XAxis x={x.range} y={y0} ticks={x.ticks(8).map(t => ({ at: x(t), label: t }))} />
+      <YAxis y={y} x={x0} grid={x1 - x0} />
+      <text x={(x0 + x1) / 2} y={y0 + 34} textAnchor="middle">
+        {xLabel}
+      </text>
+      <text transform={`translate(${x0 - 38},${(y0 + y1) / 2}) rotate(-90)`} textAnchor="middle">
+        {yLabel}
+      </text>
+    </g>
+  );
+}

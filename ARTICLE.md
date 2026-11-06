@@ -1,6 +1,6 @@
 # Your chart benchmark is probably lying: 6 React chart libraries vs hand-written SVG, measured fairly
 
-*Draft. Every bench table below comes from a [chart-bench](https://github.com/GusevP/chart-bench) run on 2026-11-06 on a machine with other work running, not an idle one; [the Runs section](#the-setup) gives the load. Sizes and token counts are from the same commit. Clone it and you can reproduce all of them, though not these exact timings.*
+*Draft. Every bench table below comes from a [chart-bench](https://github.com/GusevP/chart-bench) run on 2026-11-06 on a machine with other work running, not an idle one; [the Runs section](#the-setup) gives the load. Sizes and token counts are from the final code, one behaviour-preserving refactor of the no-library arm later; that refactor left the sizes unchanged. Clone it and you can reproduce all of them, though not these exact timings.*
 
 ## Why I measured this
 
@@ -132,7 +132,7 @@ Hover barely moved between the two dates. Against 2026-11-03, two cells in the s
 
 | library | library cost (gzip) | code tokens for both charts | DOM nodes, 10k scatter |
 | --- | ---: | ---: | ---: |
-| no library | **2.2 KB** | 3,171 | 10,075 |
+| no library | **2.2 KB** | 3,134 | 10,075 |
 | visx | 25.0 KB | 1,683 | 10,117 |
 | Chart.js | 55.6 KB | 1,214 | 2 (canvas) |
 | TanStack Charts | 56.8 KB | **720** | 10,055 |
@@ -140,7 +140,7 @@ Hover barely moved between the two dates. Against 2026-11-03, two cells in the s
 | Recharts | 106.2 KB | 1,064 | 30,109 |
 | ECharts | 164.2 KB | 1,117 | 5 (canvas) |
 
-*Library cost* is the gzipped JS each page loads minus an identical page with no chart library; for the no-library arm, that is its own chart code. *Code tokens* count both charts including tooltips, after TypeScript normalises the code to JS/JSX, excluding imports, comments and whitespace. A chart pays for every file it reaches, so the no-library arm's 3,171 tokens include its own scales, step paths, axes and tooltip, and also the axis code in that same file that only the playground's other charts use. Read the gap to 720–1,683 as an upper bound on what a library saves you on these two charts.
+*Library cost* is the gzipped JS each page loads minus an identical page with no chart library; for the no-library arm, that is its own chart code. *Code tokens* count both charts including tooltips, after TypeScript normalises the code to JS/JSX, excluding imports, comments and whitespace. A chart pays for every file it reaches, so the no-library arm's 3,134 tokens include its own scales, step paths, axes and tooltip, and also the category axes in its axis file that only the playground's other charts use. Read the gap to 720–1,683 as an upper bound on what a library saves you on these two charts.
 
 TanStack's cost includes about 15 KB for the `motion` renderer. Only the playground's effects mode uses it, but the arm imports it statically, so timed pages load it too, and that puts TanStack just behind Chart.js on weight.
 
@@ -181,7 +181,7 @@ marks: [
 - **Recharts is the risky default.** It is widely used, but it was the slowest library on the heavy survival chart (435 ms throttled, nivo 144 ms) and second slowest on the heavy scatter, the worst on hover (7 frames throttled), and it needs data reshaping that fails silently when skipped.
 - **Canvas isn't a shortcut.** At 10,000 points ECharts and Chart.js took about twice as long or more to mount as plain SVG, at both CPU speeds. ECharts' hover stayed smooth, at 164 KB.
 - **For the least code, TanStack Charts 1.2:** 720 tokens, the fewest, and 57 KB, mounting behind visx and plain SVG on the heavy scatter at both speeds, nearly every requirement native. The risk is age: its first release was in July 2026.
-- **For control and size, visx, or no library at all.** They tie as the fastest on the 10,000-point scatter at both speeds and are the smallest (2–25 KB), and you own every mark, tooltip and hit-test. That costs code: 3,171 tokens with no library, a count that includes axis code for the playground's other charts, and 1,683 with visx.
+- **For control and size, visx, or no library at all.** They tie as the fastest on the 10,000-point scatter at both speeds and are the smallest (2–25 KB), and you own every mark, tooltip and hit-test. That costs code: 3,134 tokens with no library, a count that includes axis code for the playground's other charts, and 1,683 with visx.
 
 The bigger lesson is about the stopwatch, not the libraries. **Measure to the paint, and put SVG and Canvas through the same final step.** Mine nearly ranked the second-slowest library first.
 

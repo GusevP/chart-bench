@@ -10,7 +10,8 @@ import {
   candlePaddingOuter,
   candleScale,
 } from '../../shared/candles';
-import { CategoryAxis, Tooltip, YAxis, plotPointer } from '../shared/Chart';
+import { CategoryAxis, YAxis } from '../shared/Axes';
+import { Tooltip, plotPointer } from '../shared/Chart';
 import { band } from '../shared/band';
 import { linear } from '../shared/linear';
 

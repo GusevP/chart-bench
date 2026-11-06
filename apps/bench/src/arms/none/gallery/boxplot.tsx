@@ -14,7 +14,8 @@ import {
   boxScale,
   boxplotStats,
 } from '../../shared/boxplot';
-import { CategoryAxis, Tooltip, YAxis, pointer } from '../shared/Chart';
+import { CategoryAxis, YAxis } from '../shared/Axes';
+import { Tooltip, pointer } from '../shared/Chart';
 import { band } from '../shared/band';
 import { linear } from '../shared/linear';
 

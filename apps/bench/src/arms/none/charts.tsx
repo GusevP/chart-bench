@@ -3,7 +3,8 @@ import type { MouseEvent } from 'react';
 
 import type { Arm, ScatterChartProps, ScatterPoint, SurvivalChartProps } from '../../data/contract';
 import { MARGIN } from '../../data/spec';
-import { Axes, Tooltip, plotPointer, pointer } from './shared/Chart';
+import { Axes } from './shared/Axes';
+import { Tooltip, plotPointer, pointer } from './shared/Chart';
 import { linear } from './shared/linear';
 import { stepAfterArea, stepAfterLine, stepIndex } from './shared/step';
 

@@ -102,17 +102,17 @@ Implementation burden of these ports under this contract, not a ranking of how s
 
 | Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3171 |
-| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3485 |
-| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3283 |
-| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2472 |
-| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 1743 |
+| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3134 |
+| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3448 |
+| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3246 |
+| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2435 |
+| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 994 |
 | Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1848 |
-| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1948 |
-| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 2728 |
-| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2312 |
-| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2505 |
-| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 2294 |
+| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1199 |
+| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 1979 |
+| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2275 |
+| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2468 |
+| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 1545 |
 
 For gallery totals, compare the six types every arm implements: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library.
 
@@ -124,7 +124,7 @@ For gallery totals, compare the six types every arm implements: donut, radar, Sa
 | Chart.js | 1840 | 105 | 511 | 2456 | 10/10 |
 | visx | 3681 | 37 | 554 | 4272 | 9/10 |
 | TanStack | 1706 | 41 | 554 | 2301 | 10/10 |
-| No library | 3065 | 3945 | 554 | 7564 | 10/10 |
+| No library | 3065 | 3908 | 554 | 7527 | 10/10 |
 
 - **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
 - **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.

@@ -2,6 +2,8 @@
 
 Reconciled by hand from `loaded-20261106-1x.md` and `loaded-20261106-4x.md`.
 
+The timed numbers were measured before the behaviour-preserving refactor `fix: split none axes from Chart.tsx and trim linear.ts`.
+
 **Conditions: not a quiet machine.** Both regimes ran on 2026-11-06 with other work running, on an Apple M3 Pro with 11 cores. Load averages (1, 5, 15 min):
 
 | regime | before | after |

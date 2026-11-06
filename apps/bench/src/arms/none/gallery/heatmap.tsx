@@ -4,7 +4,8 @@ import type { MouseEvent } from 'react';
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
 import { heatmapRamp } from '../../shared/colorRamp';
-import { CategoryAxis, CategoryYAxis, Tooltip, plotPointer } from '../shared/Chart';
+import { CategoryAxis, CategoryYAxis } from '../shared/Axes';
+import { Tooltip, plotPointer } from '../shared/Chart';
 import { band } from '../shared/band';
 
 function Chart({ width, height, data }: GalleryChartProps<'heatmap'>) {
