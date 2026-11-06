@@ -168,7 +168,7 @@ For gallery totals, compare the six types every arm implements: donut, radar, Sa
 - Canvas arms report done from the library's own "rendered" event (`signal` mode) — otherwise the timer would stop on a blank canvas.
 - Both modes go through the **same** double-rAF before the mark. Marking immediately on the signal stops the clock before paint and hands every Canvas library a free frame.
 
-The double rAF makes the instrument frame-quantised: an empty `shell` page measured ≈ 1.3 frames (20–24 ms at 60 Hz) on 2026-11-03; the default arm list omits `shell`, so the 2026-11-06 runs did not re-measure it. Differences under one frame (≈ 16.7 ms at 60 Hz) are noise.
+The double rAF makes the instrument frame-quantised: an empty `shell` page measured ≈ 1.3–1.6 frames (22–26 ms at 60 Hz) on 2026-11-06. The default arm list omits `shell`; pass it through `BENCH_ARMS` to measure it. Differences under one frame (≈ 16.7 ms at 60 Hz) are noise.
 
 **Hover** — the pointer sweeps the chart in 60 steps while a rAF loop records frame gaps; the reported number is the longest gap. Also frame-quantised.
 
