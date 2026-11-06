@@ -14,6 +14,28 @@ The same two charts — a survival curve with confidence bands and censoring tic
 
 Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each library arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
 
+## Results
+
+Measured on 2026-11-06 on an Apple M3 Pro that was not idle. Full tables for both CPU speeds, with spreads, are in [`apps/bench/results/report.md`](apps/bench/results/report.md).
+
+Mount time on the heavy data, median ms. The scatter has 10,000 points and the survival chart 6 series × 1,000 points; 4× is Chrome's CPU slowdown.
+
+| library | scatter, native | scatter, 4× | survival, native | survival, 4× | library cost (gzip) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| no library | 23.7 | 103.6 | 22.6 | 27.2 | 2.2 KB |
+| visx | 32.6 | 127.9 | 22.5 | 51.7 | 25.0 KB |
+| TanStack Charts | 53.3 | 195.9 | 24.5 | 90.6 | 56.8 KB |
+| Chart.js | 80.2 | 318.1 | 24.0 | 60.2 | 55.6 KB |
+| ECharts | 85.6 | 260.9 | 48.8 | 123.7 | 164.2 KB |
+| Recharts | 309.6 | 1,195.8 | 119.8 | 446.1 | 106.2 KB |
+| nivo | 3,236.5 | 14,899.8 | 38.7 | 149.7 | 103.1 KB |
+
+- An empty page measures 21–26 ms and the instrument counts in frames. Read a gap under one frame (16.7 ms), or under 20% on a heavy chart, as a tie.
+- On the typical data at native speed, the timings for each chart are within one frame of each other and can't be ranked.
+- A timer at React's commit reports 1.0 ms for Recharts on the 10,000-point scatter. Stopping the clock after the frame is drawn gives 309.6 ms. The harness records both.
+- The two Canvas libraries mounted more slowly than plain SVG and visx at 10,000 points, at both speeds.
+- The nivo scatter is its SVG component. Its Canvas scatter was not measured.
+
 ## Playground
 
 Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only.
