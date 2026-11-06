@@ -106,6 +106,7 @@ function ArmFrame({
     <section className="card">
       <header>
         <h2>{LABELS[library]}</h2>
+        {!result && <small data-card-preview>Preview, not measured. Press Render to measure.</small>}
         {result && (
           <small data-card-stats>
             mount {fmt(result.mount)} ms · update {fmt(result.update)} ms · blocking{' '}
@@ -304,20 +305,24 @@ const params = new URLSearchParams(location.search);
 const requested = (params.get('libs') ?? '').split(',').filter((l): l is Library => l in LABELS);
 params.delete('libs');
 params.delete('effects');
+const initialLibraries: Library[] = requested.length ? requested : ['recharts', 'echarts'];
+const initialText = sample('survival', 'typical');
 
 function Playground() {
   const [job, setJob] = useState<Job | null>(null);
   const [measured, setMeasured] = useState<Measurements | null>(null);
-  const [shown, setShown] = useState<Job | null>(null);
+  const [shown, setShown] = useState<Job | null>(() => ({
+    libraries: (Object.keys(LABELS) as Library[]).filter(l => initialLibraries.includes(l)),
+    unsupported: [],
+    data: parseSeries('survival', initialText),
+  }));
   const [hover, setHover] = useState<Record<string, number>>({});
   const [frame, setFrame] = useState(16.7);
   const [runError, setRunError] = useState('');
   const [chart, setChart] = useState<ChartKind>('survival');
   const [effects, setEffects] = useState(true);
-  const [libraries, setLibraries] = useState<Library[]>(
-    requested.length ? requested : ['recharts', 'echarts'],
-  );
-  const [text, setText] = useState(() => sample('survival', 'typical'));
+  const [libraries, setLibraries] = useState(initialLibraries);
+  const [text, setText] = useState(initialText);
   const [error, setError] = useState('');
 
   const apply = (nextChart: ChartKind, nextText: string) => {
@@ -433,8 +438,9 @@ function Playground() {
           </div>
         </fieldset>
         <small>
-          Each library is measured alone in a fresh page, one after another, and the charts are shown only
-          afterwards. Numbers are comparable within this session only.
+          The charts shown before a run are a preview. Render measures each library alone in a fresh page, one
+          after another, and shows the charts again afterwards. Numbers are comparable within this session
+          only.
         </small>
       </div>
 

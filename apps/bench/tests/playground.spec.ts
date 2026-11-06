@@ -438,6 +438,14 @@ test('rankBy marks the extremes, skips gaps within the margin and ignores missin
   expect(rankBy([7, 7])(7)).toBeUndefined();
 });
 
+test('the page opens with a drawn, unmeasured preview of the selected libraries', async ({ page }) => {
+  await page.goto('/index.html?libs=none,recharts');
+  await expect(page.locator('[data-card-preview]')).toHaveCount(2);
+  await expect(page.frameLocator('iframe[src^="none.html"]').locator('svg').first()).toBeVisible();
+  await expect(page.locator('[data-lab]')).toHaveCount(0);
+  await expect(page.locator('[data-summaries]')).toHaveCount(0);
+});
+
 test('render shows a results table, then display cards', async ({ page }) => {
   const labFrames: string[] = [];
   page.on('framenavigated', frame => {
