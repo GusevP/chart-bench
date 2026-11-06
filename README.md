@@ -168,7 +168,7 @@ For gallery totals, compare the six types every arm implements: donut, radar, Sa
 - Canvas arms report done from the library's own "rendered" event (`signal` mode) — otherwise the timer would stop on a blank canvas.
 - Both modes go through the **same** double-rAF before the mark. Marking immediately on the signal stops the clock before paint and hands every Canvas library a free frame.
 
-The double rAF makes the instrument frame-quantised: an empty `shell` page measures ≈ 1.3 frames (20–24 ms at 60 Hz). Differences under one frame (≈ 16.7 ms at 60 Hz) are noise.
+The double rAF makes the instrument frame-quantised: an empty `shell` page measured ≈ 1.3 frames (20–24 ms at 60 Hz) on 2026-11-03; the default arm list omits `shell`, so the 2026-11-06 runs did not re-measure it. Differences under one frame (≈ 16.7 ms at 60 Hz) are noise.
 
 **Hover** — the pointer sweeps the chart in 60 steps while a rAF loop records frame gaps; the reported number is the longest gap. Also frame-quantised.
 
@@ -184,7 +184,7 @@ The double rAF makes the instrument frame-quantised: an empty `shell` page measu
 pnpm install
 pnpm build                # also writes apps/bench/results/bundle.json
 pnpm bench                # BENCH_ARMS=none,nivo BENCH_REPEATS=9 to narrow
-pnpm report               # results/report.md
+pnpm report               # results/raw.md
 ```
 
 Close everything else first: a dev server or a browser tab in the background moves every number.

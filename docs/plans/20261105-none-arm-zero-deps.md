@@ -211,7 +211,7 @@ Reuse:
 - [x] update the regenerated README token tables
 
 ### Task 11: [Final] Update documentation
-- [ ] check README text against the final numbers
+- [x] check README text against the final numbers
 - [ ] move this plan to `docs/plans/completed/`
 
 ## Post-Completion
