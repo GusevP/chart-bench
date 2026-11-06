@@ -1,5 +1,7 @@
 # chart-bench
 
+**[Open the playground](https://gusevp.github.io/chart-bench/)** to measure the libraries on your own machine with your own data.
+
 The same two charts — a survival curve with confidence bands and censoring ticks, and a sized scatter plot — built in seven ways and measured the same way:
 
 | arm | renderer |
