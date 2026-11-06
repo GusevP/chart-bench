@@ -89,7 +89,7 @@ Reuse:
 - [x] spec: helpers against d3 on the Testing Strategy cases
 - [x] spec: exact-knot step lookup
 - [x] compare before and after screenshots of both charts at the same seed
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 2: Dependency guard and unknown-pair spec
 
@@ -99,7 +99,7 @@ Reuse:
 - [x] add the runtime-closure guard from Testing Strategy
 - [x] prove it fails by temporarily importing `d3-array` through a relative helper
 - [x] move the unknown-pair case off `none/treemap` to a pair that stays unsupported, before that file exists
-- [ ] run specs
+- [x] run specs
 
 ### Task 3: Stacked bar, stacked area, bar + line
 
@@ -118,7 +118,7 @@ Reuse:
 - [x] follow `COMBO_RIGHT` and `COMBO_LINE_WIDTH` for the second axis
 - [x] add the three pairs to `EXPECTED_PAIRS`
 - [x] check each with the sample and heavy data in the browser
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 4: Donut and radar
 
@@ -132,7 +132,7 @@ Reuse:
 - [x] hit-test by angle and radius, one handler on the `<svg>`
 - [x] check the single-slice donut, where a full circle needs two arcs
 - [x] add the two pairs to `EXPECTED_PAIRS`
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 5: Heatmap, box plot, candlestick
 
@@ -150,7 +150,7 @@ Reuse:
 - [x] tooltip content for candlestick follows ECharts
 - [x] add the three pairs to `EXPECTED_PAIRS`
 - [x] check each with heavy data in the browser
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 6: Squarified treemap
 
@@ -164,7 +164,7 @@ Reuse:
 - [x] add the pair to `EXPECTED_PAIRS`
 - [x] spec: Testing Strategy invariants on an uneven nested tree
 - [x] spec: single-leaf tree, and 5,000 leaves stays fast
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 7: Sankey layout
 
@@ -179,7 +179,7 @@ Reuse:
 - [x] spec: Testing Strategy invariants, plus unequal flows, parallel edges and a skipped layer
 - [x] spec: disconnected node, single link, and a column too full for `NODE_GAP`
 - [x] check the heavy dataset in the browser: 150 nodes, 500 links, 6 layers
-- [ ] build and run specs
+- [x] build and run specs
 
 ### Task 8: Wire `none` into totals, specs and docs
 
@@ -192,7 +192,7 @@ Reuse:
 - [x] remove the `none` filter at `code-tokens.mjs:78`, so the common table gains a row; the common set stays six types
 - [x] update the README arm table, support table and rule text, the "all six library arms" wording, and add Sankey and treemap differences to "Recorded differences"
 - [x] state the zero-dependency rule in `ARMS.md`, and say `none` ignores `EFFECTS`
-- [ ] run specs
+- [x] run specs
 
 ### Task 9: Verify acceptance criteria
 - [x] the guard spec passes and no `none` file imports d3 (git grep done; the guard spec runs in the gate below)
@@ -200,9 +200,9 @@ Reuse:
 - [x] tooltips are correct by eye in the browser, including axis boundaries, treemap leaves, Sankey ribbons and plot margins
 - [x] look through all twelve charts by eye, and compare Sankey with the d3-based arms
 - [x] the "Not supported" cards are unchanged for the other libraries
-- [ ] `pnpm typecheck`
-- [ ] `pnpm build`
-- [ ] `pnpm -F bench test:playground`
+- [x] `pnpm typecheck`
+- [x] `pnpm build`
+- [x] `pnpm -F bench test:playground`
 
 ### Task 10: Refresh published numbers (about 560 page loads across both regimes)
 - [x] run the bench once per regime on the final code. The user chose to run on a loaded machine rather than with nothing else running; `apps/bench/results/report.md` gives the load and the drift against the quieter 2026-11-03 runs. Both use fresh output files, never appending to `results/run-*` or `raw.jsonl`, because `report.mjs` does not split by throttle: `BENCH_CPU_THROTTLE=1 BENCH_OUT=results/<fresh>-1x.jsonl pnpm bench`, and the same with `4` and `-4x`
@@ -212,7 +212,7 @@ Reuse:
 
 ### Task 11: [Final] Update documentation
 - [x] check README text against the final numbers
-- [ ] move this plan to `docs/plans/completed/`
+- [x] move this plan to `docs/plans/completed/`
 
 ## Post-Completion
 *Items requiring manual intervention or external systems - no checkboxes, informational only*
