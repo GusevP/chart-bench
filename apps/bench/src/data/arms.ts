@@ -1,1 +1,1 @@
-export const ARMS = ['shell', 'none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'] as const;
+export const ARMS = ['shell', 'none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs', 'uplot', 'plotly', 'agcharts', 'apex', 'scichart', 'highcharts'] as const;

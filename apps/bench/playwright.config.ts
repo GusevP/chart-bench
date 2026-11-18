@@ -10,6 +10,8 @@ export default defineConfig({
     baseURL: process.env.BENCH_URL ?? 'http://localhost:4173',
     viewport: { width: 1000, height: 700 },
     browserName: 'chromium',
+    // Full Chromium in new headless mode: the default headless shell has no GPU, so WebGL arms ran in SwiftShader.
+    channel: 'chromium',
   },
   webServer: process.env.BENCH_URL
     ? undefined

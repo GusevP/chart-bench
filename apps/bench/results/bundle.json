@@ -1,4 +1,12 @@
 {
+  "agcharts": {
+    "totalKb": 397.6,
+    "libraryKb": 328.6
+  },
+  "apex": {
+    "totalKb": 248.9,
+    "libraryKb": 179.9
+  },
   "chartjs": {
     "totalKb": 124.6,
     "libraryKb": 55.6
@@ -7,28 +15,44 @@
     "totalKb": 233.2,
     "libraryKb": 164.2
   },
+  "highcharts": {
+    "totalKb": 217.5,
+    "libraryKb": 148.5
+  },
   "nivo": {
-    "totalKb": 172.2,
-    "libraryKb": 103.2
+    "totalKb": 172.3,
+    "libraryKb": 103.3
   },
   "none": {
     "totalKb": 71.2,
     "libraryKb": 2.2
   },
+  "plotly": {
+    "totalKb": 529.9,
+    "libraryKb": 460.9
+  },
   "recharts": {
-    "totalKb": 175.3,
-    "libraryKb": 106.3
+    "totalKb": 175.4,
+    "libraryKb": 106.4
+  },
+  "scichart": {
+    "totalKb": 408,
+    "libraryKb": 339
   },
   "shell": {
     "totalKb": 69,
     "libraryKb": 0
   },
   "tanstack": {
-    "totalKb": 125.8,
-    "libraryKb": 56.8
+    "totalKb": 125.9,
+    "libraryKb": 56.9
+  },
+  "uplot": {
+    "totalKb": 92.9,
+    "libraryKb": 23.9
   },
   "visx": {
-    "totalKb": 94,
-    "libraryKb": 25
+    "totalKb": 94.2,
+    "libraryKb": 25.2
   }
 }

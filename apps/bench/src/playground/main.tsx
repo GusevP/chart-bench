@@ -24,6 +24,12 @@ const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
   visx: 'visx (SVG)',
   tanstack: 'TanStack Charts',
   chartjs: 'Chart.js (Canvas)',
+  uplot: 'uPlot (Canvas)',
+  plotly: 'Plotly.js (WebGL; gallery SVG)',
+  agcharts: 'AG Charts Community (Canvas)',
+  apex: 'ApexCharts (SVG)',
+  scichart: 'SciChart.js (WebGL)',
+  highcharts: 'Highcharts (SVG; WebGL boost)',
 };
 type Library = keyof typeof LIBRARIES | 'calibrate';
 const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
@@ -217,7 +223,7 @@ function Summaries({
                 data-mount={r.mount.median}
                 data-update={r.update.median}
                 data-blocking={r.blocking?.median ?? ''}
-                data-dom-nodes={r.domNodes}
+                data-dom-nodes={r.timedOut ? '' : r.domNodes}
                 data-bundle-kb={kb ?? ''}
               >
                 <th scope="row">{lib}</th>

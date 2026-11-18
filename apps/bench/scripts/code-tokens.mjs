@@ -7,7 +7,9 @@ import ts from 'typescript';
 
 const root = resolve(import.meta.dirname, '..');
 const arms = resolve(root, 'src/arms');
-const LIBS = ['recharts', 'nivo', 'echarts', 'chartjs', 'visx', 'tanstack', 'none'];
+const LIBS = ['recharts', 'nivo', 'echarts', 'chartjs', 'visx', 'tanstack', 'none', 'uplot', 'plotly', 'agcharts', 'apex', 'scichart', 'highcharts'];
+// The common set is fixed by the original seven arms; a later library gets a total only if it covers all of it.
+const COMMON_BASE = LIBS.slice(0, 7);
 const SPEC_CHARTS = 'survival+scatter';
 
 function scan(source, fileName) {
@@ -77,7 +79,8 @@ for (const lib of LIBS) {
 
 const types = [...new Set(LIBS.flatMap(lib => Object.keys(pairs[lib])))].sort();
 const galleryTypes = types.filter(type => type !== SPEC_CHARTS);
-const common = galleryTypes.filter(type => LIBS.every(lib => pairs[lib][type]));
+const common = galleryTypes.filter(type => COMMON_BASE.every(lib => pairs[lib][type]));
+const GALLERY_LIBS = LIBS.filter(lib => common.every(type => pairs[lib][type]));
 
 const perChart = {};
 const totals = {};
@@ -86,7 +89,10 @@ for (const lib of LIBS) {
     Object.entries(pairs[lib]).map(([type, file]) => [type, measure([file])]),
   );
   const implemented = Object.keys(pairs[lib]).filter(type => type !== SPEC_CHARTS);
-  totals[lib] = { coverage: implemented.length, common: measure(common.map(type => pairs[lib][type])) };
+  totals[lib] = {
+    coverage: implemented.length,
+    common: GALLERY_LIBS.includes(lib) ? measure(common.map(type => pairs[lib][type])) : null,
+  };
 }
 
 writeFileSync(
@@ -105,7 +111,7 @@ const lines = [
   '',
   row([`Common ${common.length} types`, 'Chart files', 'Adapter', 'arms/shared', 'Total', 'Coverage']),
   row(['---', '---:', '---:', '---:', '---:', '---:']),
-  ...LIBS.map(lib => {
+  ...GALLERY_LIBS.map(lib => {
     const { chart, adapter, shared, total } = totals[lib].common;
     return row([lib, chart, adapter, shared, total, `${totals[lib].coverage}/${galleryTypes.length}`]);
   }),

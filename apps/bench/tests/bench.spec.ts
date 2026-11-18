@@ -4,8 +4,8 @@ import { test } from '@playwright/test';
 import type { BrowserContext } from '@playwright/test';
 import { measureHover, measureMount } from 'bench-stage/playwright';
 
-const ARMS = (process.env.BENCH_ARMS ?? 'none,nivo,recharts,echarts,visx,tanstack,chartjs').split(',');
-const SIZES = (process.env.BENCH_SIZES ?? 'typical,heavy,huge').split(',');
+const ARMS = (process.env.BENCH_ARMS ?? 'none,nivo,recharts,echarts,visx,tanstack,chartjs,uplot,plotly,agcharts,apex,scichart,highcharts').split(',');
+const SIZES = (process.env.BENCH_SIZES ?? 'typical,heavy').split(',');
 const CASES = ['survival', 'scatter'].flatMap(chart =>
   ['typical', 'heavy', 'huge'].filter(size => SIZES.includes(size)).map(size => ({ chart, size })),
 );
@@ -65,6 +65,8 @@ for (const arm of ARMS) {
   for (const { chart, size } of CASES) {
     test(`${arm} ${chart}-${size}`, async ({ context }) => {
       test.setTimeout((REPEATS + 1) * 3 * TIMEOUT_MS);
+      // SciChart's Community licence reports to Application Insights during the first mount.
+      await context.route('https://dc.services.visualstudio.com/**', route => route.abort());
       const url = `/${arm}.html?chart=${chart}&size=${size}`;
       const record = (row: object) =>
         appendFileSync(OUT, JSON.stringify({ arm, chart, size, cpuThrottle: CPU_THROTTLE, ...row }) + '\n');

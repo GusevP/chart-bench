@@ -726,9 +726,10 @@ test('a missing embedded chunk reports its error at once instead of the lab time
   await expect(page.getByRole('alert')).toContainText('dynamically imported module', { timeout: 10_000 });
 });
 
-const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs'];
+const LIBS = ['none', 'nivo', 'recharts', 'echarts', 'visx', 'tanstack', 'chartjs', 'uplot', 'plotly', 'agcharts', 'apex', 'scichart', 'highcharts'];
 const MARK_SPREAD = 40;
 const MARK_MIN_PIXELS = 1000;
+const GALLERY_KINDS = kinds.filter(isGallery);
 const EXPECTED_PAIRS = [
   'none/stacked-bar',
   'none/stacked-area',
@@ -752,6 +753,11 @@ const EXPECTED_PAIRS = [
     ...(lib === 'recharts' ? [] : [`${lib}/boxplot`]),
     ...['chartjs', 'echarts', 'tanstack'].includes(lib) ? [`${lib}/candlestick`] : [],
   ]),
+  ...['plotly', 'highcharts'].flatMap(lib => GALLERY_KINDS.map(kind => `${lib}/${kind}`)),
+  ...GALLERY_KINDS.filter(kind => kind !== 'sankey').map(kind => `apex/${kind}`),
+  ...GALLERY_KINDS.filter(kind => kind !== 'sankey' && kind !== 'treemap').map(kind => `scichart/${kind}`),
+  ...['stacked-bar', 'stacked-area', 'combo', 'donut'].map(kind => `agcharts/${kind}`),
+  ...['stacked-bar', 'stacked-area', 'combo'].map(kind => `uplot/${kind}`),
 ];
 
 test('gallery-bundle.json matches the expected pairs; supported pairs measure and the rest are Not supported', async ({
