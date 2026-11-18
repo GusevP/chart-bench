@@ -19,12 +19,13 @@ export type LibraryResult = {
   update: Summary;
   blocking: Summary | null;
   domNodes: number;
+  timedOut?: true;
 };
 export type Measurements = { floor: LibraryResult; results: Record<string, LibraryResult> };
 
 export const RUNS = 5;
 export const WARMUP = 1;
-const TIMEOUT_MS = 60_000;
+export const TIMEOUT_MS = 60_000;
 
 // chartjs fires its settle signal once per page, so updates are timed on rAF instead.
 const RAF_UPDATE = new Set(['chartjs']);
@@ -62,6 +63,7 @@ async function blockingBetween(startAt: number, endAt: number, signal: AbortSign
 }
 
 class HiddenError extends Error {}
+class TimeoutError extends Error {}
 
 const visibility = new EventTarget();
 document.addEventListener('visibilitychange', () => visibility.dispatchEvent(new Event('change')));
@@ -83,7 +85,7 @@ function waitFor<T>(
   pick: (message: ResultMessage) => T | undefined,
 ) {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => finish(new Error('Timed out waiting for the chart page.')), TIMEOUT_MS);
+    const timer = setTimeout(() => finish(new TimeoutError('Timed out waiting for the chart page.')), TIMEOUT_MS);
     const onMessage = (event: MessageEvent<ResultMessage>) => {
       if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
       const message = event.data;
@@ -182,6 +184,9 @@ async function sample(
   };
 }
 
+const NEVER: Summary = { median: Infinity, iqr: 0, n: 0 };
+const TIMED_OUT: LibraryResult = { mount: NEVER, update: NEVER, blocking: null, domNodes: Number.NaN, timedOut: true };
+
 export type Options = {
   runs?: number;
   warmup?: number;
@@ -207,6 +212,7 @@ export async function measureLibrary(
     try {
       samples.push(await runOnce(frame, src, data, updated, library, signal));
     } catch (e) {
+      if (e instanceof TimeoutError && library !== 'shell') return TIMED_OUT;
       if (!(e instanceof HiddenError)) throw e;
     }
   }

@@ -13,7 +13,8 @@ export const HEIGHT = 600;
 export function fromUrl(): Payload {
   const params = new URLSearchParams(location.search);
   const chart = params.get('chart') === 'scatter' ? 'scatter' : 'survival';
-  const size: DatasetSize = params.get('size') === 'heavy' ? 'heavy' : 'typical';
+  const asked = params.get('size');
+  const size: DatasetSize = asked === 'heavy' || asked === 'huge' ? asked : 'typical';
   return chart === 'survival'
     ? { chart, series: generateSurvival(DATASETS.survival[size]) }
     : { chart, series: generateScatter(DATASETS.scatter[size]) };

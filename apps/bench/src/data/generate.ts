@@ -80,12 +80,20 @@ export const DATASETS = {
   survival: {
     typical: { seed: 1, series: 3, points: 200 },
     heavy: { seed: 2, series: 6, points: 1000 },
+    huge: { seed: 25, series: 10, points: 10_000 },
   },
   scatter: {
     typical: { seed: 3, points: 500, groups: 5 },
     heavy: { seed: 4, points: 10_000, groups: 5 },
+    huge: { seed: 26, points: 100_000, groups: 5 },
   },
 } as const;
 
 export type ChartKind = keyof typeof DATASETS;
-export type DatasetSize = 'typical' | 'heavy';
+export type DatasetSize = 'typical' | 'heavy' | 'huge';
+
+export function sized<S extends object>(sets: S, size: DatasetSize): S[keyof S] {
+  const set = (sets as Partial<Record<DatasetSize, S[keyof S]>>)[size];
+  if (!set) throw new Error(`no ${size} dataset`);
+  return set;
+}

@@ -9,9 +9,9 @@ import { ARMS } from '../data/arms';
 import type { ChartKind } from '../data/contract';
 import type { DatasetSize } from '../data/generate';
 import { framePeriod } from './frame';
-import { RUNS, WARMUP, frameSrc, measureAll } from './lab';
+import { RUNS, TIMEOUT_MS, WARMUP, frameSrc, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
-import { isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
+import { hasSize, isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
 import type { Parsed } from './parse';
 import { rankBy } from './rank';
 import type { Rank } from './rank';
@@ -28,7 +28,9 @@ const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
 type Library = keyof typeof LIBRARIES | 'calibrate';
 const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
 
-const fmt = ({ median, iqr }: Summary) => `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}`;
+const TIMED_OUT = `> ${TIMEOUT_MS / 1000} s`;
+const fmt = ({ median, iqr }: Summary) =>
+  Number.isFinite(median) ? `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}` : TIMED_OUT;
 const bundleKb: Record<string, { libraryKb: number } | undefined> = bundle;
 const galleryKb: Record<string, Record<string, { libraryKb: number } | undefined> | undefined> =
   galleryBundle;
@@ -102,6 +104,16 @@ function ArmFrame({
       </section>
     );
 
+  if (result?.timedOut)
+    return (
+      <section className="card unsupported" data-timed-out={library}>
+        <header>
+          <h2>{LABELS[library]}</h2>
+          <small>Timed out: no run finished within {TIMEOUT_MS / 1000} s, so the chart is not drawn again here.</small>
+        </header>
+      </section>
+    );
+
   return (
     <section className="card">
       <header>
@@ -166,7 +178,7 @@ function Summaries({
     mount: rankOf((_, r) => r.mount.median, 2 * frame),
     update: rankOf((_, r) => r.update.median, 2 * frame),
     blocking: rankOf((_, r) => r.blocking?.median, 2 * frame),
-    domNodes: rankOf((_, r) => r.domNodes),
+    domNodes: rankOf((_, r) => (r.timedOut ? undefined : r.domNodes)),
     kb: rankOf(lib => libraryKb(lib, chart)),
     tokens: rankOf(lib => tokenCount(lib, chart)),
     hover: rankOf(lib => hover[lib], 2 * frame),
@@ -222,7 +234,7 @@ function Summaries({
                   rank={rank(ranks.update, r.update.median)}
                 />
                 <Cell s={r.blocking} frame={frame} rank={rank(ranks.blocking, r.blocking?.median)} />
-                <td {...cellProps(rank(ranks.domNodes, r.domNodes))}>{r.domNodes}</td>
+                <td {...cellProps(rank(ranks.domNodes, r.domNodes))}>{r.timedOut ? 'n/a' : r.domNodes}</td>
                 <td {...cellProps(rank(ranks.kb, kb))}>{kb?.toFixed(1) ?? 'n/a'}</td>
                 <td {...cellProps(rank(ranks.tokens, tokens))}>{tokens ?? 'n/a'}</td>
                 <td data-hover={hover[lib] ?? ''} {...cellProps(rank(ranks.hover, hover[lib]))}>
@@ -419,7 +431,14 @@ function Playground() {
           <div className="row">
             <button onClick={() => load(chart, 'typical')}>Sample: typical</button>
             <button onClick={() => load(chart, 'heavy')}>Sample: heavy</button>
+            {hasSize(chart, 'huge') && <button onClick={() => load(chart, 'huge')}>Sample: ~100k</button>}
           </div>
+          {hasSize(chart, 'huge') && (
+            <small>
+              The ~100k sample can freeze this tab for minutes in the SVG libraries. A library with no run
+              finished in {TIMEOUT_MS / 1000} s is marked timed out and skipped.
+            </small>
+          )}
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}

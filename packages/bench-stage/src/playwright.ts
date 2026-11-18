@@ -8,16 +8,14 @@ export type MountSample = {
   domNodes: number;
 };
 
-export async function measureMount(page: Page, { remount = false } = {}): Promise<MountSample> {
+export async function measureMount(page: Page, { remount = false, timeout = 60_000 } = {}): Promise<MountSample> {
   await page.waitForFunction(() => (window as BenchWindow).benchStageReady === true);
   await page.evaluate(again => {
     const api = (window as BenchWindow).benchStage!;
     if (again) api.remount();
     else api.mount();
   }, remount);
-  await page.waitForFunction(() => (window as BenchWindow).benchStageSettled === true, undefined, {
-    timeout: 60_000,
-  });
+  await page.waitForFunction(() => (window as BenchWindow).benchStageSettled === true, undefined, { timeout });
   return page.evaluate(name => {
     const entry = performance.getEntriesByName(name, 'measure').at(-1);
     const stage = document.querySelector('[data-bench-stage]');

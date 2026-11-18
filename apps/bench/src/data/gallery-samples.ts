@@ -5,10 +5,12 @@ export const GALLERY_DATASETS = {
   'stacked-bar': {
     typical: { seed: 5, categories: 12, series: 3 },
     heavy: { seed: 6, categories: 200, series: 6 },
+    huge: { seed: 27, categories: 10_000, series: 10 },
   },
   'stacked-area': {
     typical: { seed: 7, categories: 50, series: 4 },
     heavy: { seed: 8, categories: 1000, series: 8 },
+    huge: { seed: 28, categories: 12_500, series: 8 },
   },
   radar: {
     typical: { seed: 11, categories: 6, series: 3 },
@@ -17,14 +19,17 @@ export const GALLERY_DATASETS = {
   combo: {
     typical: { seed: 13, categories: 24 },
     heavy: { seed: 14, categories: 500 },
+    huge: { seed: 29, categories: 50_000 },
   },
   heatmap: {
     typical: { seed: 15, columns: 20, rows: 20 },
     heavy: { seed: 16, columns: 100, rows: 100 },
+    huge: { seed: 30, columns: 316, rows: 316 },
   },
   treemap: {
     typical: { seed: 17, leaves: 50, groups: 5 },
     heavy: { seed: 18, leaves: 5000, groups: 50 },
+    huge: { seed: 31, leaves: 100_000, groups: 500 },
   },
   sankey: {
     typical: { seed: 19, nodes: 12, links: 20, layers: 4 },
@@ -37,6 +42,7 @@ export const GALLERY_DATASETS = {
   candlestick: {
     typical: { seed: 23, count: 250 },
     heavy: { seed: 24, count: 5000 },
+    huge: { seed: 32, count: 100_000 },
   },
   donut: {
     typical: { seed: 9, slices: 6 },

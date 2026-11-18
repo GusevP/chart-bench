@@ -1,7 +1,9 @@
+import { max, min } from 'd3-array';
+
 import { boxStats } from '../arms/shared/boxplot';
 import { treeLeaves } from '../arms/shared/treemap';
 import type { Categories, ChartKind, GalleryKind, Payload, Sankey, TreeNode } from '../data/contract';
-import { DATASETS, PALETTE, generateScatter, generateSurvival } from '../data/generate';
+import { DATASETS, PALETTE, generateScatter, generateSurvival, sized } from '../data/generate';
 import type { DatasetSize } from '../data/generate';
 import {
   GALLERY_DATASETS,
@@ -148,7 +150,7 @@ function categoriesKind<K extends 'stacked-bar' | 'stacked-area' | 'radar'>(
         },
       };
     },
-    sample: size => formatCategories(generateCategories(GALLERY_DATASETS[chart][size])),
+    sample: size => formatCategories(generateCategories(sized(GALLERY_DATASETS[chart as 'stacked-bar' | 'stacked-area' | 'radar'], size))),
   };
 }
 
@@ -328,7 +330,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         })),
       })),
     }),
-    sample: size => formatSeries(generateSurvival(DATASETS.survival[size])),
+    sample: size => formatSeries(generateSurvival(sized(DATASETS.survival, size))),
   },
   scatter: {
     label: 'Scatter',
@@ -338,7 +340,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
       chart: 'scatter',
       series: parsed.series.map(s => ({ ...s, points: s.points.map(p => ({ ...p, y: p.y + 1 })) })),
     }),
-    sample: size => formatSeries(generateScatter(DATASETS.scatter[size])),
+    sample: size => formatSeries(generateScatter(sized(DATASETS.scatter, size))),
   },
   'stacked-bar': categoriesKind('stacked-bar', 'Stacked bar', () => (v, i) => v * byParity(1.1, 0.9)(i)),
   'stacked-area': categoriesKind('stacked-area', 'Stacked area', () => (v, i) => v * byParity(1.1, 0.9)(i)),
@@ -361,7 +363,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         },
       },
     }),
-    sample: size => formatCombo(generateCombo(GALLERY_DATASETS.combo[size])),
+    sample: size => formatCombo(generateCombo(sized(GALLERY_DATASETS.combo, size))),
   },
   heatmap: {
     label: 'Heatmap',
@@ -384,7 +386,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         },
       };
     },
-    sample: size => formatHeatmap(generateHeatmap(GALLERY_DATASETS.heatmap[size])),
+    sample: size => formatHeatmap(generateHeatmap(sized(GALLERY_DATASETS.heatmap, size))),
   },
   treemap: {
     label: 'Treemap',
@@ -401,7 +403,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
       };
       return { chart: 'treemap', data: rotate(parsed.data) };
     },
-    sample: size => formatTreemap(generateTreemap(GALLERY_DATASETS.treemap[size])),
+    sample: size => formatTreemap(generateTreemap(sized(GALLERY_DATASETS.treemap, size))),
   },
   sankey: {
     label: 'Sankey',
@@ -421,7 +423,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         },
       };
     },
-    sample: size => formatSankey(generateSankey(GALLERY_DATASETS.sankey[size])),
+    sample: size => formatSankey(generateSankey(sized(GALLERY_DATASETS.sankey, size))),
   },
   boxplot: {
     label: 'Box plot',
@@ -442,7 +444,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         }),
       },
     }),
-    sample: size => formatBoxplot(generateBoxplot(GALLERY_DATASETS.boxplot[size])),
+    sample: size => formatBoxplot(generateBoxplot(sized(GALLERY_DATASETS.boxplot, size))),
   },
   candlestick: {
     label: 'Candlestick',
@@ -450,7 +452,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
     parse: raw => ({ chart: 'candlestick', data: parseCandles(raw) }),
     nudge: parsed => {
       const { candles } = parsed.data;
-      const lift = (Math.max(...candles.map(c => c.high)) - Math.min(...candles.map(c => c.low)) || 1) * 0.02;
+      const lift = (max(candles, c => c.high)! - min(candles, c => c.low)! || 1) * 0.02;
       return {
         chart: 'candlestick',
         data: {
@@ -463,7 +465,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
         },
       };
     },
-    sample: size => formatCandles(generateCandles(GALLERY_DATASETS.candlestick[size])),
+    sample: size => formatCandles(generateCandles(sized(GALLERY_DATASETS.candlestick, size))),
   },
   donut: {
     label: 'Donut',
@@ -473,7 +475,7 @@ const KINDS: { [K in ChartKind]: Kind<Payloads[K]> } = {
       const scale = alternating(1.3, 0.7);
       return { chart: 'donut', data: { slices: parsed.data.slices.map(s => ({ ...s, value: scale(s.value) })) } };
     },
-    sample: size => formatDonut(generateDonut(GALLERY_DATASETS.donut[size])),
+    sample: size => formatDonut(generateDonut(sized(GALLERY_DATASETS.donut, size))),
   },
 };
 
@@ -488,3 +490,5 @@ const nudgeAs = <K extends ChartKind>(chart: K, parsed: Payloads[K]) => KINDS[ch
 /** Same shape and ids, shifted values, so SVG libraries reconcile instead of remounting. */
 export const nudge = (parsed: Parsed): Parsed => nudgeAs(parsed.chart, parsed);
 export const sample = (chart: ChartKind, size: DatasetSize) => KINDS[chart].sample(size);
+export const hasSize = (chart: ChartKind, size: DatasetSize) =>
+  size in (isGallery(chart) ? GALLERY_DATASETS[chart] : DATASETS[chart]);

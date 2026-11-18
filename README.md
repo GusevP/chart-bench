@@ -40,7 +40,7 @@ Mount time on the heavy data, median ms. The scatter has 10,000 points and the s
 
 ## Playground
 
-Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only. The page opens with an unmeasured preview of the default selection; nothing is timed until you press Render.
+Pick libraries, paste your own data as JSON, and the playground measures each library alone, in one visible lab frame, with a fresh page load per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (Long Animation Frames, Chromium only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only. The page opens with an unmeasured preview of the default selection; nothing is timed until you press Render. A library with no run finished within 60 s is shown as `> 60 s` and its chart is not drawn again; the playground runs in one tab, so an SVG library on the ~100k sample can freeze it until that run ends.
 
 The "Animation and hover effects" checkbox, on by default, controls the display cards. On, each library runs with its built-in animation and hover behaviour, including its own dim-the-others option where it has one; nothing is hand-written, so visx and the no-library arm stay as they are, and custom marks such as nivo's scatter nodes don't animate. Off keeps the static baseline, which still includes a few built-in hover styles such as nivo's Sankey dimming. Mount, update, blocking and DOM nodes always come from static charts, because a Canvas library reports done after its animation while an SVG chart settles at commit. The hover column measures the state of the checkbox, and changing it clears that column.
 
@@ -70,7 +70,7 @@ For the ten gallery types the source of truth is `apps/bench/results/gallery-bun
 
 ### Pasting data
 
-Every type has a sample at both sizes; the textarea shows the format. Optional `color` falls back to the shared palette. Ids must be unique where noted, and a parse error names the field.
+Every type has a typical and a heavy sample, and all but donut, radar, Sankey and box plot have a ~100k sample (box plot's heavy sample already has 100,000 values); the textarea shows the format. Optional `color` falls back to the shared palette. Ids must be unique where noted, and a parse error names the field.
 
 Stacked bar, stacked area and radar take one non-negative value per category, unique category names and unique series ids:
 
@@ -185,6 +185,9 @@ For gallery totals, compare the six types every arm implements: donut, radar, Sa
 | --- | --- | --- |
 | typical | 3 series × 200 points | 500 points |
 | heavy | 6 series × 1,000 points | 10,000 points |
+| huge | 10 series × 10,000 points | 100,000 points |
+
+**Timeouts.** Each attempt loads a fresh page and gets 60 s (`BENCH_TIMEOUT_MS`) to settle. A run over the cap is recorded as timed out and counted as slower than every finished run, so the median stays a median. After five timeouts the cell stops, because five of nine runs over the cap already put the median over it; the report then shows `> 60 s` with the slowest run that did finish. `BENCH_SIZES` picks the sizes to run (default `typical,heavy,huge`).
 
 **Mount time** — [`packages/bench-stage`](packages/bench-stage). The chart is not rendered on page load; the runner calls `window.benchStage.mount()`, so module evaluation and hydration are excluded. The clock stops two animation frames after the chart reports done, which puts it after the browser has painted.
 
