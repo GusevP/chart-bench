@@ -8,6 +8,9 @@ import { ARMS } from './src/data/arms.ts';
 export default defineConfig({
   base: './',
   plugins: [react()],
+  // Gallery charts load through import.meta.glob, which the dev optimizer only finds on first use;
+  // its re-bundle then reloads the page and the chart frames lose the data already posted to them.
+  optimizeDeps: { entries: ['*.html', 'src/arms/*/gallery/*.tsx'] },
   build: {
     manifest: true,
     emptyOutDir: false,

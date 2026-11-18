@@ -13,24 +13,14 @@ import { RUNS, TIMEOUT_MS, WARMUP, frameSrc, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
 import { hasSize, isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
 import type { Parsed } from './parse';
+import { GLYPHS, Logo, META } from './meta';
 import { rankBy } from './rank';
 import type { Rank } from './rank';
 
-const LIBRARIES: Record<Exclude<(typeof ARMS)[number], 'shell'>, string> = {
-  none: 'No library (React SVG)',
-  nivo: 'nivo (SVG)',
-  recharts: 'Recharts (SVG)',
-  echarts: 'Apache ECharts (Canvas)',
-  visx: 'visx (SVG)',
-  tanstack: 'TanStack Charts',
-  chartjs: 'Chart.js (Canvas)',
-  uplot: 'uPlot (Canvas)',
-  plotly: 'Plotly.js (WebGL; gallery SVG)',
-  agcharts: 'AG Charts Community (Canvas)',
-  apex: 'ApexCharts (SVG)',
-  scichart: 'SciChart.js (WebGL)',
-  highcharts: 'Highcharts (SVG; WebGL boost)',
-};
+const LIBRARIES = Object.fromEntries(
+  Object.entries(META).map(([lib, m]) => [lib, `${m.name} (${m.renderer})`]),
+) as Record<keyof typeof META, string>;
+META satisfies Record<Exclude<(typeof ARMS)[number], 'shell'>, unknown>;
 type Library = keyof typeof LIBRARIES | 'calibrate';
 const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
 
@@ -104,7 +94,7 @@ function ArmFrame({
     return (
       <section className="card unsupported" data-unsupported={library}>
         <header>
-          <h2>{LABELS[library]}</h2>
+          <CardTitle library={library} />
           <small>Not supported: no {kindInfo(data.chart).label.toLowerCase()} for this library.</small>
         </header>
       </section>
@@ -114,8 +104,10 @@ function ArmFrame({
     return (
       <section className="card unsupported" data-timed-out={library}>
         <header>
-          <h2>{LABELS[library]}</h2>
-          <small>Timed out: no run finished within {TIMEOUT_MS / 1000} s, so the chart is not drawn again here.</small>
+          <CardTitle library={library} />
+          <small>
+            Timed out: no run finished within {TIMEOUT_MS / 1000} s, so the chart is not drawn again here.
+          </small>
         </header>
       </section>
     );
@@ -123,7 +115,7 @@ function ArmFrame({
   return (
     <section className="card">
       <header>
-        <h2>{LABELS[library]}</h2>
+        <CardTitle library={library} />
         {!result && <small data-card-preview>Preview, not measured. Press Render to measure.</small>}
         {result && (
           <small data-card-stats>
@@ -141,6 +133,18 @@ function ArmFrame({
         <iframe ref={ref} src={frameSrc(library, data.chart, src)} title={LABELS[library]} />
       </div>
     </section>
+  );
+}
+
+function CardTitle({ library }: { library: Library }) {
+  if (library === 'calibrate') return <h2>{LABELS[library]}</h2>;
+  const meta = META[library];
+  return (
+    <h2 className="card-title">
+      <Logo meta={meta} />
+      {meta.name}
+      <span className="lib-sub">{meta.renderer}</span>
+    </h2>
   );
 }
 
@@ -341,6 +345,8 @@ function Playground() {
   const [effects, setEffects] = useState(true);
   const [libraries, setLibraries] = useState(initialLibraries);
   const [text, setText] = useState(initialText);
+  const [size, setSize] = useState<DatasetSize | 'custom'>('typical');
+  const [dataOpen, setDataOpen] = useState(false);
   const [error, setError] = useState('');
 
   const apply = (nextChart: ChartKind, nextText: string) => {
@@ -350,6 +356,7 @@ function Playground() {
       return parsed;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      setDataOpen(true);
     }
   };
   const measure = () => {
@@ -376,9 +383,10 @@ function Playground() {
       setShown({ libraries: [], unsupported: job.unsupported, data: job.data });
     setJob(null);
   };
-  const load = (nextChart: ChartKind, size: DatasetSize) => {
-    const next = sample(nextChart, size);
+  const load = (nextChart: ChartKind, nextSize: DatasetSize) => {
+    const next = sample(nextChart, nextSize);
     setChart(nextChart);
+    setSize(nextSize);
     setText(next);
     apply(nextChart, next);
   };
@@ -387,20 +395,133 @@ function Playground() {
 
   return (
     <main>
-      <div>
-        <h1>chart-bench playground</h1>
-        <p>
-          Pick libraries, paste your data, compare. Every library renders the same chart from the same JSON.
-        </p>
+      <aside className="side">
+        <header className="intro">
+          <h1>chart-bench playground</h1>
+          <p>Thirteen chart libraries draw the same chart from the same data. Pick some, render, compare.</p>
+        </header>
 
-        <fieldset disabled={!!job}>
-          <legend>Libraries</legend>
-          {(Object.keys(LIBRARIES) as Library[]).map(lib => (
-            <label key={lib}>
-              <input type="checkbox" checked={libraries.includes(lib)} onChange={() => toggle(lib)} />
-              {lib}
-            </label>
-          ))}
+        <fieldset disabled={!!job} className="block">
+          <legend>
+            Libraries{' '}
+            <span className="count">
+              {libraries.length} of {Object.keys(LIBRARIES).length}
+            </span>
+            <span className="quick">
+              <button type="button" onClick={() => setLibraries(Object.keys(LIBRARIES) as Library[])}>
+                Select all
+              </button>
+              <button type="button" onClick={() => setLibraries([])} disabled={libraries.length === 0}>
+                Clear
+              </button>
+            </span>
+          </legend>
+          <div className="libs">
+            {(Object.keys(LIBRARIES) as (keyof typeof META)[]).map(lib => {
+              const meta = META[lib];
+              const can = supported(lib, chart);
+              return (
+                <label key={lib} className={`lib${can ? '' : ' cannot'}`}>
+                  <input type="checkbox" checked={libraries.includes(lib)} onChange={() => toggle(lib)} />
+                  <Logo meta={meta} />
+                  <span className="lib-text">
+                    <span className="lib-name">{meta.name}</span>
+                    <span className="lib-sub">
+                      {can ? meta.renderer : `No ${kindInfo(chart).label.toLowerCase()}`}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset disabled={!!job} className="block">
+          <legend>Chart</legend>
+          <div className="kinds">
+            {kinds.map(kind => (
+              <label key={kind} className="kind">
+                <input
+                  type="radio"
+                  name="chart"
+                  checked={chart === kind}
+                  onChange={() => load(kind, 'typical')}
+                />
+                {GLYPHS[kind]}
+                <span>{kindInfo(kind).label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset disabled={!!job} className="block">
+          <legend>Data</legend>
+          <p className="hint">{kindInfo(chart).hint}</p>
+          <div className="samples" role="group" aria-label="Sample data size">
+            <span className="samples-label">Size</span>
+            <button
+              type="button"
+              aria-pressed={size === 'typical'}
+              onClick={() => load(chart, 'typical')}
+              aria-label="Sample: typical"
+            >
+              Typical
+            </button>
+            <button
+              type="button"
+              aria-pressed={size === 'heavy'}
+              onClick={() => load(chart, 'heavy')}
+              aria-label="Sample: heavy"
+            >
+              Heavy
+            </button>
+            {hasSize(chart, 'huge') && (
+              <button
+                type="button"
+                aria-pressed={size === 'huge'}
+                onClick={() => load(chart, 'huge')}
+                aria-label="Sample: ~100k"
+              >
+                ~100k
+              </button>
+            )}
+          </div>
+          {size === 'huge' && (
+            <p className="warn">
+              At ~100k the SVG libraries can freeze this tab for minutes. A library with no run finished in{' '}
+              {TIMEOUT_MS / 1000} s is marked timed out and skipped.
+            </p>
+          )}
+          <div className={`json${dataOpen ? ' open' : ''}`}>
+            <div className="json-bar">
+              <span>
+                {size === 'custom'
+                  ? 'Your data'
+                  : `${size === 'huge' ? '~100k' : size[0]!.toUpperCase() + size.slice(1)} sample`}
+                <span className="lib-sub">
+                  {' '}
+                  · {(text.length / 1024).toFixed(text.length < 10_240 ? 1 : 0)} KB of JSON
+                </span>
+              </span>
+              <button type="button" aria-expanded={dataOpen} onClick={() => setDataOpen(open => !open)}>
+                {dataOpen ? 'Collapse' : 'Expand'}
+              </button>
+            </div>
+            <textarea
+              value={text}
+              onChange={e => {
+                setText(e.target.value);
+                setSize('custom');
+              }}
+              spellCheck={false}
+              aria-label="Chart data as JSON"
+            />
+          </div>
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
         </fieldset>
 
         <label className="effects">
@@ -412,62 +533,22 @@ function Playground() {
               setHover({});
             }}
           />
-          Animation and hover effects
-          <small>Shown on the charts and in the hover column. Mount and update stay static.</small>
+          <span>
+            Animation and hover effects
+            <small>Shown on the charts and in the hover column. Mount and update stay static.</small>
+          </span>
         </label>
 
-        <fieldset disabled={!!job}>
-          <legend>Chart</legend>
-          {kinds.map(kind => (
-            <label key={kind}>
-              <input
-                type="radio"
-                name="chart"
-                checked={chart === kind}
-                onChange={() => load(kind, 'typical')}
-              />
-              {kindInfo(kind).label}
-            </label>
-          ))}
-        </fieldset>
-
-        <fieldset disabled={!!job}>
-          <legend>Data (JSON)</legend>
-          <small>{kindInfo(chart).hint}</small>
-          <div className="row">
-            <button onClick={() => load(chart, 'typical')}>Sample: typical</button>
-            <button onClick={() => load(chart, 'heavy')}>Sample: heavy</button>
-            {hasSize(chart, 'huge') && <button onClick={() => load(chart, 'huge')}>Sample: ~100k</button>}
-          </div>
-          {hasSize(chart, 'huge') && (
-            <small>
-              The ~100k sample can freeze this tab for minutes in the SVG libraries. A library with no run
-              finished in {TIMEOUT_MS / 1000} s is marked timed out and skipped.
-            </small>
-          )}
-          <textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            spellCheck={false}
-            aria-label="Chart data as JSON"
-          />
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
-          <div className="row">
-            <button className="primary" onClick={measure} disabled={!!job}>
-              Render
-            </button>
-          </div>
-        </fieldset>
-        <small>
-          The charts shown before a run are a preview. Render measures each library alone in a fresh page, one
-          after another, and shows the charts again afterwards. Numbers are comparable within this session
-          only.
-        </small>
-      </div>
+        <div className="go">
+          <button className="primary" onClick={measure} disabled={!!job}>
+            Render
+          </button>
+          <small>
+            Render measures each library alone in a fresh page, one after another. The charts before a run are
+            an unmeasured preview. Numbers compare within this session only.
+          </small>
+        </div>
+      </aside>
 
       <div className="charts">
         {job && (

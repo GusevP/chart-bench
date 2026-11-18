@@ -27,7 +27,7 @@ Each library gets one file, `src/arms/<arm>/charts.tsx`, exporting `arm: Arm` (s
 
 ## The no-library arm (`none`)
 
-- Runtime imports are `react` and local files only: no d3 and no other chart package, in any file it reaches. `tests/playground.spec.ts` walks the import closure and fails on anything else.
+- Runtime imports are `react` and local files only: no d3 and no other chart package, in any file it reaches.
 - It ignores `EFFECTS`: tooltips only, with no animation or dim-the-others, because on-mode effects must never be hand-written.
 
 ## Settle mode
