@@ -9,7 +9,7 @@ import { ARMS } from '../data/arms';
 import type { ChartKind } from '../data/contract';
 import type { DatasetSize } from '../data/generate';
 import { framePeriod } from './frame';
-import { RUNS, TIMEOUT_MS, WARMUP, frameSrc, measureAll } from './lab';
+import { RUNS, SLOW_MS, TIMEOUT_MS, WARMUP, frameSrc, measureAll } from './lab';
 import type { LibraryResult, Measurements, Summary } from './lab';
 import { hasSize, isGallery, kindInfo, kinds, parseSeries, sample } from './parse';
 import type { Parsed } from './parse';
@@ -25,8 +25,12 @@ type Library = keyof typeof LIBRARIES | 'calibrate';
 const LABELS: Record<Library, string> = { ...LIBRARIES, calibrate: 'Known-cost test page' };
 
 const TIMED_OUT = `> ${TIMEOUT_MS / 1000} s`;
-const fmt = ({ median, iqr }: Summary) =>
-  Number.isFinite(median) ? `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}` : TIMED_OUT;
+const fmt = ({ median, iqr, n }: Summary) =>
+  !Number.isFinite(median)
+    ? TIMED_OUT
+    : n === 1
+      ? median.toFixed(1)
+      : `${median.toFixed(1)} ± ${(iqr / 2).toFixed(1)}`;
 const bundleKb: Record<string, { libraryKb: number } | undefined> = bundle;
 const galleryKb: Record<string, Record<string, { libraryKb: number } | undefined> | undefined> =
   galleryBundle;
@@ -107,6 +111,19 @@ function ArmFrame({
           <CardTitle library={library} />
           <small>
             Timed out: no run finished within {TIMEOUT_MS / 1000} s, so the chart is not drawn again here.
+          </small>
+        </header>
+      </section>
+    );
+
+  if (result && result.mount.median + result.update.median > SLOW_MS)
+    return (
+      <section className="card unsupported" data-slow={library}>
+        <header>
+          <CardTitle library={library} />
+          <small>
+            Not drawn again: one run took {((result.mount.median + result.update.median) / 1000).toFixed(1)}{' '}
+            s, and redrawing it here would freeze the tab.
           </small>
         </header>
       </section>
@@ -197,7 +214,8 @@ function Summaries({
     <div className="table-scroll">
       <table className="summaries" data-summaries>
         <caption>
-          Median ± half the IQR, {RUNS} runs after {WARMUP} warm-up.
+          Median ± half the IQR, {RUNS} runs after {WARMUP} warm-up. A library whose first run takes over{' '}
+          {SLOW_MS / 1000} s is measured once (marked 1 run).
           {!isGallery(chart) && ' Survival and Scatter share one token count.'} Green is a column's lowest
           value and red its highest; timing columns rank only when the gap exceeds 2 frames.
         </caption>
@@ -230,7 +248,10 @@ function Summaries({
                 data-dom-nodes={r.timedOut ? '' : r.domNodes}
                 data-bundle-kb={kb ?? ''}
               >
-                <th scope="row">{lib}</th>
+                <th scope="row">
+                  {lib}
+                  {!r.timedOut && r.mount.n === 1 && <span className="lib-sub"> · 1 run</span>}
+                </th>
                 <Cell
                   s={r.mount}
                   floor={isFloor ? undefined : measured.floor.mount}
@@ -488,8 +509,9 @@ function Playground() {
           </div>
           {size === 'huge' && (
             <p className="warn">
-              At ~100k the SVG libraries can freeze this tab for minutes. A library with no run finished in{' '}
-              {TIMEOUT_MS / 1000} s is marked timed out and skipped.
+              At ~100k a slow library can freeze this tab while it draws. A library slower than{' '}
+              {SLOW_MS / 1000} s is measured once and not redrawn; one with no run finished in{' '}
+              {TIMEOUT_MS / 1000} s is marked timed out.
             </p>
           )}
           <div className={`json${dataOpen ? ' open' : ''}`}>

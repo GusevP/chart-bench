@@ -4,7 +4,10 @@ import { test } from '@playwright/test';
 import type { BrowserContext } from '@playwright/test';
 import { measureHover, measureMount } from 'bench-stage/playwright';
 
-const ARMS = (process.env.BENCH_ARMS ?? 'none,nivo,recharts,echarts,visx,tanstack,chartjs,uplot,plotly,agcharts,apex,scichart,highcharts').split(',');
+const ARMS = (
+  process.env.BENCH_ARMS ??
+  'none,nivo,recharts,echarts,visx,tanstack,chartjs,uplot,plotly,agcharts,apex,scichart,highcharts'
+).split(',');
 const SIZES = (process.env.BENCH_SIZES ?? 'typical,heavy').split(',');
 const CASES = ['survival', 'scatter'].flatMap(chart =>
   ['typical', 'heavy', 'huge'].filter(size => SIZES.includes(size)).map(size => ({ chart, size })),
@@ -13,8 +16,9 @@ const REPEATS = Number(process.env.BENCH_REPEATS ?? 9);
 const OUT = process.env.BENCH_OUT ?? 'results/raw.jsonl';
 const CPU_THROTTLE = Number(process.env.BENCH_CPU_THROTTLE ?? 1);
 const TIMEOUT_MS = Number(process.env.BENCH_TIMEOUT_MS ?? 60_000);
-// Five of nine runs over the cap already put the median over it.
-const MAX_TIMEOUTS = Math.ceil(REPEATS / 2);
+// A case whose warm-up mount takes longer than this gets SLOW_REPEATS runs instead of REPEATS.
+const SLOW_MS = Number(process.env.BENCH_SLOW_MS ?? 5_000);
+const SLOW_REPEATS = 3;
 
 mkdirSync('results', { recursive: true });
 
@@ -72,12 +76,20 @@ for (const arm of ARMS) {
         appendFileSync(OUT, JSON.stringify({ arm, chart, size, cpuThrottle: CPU_THROTTLE, ...row }) + '\n');
 
       // One unrecorded run so the JIT and the HTTP cache are warm for every arm alike.
-      await attempt(context, url).catch(error => {
+      let warmMs: number;
+      try {
+        warmMs = (await attempt(context, url)).mountMs;
+      } catch (error) {
         if (!(error instanceof Timeout)) throw error;
-      });
+        // The warm-up hitting the cap means every run would: record one timeout and move on.
+        record({ run: 0, timedOut: true, timeoutMs: TIMEOUT_MS });
+        return;
+      }
 
+      const repeats = warmMs > SLOW_MS ? Math.min(REPEATS, SLOW_REPEATS) : REPEATS;
+      const maxTimeouts = Math.ceil(repeats / 2);
       let timeouts = 0;
-      for (let run = 0; run < REPEATS && timeouts < MAX_TIMEOUTS; run++) {
+      for (let run = 0; run < repeats && timeouts < maxTimeouts; run++) {
         try {
           record({ run, ...(await attempt(context, url)) });
         } catch (error) {

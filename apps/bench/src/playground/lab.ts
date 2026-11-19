@@ -26,6 +26,8 @@ export type Measurements = { floor: LibraryResult; results: Record<string, Libra
 export const RUNS = 5;
 export const WARMUP = 1;
 export const TIMEOUT_MS = 60_000;
+// A library whose first run (mount + update) takes longer is measured once, and its card is not redrawn.
+export const SLOW_MS = 2_000;
 
 // chartjs fires its settle signal once per page, so updates are timed on rAF instead.
 const RAF_UPDATE = new Set(['chartjs']);
@@ -85,7 +87,10 @@ function waitFor<T>(
   pick: (message: ResultMessage) => T | undefined,
 ) {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => finish(new TimeoutError('Timed out waiting for the chart page.')), TIMEOUT_MS);
+    const timer = setTimeout(
+      () => finish(new TimeoutError('Timed out waiting for the chart page.')),
+      TIMEOUT_MS,
+    );
     const onMessage = (event: MessageEvent<ResultMessage>) => {
       if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
       const message = event.data;
@@ -185,7 +190,13 @@ async function sample(
 }
 
 const NEVER: Summary = { median: Infinity, iqr: 0, n: 0 };
-const TIMED_OUT: LibraryResult = { mount: NEVER, update: NEVER, blocking: null, domNodes: Number.NaN, timedOut: true };
+const TIMED_OUT: LibraryResult = {
+  mount: NEVER,
+  update: NEVER,
+  blocking: null,
+  domNodes: Number.NaN,
+  timedOut: true,
+};
 
 export type Options = {
   runs?: number;
@@ -210,13 +221,15 @@ export async function measureLibrary(
   while (samples.length < warmup + runs) {
     onRun?.(samples.length + 1, warmup + runs);
     try {
-      samples.push(await runOnce(frame, src, data, updated, library, signal));
+      const s = await runOnce(frame, src, data, updated, library, signal);
+      samples.push(s);
+      if (samples.length === 1 && library !== 'shell' && s.mountMs + s.updateMs > SLOW_MS) break;
     } catch (e) {
       if (e instanceof TimeoutError && library !== 'shell') return TIMED_OUT;
       if (!(e instanceof HiddenError)) throw e;
     }
   }
-  const kept = samples.slice(warmup);
+  const kept = samples.length > warmup ? samples.slice(warmup) : samples;
   const blocking = kept.map(s => s.blockingMs);
   return {
     mount: summarize(kept.map(s => s.mountMs)),
