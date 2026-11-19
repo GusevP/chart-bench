@@ -11,6 +11,13 @@ export default defineConfig({
   // Gallery charts load through import.meta.glob, which the dev optimizer only finds on first use;
   // its re-bundle then reloads the page and the chart frames lose the data already posted to them.
   optimizeDeps: { entries: ['*.html', 'src/arms/*/gallery/*.tsx'] },
+  // The playground's sandboxed lab frame has the opaque origin "null", and its module scripts load over CORS.
+  server: {
+    cors: {
+      origin: [/^https?:\/\/(?:[^:]+\.)?localhost(?::\d+)?$/, /^https?:\/\/127\.0\.0\.1(?::\d+)?$/, 'null'],
+    },
+  },
+  preview: { cors: { origin: '*' } },
   build: {
     manifest: true,
     emptyOutDir: false,

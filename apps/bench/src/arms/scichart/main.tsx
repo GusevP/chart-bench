@@ -1,3 +1,4 @@
+import '../../sandbox-storage';
 import { mountArm } from '../../ArmPage';
 import { arm } from './charts';
 

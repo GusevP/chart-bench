@@ -20,6 +20,8 @@ export type LibraryResult = {
   blocking: Summary | null;
   domNodes: number;
   timedOut?: true;
+  /** Set when the library was skipped because its run on the `probe` data took this long. */
+  probeMs?: number;
 };
 export type Measurements = { floor: LibraryResult; results: Record<string, LibraryResult> };
 
@@ -31,38 +33,6 @@ export const SLOW_MS = 2_000;
 
 // chartjs fires its settle signal once per page, so updates are timed on rAF instead.
 const RAF_UPDATE = new Set(['chartjs']);
-
-type LoafEntry = PerformanceEntry & { blockingDuration: number };
-// Chrome exposes long-animation-frame only to the top-level window, so the playground observes it, not the lab frame.
-const supportsLoaf = PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame') ?? false;
-const loafFrames: LoafEntry[] = [];
-const loafObserver = new PerformanceObserver(list => loafFrames.push(...(list.getEntries() as LoafEntry[])));
-if (supportsLoaf) loafObserver.observe({ type: 'long-animation-frame', buffered: true });
-
-async function blockingBetween(startAt: number, endAt: number, signal: AbortSignal): Promise<number | null> {
-  if (!supportsLoaf) return null;
-  await new Promise<void>((resolve, reject) => {
-    let timer: ReturnType<typeof setTimeout>;
-    const frame = requestAnimationFrame(() => (timer = setTimeout(done, 0)));
-    const onAbort = () => done(signal.reason);
-    const done = (error?: unknown) => {
-      cancelAnimationFrame(frame);
-      clearTimeout(timer);
-      signal.removeEventListener('abort', onAbort);
-      if (error) reject(error);
-      else resolve();
-    };
-    signal.addEventListener('abort', onAbort);
-    if (signal.aborted) onAbort();
-  });
-  loafFrames.push(...(loafObserver.takeRecords() as LoafEntry[]));
-  return loafFrames
-    .filter(f => {
-      const from = performance.timeOrigin + f.startTime;
-      return from < endAt && from + f.duration > startAt;
-    })
-    .reduce((sum, f) => sum + f.blockingDuration, 0);
-}
 
 class HiddenError extends Error {}
 class TimeoutError extends Error {}
@@ -77,6 +47,7 @@ type Result<M extends 'mount' | 'update'> = Extract<ResultMessage, { type: 'benc
 
 let lastRunId = 0;
 let floor: LibraryResult | undefined;
+let isolation: boolean | undefined;
 
 const aborted = () => new DOMException('Measurement cancelled', 'AbortError');
 
@@ -85,14 +56,15 @@ function waitFor<T>(
   signal: AbortSignal,
   runId: number | null,
   pick: (message: ResultMessage) => T | undefined,
+  timeoutMs = TIMEOUT_MS,
 ) {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => finish(new TimeoutError('Timed out waiting for the chart page.')),
-      TIMEOUT_MS,
-    );
+    const timer = Number.isFinite(timeoutMs)
+      ? setTimeout(() => finish(new TimeoutError('Timed out waiting for the chart page.')), timeoutMs)
+      : undefined;
     const onMessage = (event: MessageEvent<ResultMessage>) => {
-      if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
+      // The sandboxed frame's messages come from the opaque origin "null", so the source is the check.
+      if (event.source !== frame.contentWindow) return;
       const message = event.data;
       if (message.type === 'bench:error' && message.runId === runId)
         return finish(new Error(message.message));
@@ -129,8 +101,53 @@ function untilVisible(signal: AbortSignal) {
   });
 }
 
+// Without allow-same-origin the frame gets an opaque origin, which Chrome puts in its own process:
+// a chart that blocks for minutes no longer freezes this page, so the timeout and Cancel still fire.
+function newFrame(stage: HTMLElement, src: string) {
+  const frame = document.createElement('iframe');
+  frame.sandbox.add('allow-scripts');
+  frame.title = 'measurement';
+  frame.src = src;
+  stage.replaceChildren(frame);
+  return frame;
+}
+
+const post = (frame: HTMLIFrameElement, message: DataMessage) =>
+  frame.contentWindow!.postMessage(message, '*');
+
+/** Whether a busy frame leaves this page's timers running, i.e. the frame has its own process. */
+async function isolated(stage: HTMLElement, src: string, signal: AbortSignal) {
+  const frame = newFrame(stage, src);
+  await waitFor(frame, signal, null, m => (m.type === 'bench:ready' ? true : undefined));
+  let maxGap = 0;
+  let last = performance.now();
+  const timer = setInterval(() => {
+    const now = performance.now();
+    maxGap = Math.max(maxGap, now - last);
+    last = now;
+  }, 10);
+  try {
+    const done = waitFor(frame, signal, null, m => (m.type === 'bench:busy-done' ? true : undefined));
+    post(frame, { type: 'bench:busy', ms: 300 });
+    await done;
+    // One more tick so a stall that ended with the busy loop is counted.
+    await new Promise(resolve => setTimeout(resolve, 20));
+    return maxGap < 150;
+  } finally {
+    clearInterval(timer);
+  }
+}
+
+// Chrome runs every sandboxed frame of this site in one process, and removing a frame does not stop a
+// script already running there. A fresh frame answers only once that script ends, so the next library
+// waits for it instead of timing out behind it.
+async function untilFree(stage: HTMLElement, src: string, signal: AbortSignal) {
+  const frame = newFrame(stage, src);
+  await waitFor(frame, signal, null, m => (m.type === 'bench:ready' ? true : undefined), Infinity);
+}
+
 async function runOnce(
-  frame: HTMLIFrameElement,
+  stage: HTMLElement,
   src: string,
   data: Parsed,
   updated: Parsed,
@@ -144,7 +161,7 @@ async function runOnce(
   visibility.addEventListener('change', onVisibility);
   signal.addEventListener('abort', onAbort);
   try {
-    return await sample(frame, src, data, updated, library, run.signal);
+    return await sample(stage, src, data, updated, library, run.signal);
   } finally {
     visibility.removeEventListener('change', onVisibility);
     signal.removeEventListener('abort', onAbort);
@@ -152,19 +169,17 @@ async function runOnce(
 }
 
 async function sample(
-  frame: HTMLIFrameElement,
+  stage: HTMLElement,
   src: string,
   data: Parsed,
   updated: Parsed,
   library: string,
   signal: AbortSignal,
 ): Promise<Sample> {
-  const previous = frame.contentDocument;
-  const ready = waitFor(frame, signal, null, m =>
-    m.type === 'bench:ready' && frame.contentDocument !== previous ? m.settleMode : undefined,
+  const frame = newFrame(stage, src);
+  const reported = await waitFor(frame, signal, null, m =>
+    m.type === 'bench:ready' ? m.settleMode : undefined,
   );
-  frame.contentWindow!.location.replace(src);
-  const reported = await ready;
   const updateSettle = RAF_UPDATE.has(library) ? 'raf' : reported;
 
   const send = <M extends 'mount' | 'update'>(mode: M, payload: Parsed) => {
@@ -173,10 +188,7 @@ async function sample(
     const result = waitFor(frame, signal, runId, m =>
       m.type === 'bench:result' && m.runId === runId && m.mode === mode ? (m as Result<M>) : undefined,
     );
-    frame.contentWindow!.postMessage(
-      { type: 'bench:data', runId, mode, updateSettle, ...payload } satisfies DataMessage,
-      location.origin,
-    );
+    post(frame, { type: 'bench:data', runId, mode, updateSettle, ...payload });
     return result;
   };
   const mount = await send('mount', data);
@@ -184,7 +196,8 @@ async function sample(
   return {
     mountMs: mount.mountMs,
     updateMs: update.updateMs,
-    blockingMs: await blockingBetween(mount.startAt, mount.endAt, signal),
+    // Out of process the frame sees its own long animation frames; in the page's process it sees none.
+    blockingMs: isolation ? mount.blockingMs : null,
     domNodes: mount.domNodes,
   };
 }
@@ -203,29 +216,51 @@ export type Options = {
   warmup?: number;
   query?: URLSearchParams;
   signal: AbortSignal;
+  /** Fail instead of measuring when the frame would share this page's process (data big enough to freeze it). */
+  requireIsolation?: boolean;
+  /** Smaller data run first; a library slower than SLOW_MS on it is skipped, as the real run would likely time out. */
+  probe?: Parsed;
   onRun?: (run: number, total: number) => void;
+  /** Called while a timed-out library's script is still running and holding up the next run. */
+  onWait?: (library: string) => void;
 };
 
 export async function measureLibrary(
-  frame: HTMLIFrameElement,
+  stage: HTMLElement,
   library: string,
   data: Parsed,
-  { runs = RUNS, warmup = WARMUP, query = new URLSearchParams(), signal, onRun }: Options,
+  { runs = RUNS, warmup = WARMUP, query = new URLSearchParams(), signal, probe, onRun, onWait }: Options,
 ): Promise<LibraryResult> {
   const params = new URLSearchParams(query);
   params.set('embed', 'lab');
   const src = frameSrc(library, data.chart, params);
   const updated = nudge(data);
+  const timedOut = async () => {
+    onWait?.(library);
+    await untilFree(stage, frameSrc('shell', data.chart, params), signal);
+    return TIMED_OUT;
+  };
+
+  if (probe && library !== 'shell') {
+    onRun?.(0, warmup + runs);
+    try {
+      const p = await runOnce(stage, src, probe, nudge(probe), library, signal);
+      if (p.mountMs + p.updateMs > SLOW_MS) return { ...TIMED_OUT, probeMs: p.mountMs + p.updateMs };
+    } catch (e) {
+      if (e instanceof TimeoutError) return timedOut();
+      if (!(e instanceof HiddenError)) throw e;
+    }
+  }
 
   const samples: Sample[] = [];
   while (samples.length < warmup + runs) {
     onRun?.(samples.length + 1, warmup + runs);
     try {
-      const s = await runOnce(frame, src, data, updated, library, signal);
+      const s = await runOnce(stage, src, data, updated, library, signal);
       samples.push(s);
       if (samples.length === 1 && library !== 'shell' && s.mountMs + s.updateMs > SLOW_MS) break;
     } catch (e) {
-      if (e instanceof TimeoutError && library !== 'shell') return TIMED_OUT;
+      if (e instanceof TimeoutError && library !== 'shell') return timedOut();
       if (!(e instanceof HiddenError)) throw e;
     }
   }
@@ -239,15 +274,18 @@ export async function measureLibrary(
   };
 }
 
+export const NOT_ISOLATED =
+  'This browser runs the chart frame in the same process as this page, so a ~100k chart could freeze the tab with no way to stop it. Use Chrome or Edge for ~100k, or pick a smaller sample.';
+
 export async function measureAll(
-  frame: HTMLIFrameElement,
+  stage: HTMLElement,
   libraries: string[],
   data: Parsed,
   options: Omit<Options, 'runs' | 'warmup'> & {
     onProgress: (done: number, total: number, library: string) => void;
   },
 ): Promise<Measurements> {
-  const { onProgress, ...rest } = options;
+  const { onProgress, requireIsolation, ...rest } = options;
   const total = libraries.length + (floor ? 0 : 1);
   let done = 0;
   // An offscreen frame gets throttled rendering, so scrolling the lab away counts as a hidden tab.
@@ -255,16 +293,22 @@ export async function measureAll(
     inView = entries[entries.length - 1]!.isIntersecting;
     visibility.dispatchEvent(new Event('change'));
   });
-  observer.observe(frame.closest('[data-lab]') ?? frame);
+  observer.observe(stage.closest('[data-lab]') ?? stage);
   try {
+    if (isolation === undefined) {
+      const params = new URLSearchParams(rest.query);
+      params.set('embed', 'lab');
+      isolation = await isolated(stage, frameSrc('shell', data.chart, params), rest.signal);
+    }
+    if (requireIsolation && !isolation) throw new Error(NOT_ISOLATED);
     if (!floor) {
       onProgress(done++, total, 'shell');
-      floor = await measureLibrary(frame, 'shell', data, rest);
+      floor = await measureLibrary(stage, 'shell', data, rest);
     }
     const results: Record<string, LibraryResult> = {};
     for (const library of libraries) {
       onProgress(done++, total, library);
-      results[library] = await measureLibrary(frame, library, data, rest);
+      results[library] = await measureLibrary(stage, library, data, rest);
     }
     return { floor, results };
   } finally {

@@ -110,7 +110,9 @@ function ArmFrame({
         <header>
           <CardTitle library={library} />
           <small>
-            Timed out: no run finished within {TIMEOUT_MS / 1000} s, so the chart is not drawn again here.
+            {result.probeMs
+              ? `Skipped: the heavy sample alone took ${(result.probeMs / 1000).toFixed(1)} s, so ~100k would likely run past ${TIMEOUT_MS / 1000} s.`
+              : `Timed out: no run finished within ${TIMEOUT_MS / 1000} s, so the chart is not drawn again here.`}
           </small>
         </header>
       </section>
@@ -174,10 +176,22 @@ const cellProps = (rank?: Rank, noise = false) => ({
     undefined,
 });
 
-function Cell({ s, floor, frame, rank }: { s: Summary | null; floor?: Summary; frame: number; rank?: Rank }) {
+function Cell({
+  s,
+  floor,
+  frame,
+  rank,
+  skipped,
+}: {
+  s: Summary | null;
+  floor?: Summary;
+  frame: number;
+  rank?: Rank;
+  skipped?: boolean;
+}) {
   if (!s) return <td>n/a</td>;
   const noise = floor !== undefined && s.median <= floor.median + 2 * frame;
-  return <td {...cellProps(rank, noise)}>{fmt(s)}</td>;
+  return <td {...cellProps(rank, noise)}>{skipped ? 'skipped' : fmt(s)}</td>;
 }
 
 function Summaries({
@@ -251,18 +265,21 @@ function Summaries({
                 <th scope="row">
                   {lib}
                   {!r.timedOut && r.mount.n === 1 && <span className="lib-sub"> · 1 run</span>}
+                  {r.probeMs && <span className="lib-sub"> · skipped</span>}
                 </th>
                 <Cell
                   s={r.mount}
                   floor={isFloor ? undefined : measured.floor.mount}
                   frame={frame}
                   rank={rank(ranks.mount, r.mount.median)}
+                  skipped={!!r.probeMs}
                 />
                 <Cell
                   s={r.update}
                   floor={isFloor ? undefined : measured.floor.update}
                   frame={frame}
                   rank={rank(ranks.update, r.update.median)}
+                  skipped={!!r.probeMs}
                 />
                 <Cell s={r.blocking} frame={frame} rank={rank(ranks.blocking, r.blocking?.median)} />
                 <td {...cellProps(rank(ranks.domNodes, r.domNodes))}>{r.timedOut ? 'n/a' : r.domNodes}</td>
@@ -280,7 +297,7 @@ function Summaries({
   );
 }
 
-type Job = { libraries: Library[]; unsupported: Library[]; data: Parsed };
+type Job = { libraries: Library[]; unsupported: Library[]; data: Parsed; probe?: Parsed };
 
 function Lab({
   job,
@@ -296,17 +313,24 @@ function Lab({
   onCancel: () => void;
 }) {
   const card = useRef<HTMLElement>(null);
-  const frame = useRef<HTMLIFrameElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const [library, setLibrary] = useState<{ name: string; index: number; total: number } | null>(null);
   const [run, setRun] = useState<{ n: number; total: number } | null>(null);
+  const [waiting, setWaiting] = useState<string | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
     card.current!.scrollIntoView({ block: 'nearest' });
-    measureAll(frame.current!, job.libraries, job.data, {
+    measureAll(stage.current!, job.libraries, job.data, {
       query,
+      requireIsolation: !!job.probe,
+      probe: job.probe,
+      onWait: name => setWaiting(name),
       signal: abort.signal,
-      onProgress: (done, total, name) => setLibrary({ name, index: done + 1, total }),
+      onProgress: (done, total, name) => {
+        setWaiting(null);
+        setLibrary({ name, index: done + 1, total });
+      },
       onRun: (n, total) => setRun({ n, total }),
     })
       // Calibrated before the cards mount: their animation would drop frames and widen the margin.
@@ -324,7 +348,7 @@ function Lab({
     <section className="card lab" data-lab ref={card}>
       <div className="frame">
         <div className="lab-stage">
-          <iframe ref={frame} title="measurement" />
+          <div ref={stage} />
           <div className="lab-panel">
             <div className="spinner" aria-hidden="true" />
             <h2>Measuring…</h2>
@@ -333,7 +357,13 @@ function Lab({
                 {library.name === 'shell' ? 'Empty page (baseline)' : LABELS[library.name as Library]}
                 {' · '}library {library.index} of {library.total}
                 {run &&
-                  ` · ${run.n <= WARMUP ? 'warm-up' : `run ${run.n - WARMUP} of ${run.total - WARMUP}`}`}
+                  ` · ${run.n === 0 ? 'heavy-sample check' : run.n <= WARMUP ? 'warm-up' : `run ${run.n - WARMUP} of ${run.total - WARMUP}`}`}
+              </p>
+            )}
+            {waiting && (
+              <p>
+                {LABELS[waiting as Library]} timed out but is still drawing in the background, and the browser
+                cannot interrupt it. The next library starts when it finishes.
               </p>
             )}
             <button onClick={onCancel}>Cancel</button>
@@ -397,6 +427,7 @@ function Playground() {
       libraries: measurable,
       unsupported: selected.filter(l => !measurable.includes(l)),
       data: parsed,
+      probe: size === 'huge' ? parseSeries(chart, sample(chart, 'heavy')) : undefined,
     });
   };
   const endJob = () => {
@@ -509,9 +540,10 @@ function Playground() {
           </div>
           {size === 'huge' && (
             <p className="warn">
-              At ~100k a slow library can freeze this tab while it draws. A library slower than{' '}
-              {SLOW_MS / 1000} s is measured once and not redrawn; one with no run finished in{' '}
-              {TIMEOUT_MS / 1000} s is marked timed out.
+              Each library first draws the heavy sample and is skipped if that takes over {SLOW_MS / 1000} s.
+              The rest run at ~100k in a separate browser process, so this tab stays usable: a run over{' '}
+              {TIMEOUT_MS / 1000} s is marked timed out, though the next library waits until its drawing ends.
+              Needs Chrome or Edge.
             </p>
           )}
           <div className={`json${dataOpen ? ' open' : ''}`}>

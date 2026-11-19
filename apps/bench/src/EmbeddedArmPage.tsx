@@ -8,12 +8,14 @@ import type { Payload } from './data/contract';
 
 export type RenderChart = (payload: Payload, onSettled: () => void) => ReactNode;
 
-export type DataMessage = {
-  type: 'bench:data';
-  runId: number;
-  mode: 'mount' | 'update';
-  updateSettle: 'raf' | 'signal';
-} & Payload;
+export type DataMessage =
+  | ({
+      type: 'bench:data';
+      runId: number;
+      mode: 'mount' | 'update';
+      updateSettle: 'raf' | 'signal';
+    } & Payload)
+  | { type: 'bench:busy'; ms: number };
 export type ResultMessage =
   | { type: 'bench:ready'; settleMode: 'raf' | 'signal' }
   | {
@@ -21,12 +23,12 @@ export type ResultMessage =
       runId: number;
       mode: 'mount';
       mountMs: number;
-      startAt: number;
-      endAt: number;
+      blockingMs: number | null;
       domNodes: number;
     }
   | { type: 'bench:result'; runId: number; mode: 'update'; updateMs: number }
   | { type: 'bench:hover'; maxFrameMs: number }
+  | { type: 'bench:busy-done' }
   | { type: 'bench:error'; runId: number | null; message: string };
 
 const UPDATE_START = 'play:update-start';
@@ -34,6 +36,11 @@ const UPDATE_END = 'play:update-end';
 const UPDATE = 'play:update';
 
 export const toParent = (message: ResultMessage) => window.parent.postMessage(message, location.origin);
+
+// Measured inside the frame: the playground's lab frame runs out of process, so the top window cannot see
+// its tasks. Long tasks, not long animation frames: Chrome reported no LoAF entry for an 8.6 s nivo mount.
+const supportsLongTasks = PerformanceObserver.supportedEntryTypes?.includes('longtask') ?? false;
+const longTasks: PerformanceEntry[] = [];
 
 const doubleRaf = (done: () => void) => requestAnimationFrame(() => requestAnimationFrame(() => done()));
 
@@ -105,8 +112,13 @@ function EmbeddedArmPage({ settleMode, render }: { settleMode: 'raf' | 'signal';
   useEffect(() => {
     const onMessage = (event: MessageEvent<DataMessage>) => {
       const msg = event.data;
-      if (event.origin !== location.origin || event.source !== window.parent || msg?.type !== 'bench:data')
-        return;
+      if (event.origin !== location.origin || event.source !== window.parent) return;
+      if (msg?.type === 'bench:busy') {
+        const until = performance.now() + msg.ms;
+        while (performance.now() < until);
+        return toParent({ type: 'bench:busy-done' });
+      }
+      if (msg?.type !== 'bench:data') return;
       runIdRef.current = msg.runId;
       modeRef.current = msg.mode;
       settleRef.current = msg.updateSettle;
@@ -127,17 +139,32 @@ function EmbeddedArmPage({ settleMode, render }: { settleMode: 'raf' | 'signal';
       const runId = runIdRef.current!;
       const start = performance.getEntriesByName('bench:start').at(-1)!.startTime;
       const end = performance.getEntriesByName('bench:settled').at(-1)!.startTime;
-      toParent({
-        type: 'bench:result',
-        runId,
-        mode: 'mount',
-        mountMs: end - start,
-        startAt: performance.timeOrigin + start,
-        endAt: performance.timeOrigin + end,
-        domNodes: document.querySelectorAll('[data-bench-stage] *').length,
-      });
+      const domNodes = document.querySelectorAll('[data-bench-stage] *').length;
+      // A long task is reported only after it ends, so wait one more frame for the last one.
+      requestAnimationFrame(() =>
+        setTimeout(() => {
+          longTasks.push(...(taskObserver?.takeRecords() ?? []));
+          const blockingMs = taskObserver
+            ? longTasks
+                .filter(t => t.startTime < end && t.startTime + t.duration > start)
+                .reduce((sum, t) => sum + t.duration - 50, 0)
+            : null;
+          toParent({
+            type: 'bench:result',
+            runId,
+            mode: 'mount',
+            mountMs: end - start,
+            blockingMs,
+            domNodes,
+          });
+        }, 0),
+      );
     });
     observer.observe({ type: 'measure' });
+    const taskObserver = supportsLongTasks
+      ? new PerformanceObserver(list => longTasks.push(...list.getEntries()))
+      : null;
+    taskObserver?.observe({ type: 'longtask', buffered: true });
     window.addEventListener('message', onMessage);
     window.addEventListener('error', onError);
     const stopHover = new URLSearchParams(location.search).get('embed') === 'display' ? trackHover() : null;
@@ -145,6 +172,7 @@ function EmbeddedArmPage({ settleMode, render }: { settleMode: 'raf' | 'signal';
     return () => {
       stopHover?.();
       observer.disconnect();
+      taskObserver?.disconnect();
       window.removeEventListener('message', onMessage);
       window.removeEventListener('error', onError);
     };

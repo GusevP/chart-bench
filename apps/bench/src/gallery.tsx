@@ -1,3 +1,4 @@
+import './sandbox-storage';
 import type { ComponentType } from 'react';
 
 import { HEIGHT, WIDTH, fail } from './ArmPage';
