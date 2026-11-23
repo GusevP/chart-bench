@@ -167,6 +167,9 @@ importers:
       scichart-react:
         specifier: 2.1.0
         version: 2.1.0(react@19.3.1)(scichart@6.0.15)
+      swiftplot:
+        specifier: 0.1.1
+        version: 0.1.1
       uplot:
         specifier: 1.6.32
         version: 1.6.32
@@ -1301,6 +1304,9 @@ packages:
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
+
+  swiftplot@0.1.1:
+    resolution: {integrity: sha512-ySbvMiSWlqR1PREykrnOeWEan6REAungERV/Tfn4iEmY+sr1kOe/O35IEskReYvYMHeeHThatoMflx0LXi2xbA==}
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
@@ -2535,6 +2541,8 @@ snapshots:
   scichart@6.0.15: {}
 
   source-map-js@1.2.2: {}
+
+  swiftplot@0.1.1: {}
 
   tiny-invariant@1.3.3: {}
 

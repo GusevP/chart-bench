@@ -36,12 +36,16 @@
     "libraryKb": 106.4
   },
   "scichart": {
-    "totalKb": 408,
-    "libraryKb": 339
+    "totalKb": 408.1,
+    "libraryKb": 339.1
   },
   "shell": {
     "totalKb": 69,
     "libraryKb": 0
+  },
+  "swiftplot": {
+    "totalKb": 84.8,
+    "libraryKb": 15.8
   },
   "tanstack": {
     "totalKb": 125.9,

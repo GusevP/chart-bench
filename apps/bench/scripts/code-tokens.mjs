@@ -7,7 +7,7 @@ import ts from 'typescript';
 
 const root = resolve(import.meta.dirname, '..');
 const arms = resolve(root, 'src/arms');
-const LIBS = ['recharts', 'nivo', 'echarts', 'chartjs', 'visx', 'tanstack', 'none', 'uplot', 'plotly', 'agcharts', 'apex', 'scichart', 'highcharts'];
+const LIBS = ['recharts', 'nivo', 'echarts', 'chartjs', 'visx', 'tanstack', 'none', 'uplot', 'plotly', 'agcharts', 'apex', 'scichart', 'highcharts', 'swiftplot'];
 // The common set is fixed by the original seven arms; a later library gets a total only if it covers all of it.
 const COMMON_BASE = LIBS.slice(0, 7);
 const SPEC_CHARTS = 'survival+scatter';

@@ -6,7 +6,7 @@ import { measureHover, measureMount } from 'bench-stage/playwright';
 
 const ARMS = (
   process.env.BENCH_ARMS ??
-  'none,nivo,recharts,echarts,visx,tanstack,chartjs,uplot,plotly,agcharts,apex,scichart,highcharts'
+  'none,nivo,recharts,echarts,visx,tanstack,chartjs,uplot,plotly,agcharts,apex,scichart,highcharts,swiftplot'
 ).split(',');
 const SIZES = (process.env.BENCH_SIZES ?? 'typical,heavy').split(',');
 const CASES = ['survival', 'scatter'].flatMap(chart =>

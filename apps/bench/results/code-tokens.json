@@ -242,6 +242,27 @@
           "src/arms/shared/treemap.ts"
         ]
       }
+    },
+    "swiftplot": {
+      "coverage": 9,
+      "common": {
+        "chart": 1481,
+        "adapter": 306,
+        "shared": 223,
+        "total": 2010,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/shared/sankey.ts",
+          "src/arms/swiftplot/gallery/donut.tsx",
+          "src/arms/swiftplot/gallery/radar.tsx",
+          "src/arms/swiftplot/gallery/sankey.tsx",
+          "src/arms/swiftplot/gallery/stacked-area.tsx",
+          "src/arms/swiftplot/gallery/stacked-bar.tsx",
+          "src/arms/swiftplot/gallery/treemap.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      }
     }
   },
   "perChart": {
@@ -1658,6 +1679,116 @@
           "src/arms/shared/colorRamp.ts",
           "src/arms/shared/ticks.ts",
           "src/arms/shared/treemap.ts"
+        ]
+      }
+    },
+    "swiftplot": {
+      "survival+scatter": {
+        "chart": 573,
+        "adapter": 306,
+        "shared": 0,
+        "total": 879,
+        "files": [
+          "src/arms/swiftplot/charts.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "boxplot": {
+        "chart": 404,
+        "adapter": 306,
+        "shared": 724,
+        "total": 1434,
+        "files": [
+          "src/arms/shared/boxplot.ts",
+          "src/arms/swiftplot/gallery/boxplot.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "candlestick": {
+        "chart": 390,
+        "adapter": 306,
+        "shared": 844,
+        "total": 1540,
+        "files": [
+          "src/arms/shared/boxplot.ts",
+          "src/arms/shared/candles.ts",
+          "src/arms/swiftplot/gallery/candlestick.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "donut": {
+        "chart": 188,
+        "adapter": 306,
+        "shared": 43,
+        "total": 537,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/swiftplot/gallery/donut.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "heatmap": {
+        "chart": 353,
+        "adapter": 306,
+        "shared": 200,
+        "total": 859,
+        "files": [
+          "src/arms/shared/colorRamp.ts",
+          "src/arms/swiftplot/gallery/heatmap.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "radar": {
+        "chart": 224,
+        "adapter": 306,
+        "shared": 159,
+        "total": 689,
+        "files": [
+          "src/arms/shared/donut.ts",
+          "src/arms/shared/radar.ts",
+          "src/arms/swiftplot/gallery/radar.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "sankey": {
+        "chart": 360,
+        "adapter": 306,
+        "shared": 64,
+        "total": 730,
+        "files": [
+          "src/arms/shared/sankey.ts",
+          "src/arms/swiftplot/gallery/sankey.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "stacked-area": {
+        "chart": 221,
+        "adapter": 306,
+        "shared": 0,
+        "total": 527,
+        "files": [
+          "src/arms/swiftplot/gallery/stacked-area.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "stacked-bar": {
+        "chart": 207,
+        "adapter": 306,
+        "shared": 0,
+        "total": 513,
+        "files": [
+          "src/arms/swiftplot/gallery/stacked-bar.tsx",
+          "src/arms/swiftplot/shared.tsx"
+        ]
+      },
+      "treemap": {
+        "chart": 281,
+        "adapter": 306,
+        "shared": 0,
+        "total": 587,
+        "files": [
+          "src/arms/swiftplot/gallery/treemap.tsx",
+          "src/arms/swiftplot/shared.tsx"
         ]
       }
     }

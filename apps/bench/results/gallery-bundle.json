@@ -277,6 +277,35 @@
       "libraryKb": 388
     }
   },
+  "swiftplot": {
+    "boxplot": {
+      "libraryKb": 16.3
+    },
+    "candlestick": {
+      "libraryKb": 16
+    },
+    "donut": {
+      "libraryKb": 12.1
+    },
+    "heatmap": {
+      "libraryKb": 12.6
+    },
+    "radar": {
+      "libraryKb": 12
+    },
+    "sankey": {
+      "libraryKb": 14.7
+    },
+    "stacked-area": {
+      "libraryKb": 13.5
+    },
+    "stacked-bar": {
+      "libraryKb": 15.2
+    },
+    "treemap": {
+      "libraryKb": 13.1
+    }
+  },
   "tanstack": {
     "boxplot": {
       "libraryKb": 56.5

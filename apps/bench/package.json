@@ -73,6 +73,7 @@
     "recharts": "^3.10.1",
     "scichart": "6.0.15",
     "scichart-react": "2.1.0",
+    "swiftplot": "0.1.1",
     "uplot": "1.6.32"
   }
 }

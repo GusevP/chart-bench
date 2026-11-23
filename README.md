@@ -2,7 +2,7 @@
 
 **[Open the playground](https://gusevp.github.io/chart-bench/)** to measure the libraries on your own machine with your own data.
 
-The same two charts — a survival curve with confidence bands and censoring ticks, and a sized scatter plot — built in thirteen ways and measured the same way:
+The same two charts — a survival curve with confidence bands and censoring ticks, and a sized scatter plot — built in fourteen ways and measured the same way:
 
 | arm | renderer |
 | --- | --- |
@@ -19,6 +19,7 @@ The same two charts — a survival curve with confidence bands and censoring tic
 | `apex` | ApexCharts (SVG) |
 | `scichart` | SciChart.js (WebGL + WASM, Community licence with watermark) |
 | `highcharts` | Highcharts (SVG; boost module switches to WebGL above 5,000 points per series) |
+| `swiftplot` | swiftplot 0.1.1 (Canvas; WebGL2 from 10,000 points). Added after the 2026-11-18 run, so it is not in the results below |
 
 Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each library arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
 
@@ -64,21 +65,21 @@ Run it with `pnpm build && pnpm -F bench preview`, then open `http://localhost:4
 
 ### Which libraries support which type
 
-A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. uPlot stacks by being given running totals, since it has no stacking option; its pie, heatmap, box and candlestick pages are demos drawn in hooks, not shipped series. AG Charts is the free Community edition, where radar, heatmap, treemap, Sankey, box plot and candlestick are Enterprise features. The no-library arm is the exception by design: it writes everything by hand, so it draws all twelve types. An unsupported pair shows a "Not supported" card and is not measured.
+A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. uPlot stacks by being given running totals, since it has no stacking option; its pie, heatmap, box and candlestick pages are demos drawn in hooks, not shipped series. swiftplot has one y axis, so it has no bar + line, and its candlestick is its `bar` and `errorBars` marks. AG Charts is the free Community edition, where radar, heatmap, treemap, Sankey, box plot and candlestick are Enterprise features. The no-library arm is the exception by design: it writes everything by hand, so it draws all twelve types. An unsupported pair shows a "Not supported" card and is not measured.
 
-| Type | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts Community | ApexCharts | SciChart | Highcharts |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Survival, Scatter | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| Stacked bar | yes | `@nivo/bar` | yes | yes | `BarStack` | yes | yes | yes | yes | yes | yes | yes | yes |
-| Stacked area | yes | `@nivo/line` | yes | yes | `AreaStack` | yes | yes | yes | yes | yes | yes | yes | yes |
-| Donut | yes | `@nivo/pie` | yes | yes | `Pie` | yes | yes | Not supported | yes | yes | yes | yes | yes |
-| Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` |
-| Bar + line | yes | Not supported | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| Heatmap | Not supported | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/heatmap` |
-| Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes | yes | Not supported | yes | Enterprise only | yes | Not supported | `modules/treemap` |
-| Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes | yes | Not supported | yes | Enterprise only | Not supported (`apexsankey` is a separate commercial package) | Not supported | `modules/sankey` |
-| Box plot | Not supported | `@nivo/boxplot` | yes | `@sgratzl/chartjs-chart-boxplot` | `@visx/stats` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` |
-| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/stock` |
+| Type | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts Community | ApexCharts | SciChart | Highcharts | swiftplot |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Survival, Scatter | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| Stacked bar | yes | `@nivo/bar` | yes | yes | `BarStack` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| Stacked area | yes | `@nivo/line` | yes | yes | `AreaStack` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| Donut | yes | `@nivo/pie` | yes | yes | `Pie` | yes | yes | Not supported | yes | yes | yes | yes | yes | yes |
+| Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` | yes |
+| Bar + line | yes | Not supported | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | Not supported |
+| Heatmap | Not supported | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/heatmap` | yes |
+| Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes | yes | Not supported | yes | Enterprise only | yes | Not supported | `modules/treemap` | yes |
+| Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes | yes | Not supported | yes | Enterprise only | Not supported (`apexsankey` is a separate commercial package) | Not supported | `modules/sankey` | yes |
+| Box plot | Not supported | `@nivo/boxplot` | yes | `@sgratzl/chartjs-chart-boxplot` | `@visx/stats` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` | yes |
+| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/stock` | `bar` + `errorBars` |
 
 For the ten gallery types the source of truth is `apps/bench/results/gallery-bundle.json`: a pair with no entry there is not supported. Survival and Scatter are not in it; every library draws them.
 
@@ -138,19 +139,19 @@ Candlestick needs at least two candles, `t` as `YYYY-MM-DD` and unique, and `low
 
 Implementation burden of these ports under this contract, not a ranking of how simple each library is. Each cell is the token count of that chart's code after TypeScript normalizes it to JS/JSX, excluding imports, comments and whitespace. N/A is not zero. `pnpm -F bench tokens` prints these tables and writes `apps/bench/results/code-tokens.json`, which lists the counted files for each cell. The playground shows each pair's count on its card and in the results table, where each column's lowest and highest values are highlighted; Survival and Scatter share one count because both live in `charts.tsx`.
 
-| Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts | ApexCharts | SciChart | Highcharts |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3134 | 2409 | 1024 | 1254 | 1616 | 1775 | 904 |
-| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3448 | N/A | 1365 | N/A | 1642 | 1881 | 1274 |
-| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3246 | N/A | 1512 | N/A | 1698 | 1784 | 1340 |
-| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2435 | 1205 | 652 | 484 | 860 | 1870 | 492 |
-| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 994 | N/A | 602 | 387 | 833 | 836 | 448 |
-| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1848 | N/A | 800 | N/A | 1043 | 1134 | 728 |
-| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1199 | N/A | 827 | N/A | 968 | 1251 | 674 |
-| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 1979 | N/A | 754 | N/A | N/A | N/A | 497 |
-| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2275 | 1114 | 574 | 413 | 727 | 1713 | 410 |
-| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2468 | 1126 | 555 | 387 | 704 | 1701 | 391 |
-| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 1545 | N/A | 997 | N/A | 1054 | N/A | 806 |
+| Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts | ApexCharts | SciChart | Highcharts | swiftplot |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3134 | 2409 | 1024 | 1254 | 1616 | 1775 | 904 | 878 |
+| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3448 | N/A | 1365 | N/A | 1642 | 1881 | 1274 | 1434 |
+| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3246 | N/A | 1512 | N/A | 1698 | 1784 | 1340 | 1539 |
+| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2435 | 1205 | 652 | 484 | 860 | 1870 | 492 | N/A |
+| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 994 | N/A | 602 | 387 | 833 | 836 | 448 | 537 |
+| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1848 | N/A | 800 | N/A | 1043 | 1134 | 728 | 859 |
+| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1199 | N/A | 827 | N/A | 968 | 1251 | 674 | 689 |
+| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 1979 | N/A | 754 | N/A | N/A | N/A | 497 | 660 |
+| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2275 | 1114 | 574 | 413 | 727 | 1713 | 410 | 512 |
+| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2468 | 1126 | 555 | 387 | 704 | 1701 | 391 | 513 |
+| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 1545 | N/A | 997 | N/A | 1054 | N/A | 806 | 589 |
 
 For gallery totals, compare the six types every one of the original seven arms implements: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library. A library added later gets a total only if it implements all six, so uPlot, AG Charts, ApexCharts and SciChart show only their coverage.
 
@@ -169,6 +170,7 @@ For gallery totals, compare the six types every one of the original seven arms i
 | ApexCharts | — | — | — | — | 9/10 |
 | SciChart | — | — | — | — | 8/10 |
 | Highcharts | 1214 | 200 | 554 | 1968 | 10/10 |
+| swiftplot | 1398 | 306 | 223 | 1927 | 9/10 |
 
 - **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
 - **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.

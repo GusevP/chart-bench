@@ -29,6 +29,7 @@ export const META = {
   apex: { name: 'ApexCharts', renderer: 'SVG', logo: apex },
   scichart: { name: 'SciChart', renderer: 'WebGL', logo: scichart },
   highcharts: { name: 'Highcharts', renderer: 'SVG + WebGL', logo: highcharts },
+  swiftplot: { name: 'swiftplot', renderer: 'Canvas + WebGL', mark: 'S' },
 } satisfies Record<string, Meta>;
 
 export function Logo({ meta }: { meta: Meta }) {

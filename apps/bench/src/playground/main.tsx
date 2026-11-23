@@ -450,7 +450,7 @@ function Playground() {
       <aside className="side">
         <header className="intro">
           <h1>chart-bench playground</h1>
-          <p>Thirteen chart libraries draw the same chart from the same data. Pick some, render, compare.</p>
+          <p>Fourteen chart libraries draw the same chart from the same data. Pick some, render, compare.</p>
         </header>
 
         <fieldset disabled={!!job} className="block">
