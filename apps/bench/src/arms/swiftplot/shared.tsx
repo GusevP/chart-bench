@@ -7,7 +7,11 @@ import { EFFECTS } from '../../data/effects';
 
 export type PlotOptions = Omit<Options, 'use' | 'dim'>;
 
-export const column = <P,>(points: readonly P[], value: (p: P) => number) => Float64Array.from(points, value);
+export function column<P>(points: readonly P[], value: (p: P) => number) {
+  const out = new Float64Array(points.length);
+  for (let i = 0; i < points.length; i++) out[i] = value(points[i]!);
+  return out;
+}
 export const places = (count: number) => Float64Array.from({ length: count }, (_, i) => i);
 
 // plot() reads `use` once, so the tooltip it is given forwards to the one of the latest render.
