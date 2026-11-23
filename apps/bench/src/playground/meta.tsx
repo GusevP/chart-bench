@@ -10,6 +10,7 @@ import nivo from './logos/nivo.png';
 import plotly from './logos/plotly.png';
 import react from './logos/react.svg';
 import scichart from './logos/scichart.png';
+import swiftplot from './logos/swiftplot.svg';
 import tanstack from './logos/tanstack.svg';
 import visx from './logos/visx.png';
 
@@ -29,7 +30,7 @@ export const META = {
   apex: { name: 'ApexCharts', renderer: 'SVG', logo: apex },
   scichart: { name: 'SciChart', renderer: 'WebGL', logo: scichart },
   highcharts: { name: 'Highcharts', renderer: 'SVG + WebGL', logo: highcharts },
-  swiftplot: { name: 'swiftplot', renderer: 'Canvas + WebGL', mark: 'S' },
+  swiftplot: { name: 'swiftplot', renderer: 'Canvas + WebGL', logo: swiftplot },
 } satisfies Record<string, Meta>;
 
 export function Logo({ meta }: { meta: Meta }) {
