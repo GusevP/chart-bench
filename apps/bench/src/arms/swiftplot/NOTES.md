@@ -49,7 +49,7 @@
 ## Settle mode: `signal`
 
 - `plot()` and `update()` draw synchronously, so the wrapper calls `onSettled()` on the line after. Checked with 0.1.1 on 2026-11-23 in the built playground: every type was fully drawn at its typical size beside the no-library arm. With 0.5.0 each type ran at its largest sample without an error on 2026-11-25.
-- WebGL caveat: `drawArrays` returns before the GPU has drawn, and the CPU throttle slows only the main thread. With 0.1.1, a temporary `gl.readPixels` after the draw moved scatter/huge `mountMs` from 27.7 to 31.3 ms at native speed and from 59.4 to 81.4 ms at 4×. The forced read is itself a stall a normal frame doesn't pay, so the real cost lies between the two.
+- WebGL caveat: `drawArrays` returns before the GPU has drawn, and the CPU throttle slows only the main thread. With the unpublished prototype measured on 2026-11-20, a temporary `gl.readPixels` after the draw moved scatter/huge `mountMs` from 27.7 to 31.3 ms at native speed and from 59.4 to 81.4 ms at 4×. The forced read is itself a stall a normal frame doesn't pay, so the real cost lies between the two.
 
 ## Measured 2026-11-26 with 0.5.0
 
