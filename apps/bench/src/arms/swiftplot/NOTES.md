@@ -1,6 +1,6 @@
 # swiftplot arm
 
-- swiftplot 0.5.0 from npm, no other package. Its README calls it a prototype.
+- swiftplot 0.5.0 from npm, no other package.
 - 19.3 KB gzip for the survival and scatter page; 15.3 to 20.1 KB per gallery type (`results/gallery-bundle.json`).
 - React wrapper (`shared.tsx`): a `Plot` component calls `plot(div, options)` on mount, `chart.update(options)` when the options change and `chart.destroy()` on unmount. `@swiftplot/react` has a `Plot` component that does the same; it is not used, to keep the arm on one package.
 - `plot()` reads `use` once, so the tooltip passed to it forwards to the tooltip of the latest render.
@@ -49,7 +49,7 @@
 ## Settle mode: `signal`
 
 - `plot()` and `update()` draw synchronously, so the wrapper calls `onSettled()` on the line after. Checked with 0.1.1 on 2026-11-23 in the built playground: every type was fully drawn at its typical size beside the no-library arm. With 0.5.0 each type ran at its largest sample without an error on 2026-11-25.
-- WebGL caveat: `drawArrays` returns before the GPU has drawn, and the CPU throttle slows only the main thread. With the prototype, a temporary `gl.readPixels` after the draw moved scatter/huge `mountMs` from 27.7 to 31.3 ms at native speed and from 59.4 to 81.4 ms at 4×. The forced read is itself a stall a normal frame doesn't pay, so the real cost lies between the two.
+- WebGL caveat: `drawArrays` returns before the GPU has drawn, and the CPU throttle slows only the main thread. With 0.1.1, a temporary `gl.readPixels` after the draw moved scatter/huge `mountMs` from 27.7 to 31.3 ms at native speed and from 59.4 to 81.4 ms at 4×. The forced read is itself a stall a normal frame doesn't pay, so the real cost lies between the two.
 
 ## Measured 2026-11-26 with 0.5.0
 
