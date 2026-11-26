@@ -57,7 +57,7 @@ Mount time on the heavy data, median ms. The scatter has 10,000 points and the s
 
 ### Large data: swiftplot and uPlot
 
-Measured on 2026-11-26, straight after the run above, on the same machine (1-minute load average 5.1–6.5 before and after each pass). Only these two arms were run: with the CPU slowed 4×, every other library is already far behind them on the 10,000-point scatter above. Source: [`huge-20261126-1x.md`](apps/bench/results/huge-20261126-1x.md) and [`huge-20261126-4x.md`](apps/bench/results/huge-20261126-4x.md), nine loads per cell, none timed out.
+Measured on 2026-11-26 in a separate run on the same day, on the same machine (1-minute load average 5.1–6.5 before and after each pass). Only these two arms were run: with the CPU slowed 4×, every other library is already far behind them on the 10,000-point scatter above. Source: [`huge-20261126-1x.md`](apps/bench/results/huge-20261126-1x.md) and [`huge-20261126-4x.md`](apps/bench/results/huge-20261126-4x.md), nine loads per cell, none timed out.
 
 Median ms. *Mount* is the frame-inclusive time of the table above; *done signal* stops when the arm's own "drawn" callback fires, before the browser paints.
 

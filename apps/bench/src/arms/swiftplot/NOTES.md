@@ -53,7 +53,7 @@
 
 ## Measured 2026-11-26 with 0.5.0
 
-Nine loads per cell on a busy machine (load average 4–9). Typical and heavy are from the published run of all arms (`results/report.md`); huge is a separate run of these three arms straight after it.
+Nine loads per cell on a busy machine (load average 4–9). Typical and heavy are from the published run of all arms (`results/report.md`); huge is an earlier run of these three arms straight after it, kept for the no-library column; the published huge numbers for swiftplot and uPlot are a later run with the empty page as baseline (`results/report.md`, "Large data, swiftplot and uPlot").
 
 `mountMs`, median:
 
