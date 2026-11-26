@@ -24,8 +24,9 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'stacked-ar
   const tip = useMemo<TooltipOptions>(
     () => ({
       mode: 'x',
-      title: x => data.categories[Math.round(x)] ?? '',
-      value: y => String(Math.round(y * 10) / 10),
+      title: x => data.categories[x] ?? '',
+      value: String,
+      snap: Math.round,
     }),
     [data],
   );

@@ -2,4 +2,4 @@ packages:
   - packages/*
   - apps/*
 minimumReleaseAgeExclude:
-  - swiftplot@0.1.1
+  - swiftplot@0.5.0

@@ -1,18 +1,11 @@
 import { useMemo } from 'react';
-import { band, bands, bar, errorBars } from 'swiftplot';
+import { band, candlestick } from 'swiftplot';
 import type { TooltipOptions } from 'swiftplot';
 
 import type { GalleryChartProps } from '../../../data/contract';
 import { MARGIN } from '../../../data/spec';
-import {
-  CANDLE_DOWN,
-  CANDLE_RATIO,
-  CANDLE_STROKE_WIDTH,
-  CANDLE_UP,
-  candleScale,
-  isUp,
-} from '../../shared/candles';
-import { Plot, column } from '../shared';
+import { CANDLE_DOWN, CANDLE_RATIO, CANDLE_UP, candleScale } from '../../shared/candles';
+import { Plot, column, places } from '../shared';
 import type { PlotOptions } from '../shared';
 
 function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestick'>) {
@@ -25,23 +18,18 @@ function Chart({ width, height, data, onSettled }: GalleryChartProps<'candlestic
       margin: MARGIN,
       x: band({ label: '', categories: candles.map(c => c.t) }),
       y: { domain, label: '', step },
-      marks: [true, false].flatMap(up => {
-        const rows = candles.flatMap((c, i) => (isUp(c) === up ? [i] : []));
-        const of = (value: (c: (typeof candles)[number]) => number) => column(rows, i => value(candles[i]!));
-        const [x1, x2] = bands(rows, { width: CANDLE_RATIO });
-        const shared = { color: up ? CANDLE_UP : CANDLE_DOWN, group: up ? 'Up' : 'Down' };
-        return [
-          errorBars({
-            x: rows,
-            y1: of(c => c.low),
-            y2: of(c => c.high),
-            cap: 0,
-            width: CANDLE_STROKE_WIDTH,
-            ...shared,
-          }),
-          bar({ x1, x2, y1: of(c => c.open), y2: of(c => c.close), ...shared }),
-        ];
-      }),
+      marks: [
+        candlestick({
+          x: places(candles.length),
+          open: column(candles, c => c.open),
+          high: column(candles, c => c.high),
+          low: column(candles, c => c.low),
+          close: column(candles, c => c.close),
+          width: CANDLE_RATIO,
+          color: CANDLE_UP,
+          down: CANDLE_DOWN,
+        }),
+      ],
     };
   }, [candles, width, height]);
   const tip = useMemo<TooltipOptions>(

@@ -19,37 +19,39 @@ The same two charts — a survival curve with confidence bands and censoring tic
 | `apex` | ApexCharts (SVG) |
 | `scichart` | SciChart.js (WebGL + WASM, Community licence with watermark) |
 | `highcharts` | Highcharts (SVG; boost module switches to WebGL above 5,000 points per series) |
-| `swiftplot` | swiftplot 0.1.1 (Canvas; WebGL2 from 10,000 points). Added after the 2026-11-18 run, so it is not in the results below |
+| `swiftplot` | swiftplot (Canvas; WebGL2 for large data, from 20,000 points on a scatter) |
 
 Every arm draws the same thing; [`apps/bench/ARMS.md`](apps/bench/ARMS.md) is the contract each port was written against, and each library arm's `NOTES.md` records what the library did natively, what had to be composed, and what had to be hand-drawn.
 
 ## Results
 
-Measured on 2026-11-18 on an Apple M3 Pro that was not idle (load average 4–7), in full Chromium with the GPU (Metal). Full tables for both CPU speeds, with spreads, are in [`apps/bench/results/report.md`](apps/bench/results/report.md).
+Measured on 2026-11-26 on an Apple M3 Pro that was not idle (load average 4–9), in full Chromium with the GPU (Metal). Full tables for both CPU speeds, with spreads, are in [`apps/bench/results/report.md`](apps/bench/results/report.md).
 
 Mount time on the heavy data, median ms. The scatter has 10,000 points and the survival chart 6 series × 1,000 points; 4× is Chrome's CPU slowdown. Sorted by the native scatter.
 
 | library | scatter, native | scatter, 4× | survival, native | survival, 4× | library cost (gzip) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| no library | 30.8 | 132.0 | 26.8 | 61.2 | 2.2 KB |
-| uPlot | 28.0 | 58.4 | 23.0 | 66.2 | 23.9 KB |
-| visx | 41.1 | 174.4 | 22.2 | 86.9 | 25.2 KB |
-| TanStack Charts | 61.0 | 254.6 | 36.1 | 151.6 | 56.9 KB |
-| Plotly | 73.1 | 322.2 | 110.3 | 465.0 | 460.9 KB |
-| ECharts | 83.9 | 346.8 | 56.5 | 234.4 | 164.2 KB |
-| Chart.js | 86.7 | 371.9 | 28.0 | 115.3 | 55.6 KB |
-| Highcharts | 96.7 | 412.9 | 81.8 | 323.9 | 148.5 KB |
-| SciChart | 156.3 | 512.2 | 157.6 | 557.5 | 339 KB + 829 KB WASM |
-| AG Charts Community | 157.2 | 581.9 | 154.3 | 538.3 | 328.6 KB |
-| ApexCharts | 194.9 | 845.3 | 113.0 | 462.6 | 179.9 KB |
-| Recharts | 314.8 | 1,288.3 | 138.4 | 623.0 | 106.4 KB |
-| nivo | 3,345.4 | 14,536.6 | 57.1 | 223.9 | 103.3 KB |
+| swiftplot | 26.3 | 45.6 | 26.1 | 50.7 | 19.3 KB |
+| uPlot | 30.4 | 76.3 | 28.4 | 69.0 | 23.9 KB |
+| no library | 32.1 | 133.2 | 27.4 | 58.8 | 2.2 KB |
+| visx | 42.5 | 208.1 | 29.4 | 88.4 | 25.2 KB |
+| Plotly | 77.9 | 316.5 | 118.7 | 472.9 | 460.9 KB |
+| TanStack Charts | 81.9 | 267.6 | 38.9 | 171.0 | 56.9 KB |
+| Chart.js | 93.6 | 387.5 | 30.3 | 125.7 | 55.6 KB |
+| ECharts | 94.1 | 358.1 | 64.5 | 248.6 | 164.2 KB |
+| Highcharts | 100.6 | 406.4 | 83.1 | 358.1 | 148.5 KB |
+| SciChart | 161.2 | 510.5 | 174.5 | 576.5 | 339 KB + 829 KB WASM |
+| AG Charts Community | 161.5 | 615.2 | 151.1 | 577.2 | 328.6 KB |
+| ApexCharts | 199.9 | 822.6 | 112.3 | 490.1 | 179.9 KB |
+| Recharts | 346.4 | 1,385.7 | 140.9 | 600.2 | 106.4 KB |
+| nivo | 3,366.8 | 16,341.3 | 57.9 | 237.1 | 103.3 KB |
 
-- An empty page measures 26.5–28.1 ms at native speed and 18.6–21.3 ms at 4×, and the instrument counts in frames. Read a gap under one frame (16.7 ms), or under 20% on a heavy chart, as a tie.
-- uPlot, the no-library arm and visx are the fastest group on the heavy data. With the CPU slowed 4×, uPlot draws the 10,000-point scatter in 58.4 ms, ahead of hand-written SVG (132.0 ms).
-- Chart.js and ECharts, the other Canvas libraries, still mount more slowly than plain SVG and visx at 10,000 points.
-- The WebGL libraries pay a fixed start-up cost that barely grows with the data: SciChart takes about 156.8 ms at native speed whatever the size (WASM and GPU set-up), Plotly 65.6–110.3 ms. At 10,000 points they beat Recharts and nivo but not the SVG baseline.
-- A timer at React's commit reports 3.0 ms for Recharts on the 10,000-point scatter. Stopping the clock after the frame is drawn gives 314.8 ms. The harness records both.
+- An empty page measures 20.6–25.4 ms at native speed and 21.2–23.2 ms at 4×, and the instrument counts in frames. Read a gap under one frame (16.7 ms), or under 20% on a heavy chart, as a tie.
+- swiftplot, uPlot, the no-library arm and visx are the fastest group on the heavy data; at native speed the first three tie. With the CPU slowed 4×, swiftplot draws the 10,000-point scatter in 45.6 ms, uPlot in 76.3 ms and hand-written SVG in 133.2 ms.
+- swiftplot is by the author of this benchmark, and its design came from profiling uPlot on these two charts.
+- Chart.js and ECharts, also Canvas libraries, still mount more slowly than plain SVG and visx at 10,000 points.
+- SciChart and Plotly, which draw the scatter with WebGL, pay a fixed start-up cost that barely grows with the data: SciChart takes 158.6–174.5 ms at native speed whatever the size (WASM and GPU set-up), Plotly 69.0–118.7 ms. At 10,000 points they beat Recharts and nivo but not the SVG baseline.
+- A timer at React's commit reports 3.2 ms for Recharts on the 10,000-point scatter. Stopping the clock after the frame is drawn gives 346.4 ms. The harness records both.
 - The nivo scatter is its SVG component. Its Canvas scatter was not measured.
 - These numbers are not comparable with the 2026-11-06 run. That run used Playwright's headless shell, which has no GPU, so WebGL ran in software; this one uses full Chromium, and every library moved, Canvas ones most at 4×.
 
@@ -65,7 +67,7 @@ Run it with `pnpm build && pnpm -F bench preview`, then open `http://localhost:4
 
 ### Which libraries support which type
 
-A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. uPlot stacks by being given running totals, since it has no stacking option; its pie, heatmap, box and candlestick pages are demos drawn in hooks, not shipped series. swiftplot has one y axis, so it has no bar + line, and its candlestick is its `bar` and `errorBars` marks. AG Charts is the free Community edition, where radar, heatmap, treemap, Sankey, box plot and candlestick are Enterprise features. The no-library arm is the exception by design: it writes everything by hand, so it draws all twelve types. An unsupported pair shows a "Not supported" card and is not measured.
+A library supports a type when it ships a component or series for it, a published package or plugin provides it, or, for visx and TanStack, its own components or marks draw the geometry. A documented render prop that only paints geometry the library computed (Recharts Sankey `link` and `node`) counts as supported. Writing the path, cell or custom shape ourselves does not, so Recharts has no candlestick and nivo has no bar + line. uPlot stacks by being given running totals, since it has no stacking option; its pie, heatmap, box and candlestick pages are demos drawn in hooks, not shipped series. AG Charts is the free Community edition, where radar, heatmap, treemap, Sankey, box plot and candlestick are Enterprise features. The no-library arm is the exception by design: it writes everything by hand, so it draws all twelve types. An unsupported pair shows a "Not supported" card and is not measured.
 
 | Type | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts Community | ApexCharts | SciChart | Highcharts | swiftplot |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -74,12 +76,12 @@ A library supports a type when it ships a component or series for it, a publishe
 | Stacked area | yes | `@nivo/line` | yes | yes | `AreaStack` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | Donut | yes | `@nivo/pie` | yes | yes | `Pie` | yes | yes | Not supported | yes | yes | yes | yes | yes | yes |
 | Radar | yes | `@nivo/radar` | yes | yes | `LineRadial` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` | yes |
-| Bar + line | yes | Not supported | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | Not supported |
+| Bar + line | yes | Not supported | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | Heatmap | Not supported | `@nivo/heatmap` | yes | `chartjs-chart-matrix` | `@visx/heatmap` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/heatmap` | yes |
 | Treemap | yes | `@nivo/treemap` | yes | `chartjs-chart-treemap` | `@visx/hierarchy` | yes | yes | Not supported | yes | Enterprise only | yes | Not supported | `modules/treemap` | yes |
 | Sankey | yes | `@nivo/sankey` | yes | `chartjs-chart-sankey` | `@visx/sankey` | yes | yes | Not supported | yes | Enterprise only | Not supported (`apexsankey` is a separate commercial package) | Not supported | `modules/sankey` | yes |
 | Box plot | Not supported | `@nivo/boxplot` | yes | `@sgratzl/chartjs-chart-boxplot` | `@visx/stats` | yes | yes | Not supported | yes | Enterprise only | yes | yes | `highcharts-more` | yes |
-| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/stock` | `bar` + `errorBars` |
+| Candlestick | Not supported | Not supported | yes | `chartjs-chart-financial` | Not supported | yes | yes | Not supported | yes | Enterprise only | yes | yes | `modules/stock` | yes |
 
 For the ten gallery types the source of truth is `apps/bench/results/gallery-bundle.json`: a pair with no entry there is not supported. Survival and Scatter are not in it; every library draws them.
 
@@ -141,17 +143,17 @@ Implementation burden of these ports under this contract, not a ranking of how s
 
 | Chart | Recharts | nivo | ECharts | Chart.js | visx | TanStack | No library | uPlot | Plotly | AG Charts | ApexCharts | SciChart | Highcharts | swiftplot |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3134 | 2409 | 1024 | 1254 | 1616 | 1775 | 904 | 878 |
-| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3448 | N/A | 1365 | N/A | 1642 | 1881 | 1274 | 1434 |
-| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3246 | N/A | 1512 | N/A | 1698 | 1784 | 1340 | 1539 |
-| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2435 | 1205 | 652 | 484 | 860 | 1870 | 492 | N/A |
-| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 994 | N/A | 602 | 387 | 833 | 836 | 448 | 537 |
-| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1848 | N/A | 800 | N/A | 1043 | 1134 | 728 | 859 |
-| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1199 | N/A | 827 | N/A | 968 | 1251 | 674 | 689 |
-| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 1979 | N/A | 754 | N/A | N/A | N/A | 497 | 660 |
-| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2275 | 1114 | 574 | 413 | 727 | 1713 | 410 | 512 |
-| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2468 | 1126 | 555 | 387 | 704 | 1701 | 391 | 513 |
-| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 1545 | N/A | 997 | N/A | 1054 | N/A | 806 | 589 |
+| Survival + Scatter | 1064 | 993 | 1117 | 1214 | 1683 | 720 | 3134 | 2409 | 1024 | 1254 | 1616 | 1775 | 904 | 937 |
+| Box plot | N/A | 1270 | 1258 | 1227 | 1507 | 1198 | 3448 | N/A | 1365 | N/A | 1642 | 1881 | 1274 | 1492 |
+| Candlestick | N/A | N/A | 1441 | 1427 | N/A | 1221 | 3246 | N/A | 1512 | N/A | 1698 | 1784 | 1340 | 1494 |
+| Bar + line | 363 | N/A | 502 | 457 | 898 | 438 | 2435 | 1205 | 652 | 484 | 860 | 1870 | 492 | 673 |
+| Donut | 206 | 207 | 479 | 350 | 439 | 307 | 994 | N/A | 602 | 387 | 833 | 836 | 448 | 595 |
+| Heatmap | N/A | 475 | 804 | 857 | 939 | 580 | 1848 | N/A | 800 | N/A | 1043 | 1134 | 728 | 917 |
+| Radar | 555 | 442 | 704 | 588 | 936 | 584 | 1199 | N/A | 827 | N/A | 968 | 1251 | 674 | 747 |
+| Sankey | 434 | 229 | 468 | 462 | 673 | 433 | 1979 | N/A | 754 | N/A | N/A | N/A | 497 | 788 |
+| Stacked area | 288 | 280 | 395 | 370 | 909 | 344 | 2275 | 1114 | 574 | 413 | 727 | 1713 | 410 | 572 |
+| Stacked bar | 279 | 255 | 387 | 337 | 846 | 343 | 2468 | 1126 | 555 | 387 | 704 | 1701 | 391 | 571 |
+| Treemap | 572 | 428 | 755 | 917 | 740 | 581 | 1545 | N/A | 997 | N/A | 1054 | N/A | 806 | 645 |
 
 For gallery totals, compare the six types every one of the original seven arms implements: donut, radar, Sankey, stacked area, stacked bar and treemap. Shared files count once per library. A library added later gets a total only if it implements all six, so uPlot, AG Charts, ApexCharts and SciChart show only their coverage.
 
@@ -170,7 +172,7 @@ For gallery totals, compare the six types every one of the original seven arms i
 | ApexCharts | — | — | — | — | 9/10 |
 | SciChart | — | — | — | — | 8/10 |
 | Highcharts | 1214 | 200 | 554 | 1968 | 10/10 |
-| swiftplot | 1398 | 306 | 223 | 1927 | 9/10 |
+| swiftplot | 1468 | 364 | 223 | 2055 | 10/10 |
 
 - **Counted:** the chart file, plus every file it reaches under `apps/bench/src/arms`: the library's own `shared/` (the adapter column) and `arms/shared/`. That includes library registration such as `use([...])`, callbacks and data reshaping.
 - **Not counted:** imports, comments, `src/data/*` and each arm's `main.tsx`. Types in these files emit no tokens. Typing and dependency setup are not measured.

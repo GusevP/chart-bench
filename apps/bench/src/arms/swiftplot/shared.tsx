@@ -18,7 +18,12 @@ export const places = (count: number) => Float64Array.from({ length: count }, (_
 function live(tip: RefObject<TooltipOptions>): TooltipOptions {
   const now = <M extends TooltipOptions['mode']>(_: M) => tip.current as Extract<TooltipOptions, { mode: M }>;
   return tip.current.mode === 'x'
-    ? { mode: 'x', title: x => now('x').title(x), value: y => now('x').value(y) }
+    ? {
+        mode: 'x',
+        title: x => now('x').title(x),
+        value: (y, axis) => now('x').value(y, axis),
+        snap: x => now('x').snap?.(x) ?? x,
+      }
     : { mode: 'nearest', text: (...args) => now('nearest').text(...args) };
 }
 

@@ -279,31 +279,34 @@
   },
   "swiftplot": {
     "boxplot": {
-      "libraryKb": 16.3
+      "libraryKb": 19.6
     },
     "candlestick": {
-      "libraryKb": 16
+      "libraryKb": 17.7
+    },
+    "combo": {
+      "libraryKb": 20.1
     },
     "donut": {
-      "libraryKb": 12.1
+      "libraryKb": 15.4
     },
     "heatmap": {
-      "libraryKb": 12.6
+      "libraryKb": 15.8
     },
     "radar": {
-      "libraryKb": 12
+      "libraryKb": 15.3
     },
     "sankey": {
-      "libraryKb": 14.7
+      "libraryKb": 17.9
     },
     "stacked-area": {
-      "libraryKb": 13.5
+      "libraryKb": 16.8
     },
     "stacked-bar": {
-      "libraryKb": 15.2
+      "libraryKb": 18.4
     },
     "treemap": {
-      "libraryKb": 13.1
+      "libraryKb": 16.4
     }
   },
   "tanstack": {
