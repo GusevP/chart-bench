@@ -55,6 +55,23 @@ Mount time on the heavy data, median ms. The scatter has 10,000 points and the s
 - The nivo scatter is its SVG component. Its Canvas scatter was not measured.
 - These numbers are not comparable with the 2026-11-06 run. That run used Playwright's headless shell, which has no GPU, so WebGL ran in software; this one uses full Chromium, and every library moved, Canvas ones most at 4×.
 
+### Large data: swiftplot and uPlot
+
+Measured on 2026-11-26, straight after the run above, on the same machine (1-minute load average 5.1–6.5 before and after each pass). Only these two arms were run: with the CPU slowed 4×, every other library is already far behind them on the 10,000-point scatter above. Source: [`huge-20261126-1x.md`](apps/bench/results/huge-20261126-1x.md) and [`huge-20261126-4x.md`](apps/bench/results/huge-20261126-4x.md), nine loads per cell, none timed out.
+
+Median ms. *Mount* is the frame-inclusive time of the table above; *done signal* stops when the arm's own "drawn" callback fires, before the browser paints.
+
+| chart | library | mount, native | done signal, native | mount, 4× | done signal, 4× |
+| --- | --- | ---: | ---: | ---: | ---: |
+| survival, 10 × 10,000 points | swiftplot | 30.4 | 18.5 | 85.0 | 65.6 |
+| survival, 10 × 10,000 points | uPlot | 53.9 | 49.3 | 202.1 | 186.8 |
+| scatter, 100,000 points | swiftplot | 26.2 | 15.6 | 68.7 | 48.7 |
+| scatter, 100,000 points | uPlot | 35.1 | 30.4 | 135.2 | 118.4 |
+
+- An empty page measured 21.5–24.3 ms at native speed and 15.0–17.7 ms at 4×. By the tie rule above, the two mount times on the native scatter tie; on the survival chart, and on both charts at 4×, swiftplot is ahead.
+- swiftplot draws the 100,000-point scatter with WebGL. `drawArrays` returns before the GPU has finished, so its done signal, and to a lesser degree its mount time, can stop before all the points are drawn, and the 4× throttle slows the CPU, not the GPU. [`apps/bench/src/arms/swiftplot/NOTES.md`](apps/bench/src/arms/swiftplot/NOTES.md) records how much a forced GPU read-back added in an earlier run.
+- uPlot has no scatter series: its scatter is circle-drawing code written for this benchmark, after uPlot's own scatter demo (see [`apps/bench/src/arms/uplot/NOTES.md`](apps/bench/src/arms/uplot/NOTES.md)).
+
 ## Playground
 
 Pick libraries, paste your own data as JSON, and the playground measures each library alone, in a sandboxed lab frame that Chrome and Edge run in their own process, with a fresh frame per run: 1 warm-up and 5 measured runs, reported as median ± IQR/2. A `shell` row (the page with no chart) shows the floor of your machine and display. Metrics: mount time, update time, main-thread blocking during mount (the frame's long tasks, each counted past 50 ms; Chromium with an isolated frame only, `n/a` elsewhere), DOM nodes, bundle KB, code tokens and, on the display cards afterwards, the worst frame while you hover. Numbers are for your machine and comparable within one session only. The page opens with an unmeasured preview of the default selection; nothing is timed until you press Render. Because the frame has its own process, a chart that blocks for minutes doesn't freeze the playground: a library with no run finished within 60 s is stopped, shown as `> 60 s`, and its chart is not drawn again. The playground checks that isolation before measuring and refuses the ~100k sample in a browser without it (Safari, Firefox), where such a chart would freeze the tab. On ~100k each library first draws the heavy sample and is skipped if that takes over 2 s. Chrome runs all sandboxed frames of a site in one process and can't stop a script already running there, so after a timeout the next library waits, with the tab still usable, until the timed-out chart finishes drawing. Numbers from before this change came from a same-process frame and blocking measured from the top window, so they are not comparable with current ones.
